@@ -5,7 +5,7 @@ from google.oauth2.service_account import Credentials
 import sqlite3
 
 class SpreadsheetDatabaseConverter:
-    def __init__(self, credentials_path, spreadsheet_name):
+    def __init__(self, credentials_path, spreadsheet_url):
         """
         Initialize the converter with Google Sheets credentials and spreadsheet name
         
@@ -25,10 +25,6 @@ class SpreadsheetDatabaseConverter:
         ]
         creds = Credentials.from_service_account_file(credentials_path, scopes=SCOPES)
         client = gspread.authorize(creds)
-        
-
-        # Python Our Finances URL
-        spreadsheet_url = "https://docs.google.com/spreadsheets/d/1zss8pMXIT3REAbs7-CtlFm7GWSsmzK6Xt7F00hQseDw"
 
         # Open the spreadsheet
         self.spreadsheet = client.open_by_url(spreadsheet_url)
@@ -52,6 +48,7 @@ class SpreadsheetDatabaseConverter:
             
             # Write DataFrame to SQLite table (sheet name becomes table name)
             table_name = worksheet.title.replace(' ', '_')
+            print(table_name)
             df.to_sql(table_name, self.db_connection, if_exists='replace', index=False)
         
         print(f"Spreadsheet converted to SQLite database at {self.db_path}")
@@ -104,16 +101,22 @@ class SpreadsheetDatabaseConverter:
             self.db_connection.close()
 
 # Example usage
+        
 def main():
+    # Our Finances URL
+    spreadsheet_url = "https://docs.google.com/spreadsheets/d/1Sj13auBheoZalYbs1KUe1ESf0Gq-3gD2DfjdFmVEPTc"
+    # Python Our Finances URL
+    #spreadsheet_url = "https://docs.google.com/spreadsheets/d/1zss8pMXIT3REAbs7-CtlFm7GWSsmzK6Xt7F00hQseDw"
+
     # Replace with your actual paths and names
     converter = SpreadsheetDatabaseConverter(
         credentials_path=os.path.expanduser("~/isw-personal-scripts-314a6167bf08.json"), 
-        spreadsheet_name='Python Our Finances'
+        spreadsheet_url=spreadsheet_url
     )
     
     # Convert spreadsheet to SQLite
     converter.convert_to_sqlite()
-    
+    exit
     try:
         # Process data (customize this method for your needs)
         processed_data = converter.process_data()
