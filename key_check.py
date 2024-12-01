@@ -22,8 +22,5 @@ spreadsheet_url = "https://docs.google.com/spreadsheets/d/1Sj13auBheoZalYbs1KUe1
 
 # Access a Google Sheet
 spreadsheet = client.open_by_url(spreadsheet_url)
-worksheet = spreadsheet.sheet1
 
-# Fetch data
-data = worksheet.get_all_records()
-print(data)
+print(spreadsheet.title)
