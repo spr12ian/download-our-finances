@@ -62,14 +62,11 @@ class SpreadsheetDatabaseConverter:
         """
         if self.db_connection:
             self.db_connection.close()
-
-# Example usage
         
 def main():
     # Our Finances URL
     spreadsheet_url = "https://docs.google.com/spreadsheets/d/1Sj13auBheoZalYbs1KUe1ESf0Gq-3gD2DfjdFmVEPTc"
 
-    # Replace with your actual paths and names
     converter = SpreadsheetDatabaseConverter(
         credentials_path=os.path.expanduser("~/isw-personal-scripts-314a6167bf08.json"), 
         spreadsheet_url=spreadsheet_url
