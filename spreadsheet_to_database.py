@@ -1,9 +1,9 @@
-import pandas as pd
-import gspread
+import configparser
 from google.oauth2.service_account import Credentials
+import gspread
+import pandas as pd
 import sqlite3
 import time
-import configparser
 import google_helpers
 
 
@@ -56,7 +56,7 @@ class SpreadsheetDatabaseConverter:
 
             time.sleep(1)
 
-        print("Spreadsheet converted to SQLite database at {self.db_path}")
+        print(f"Spreadsheet converted to SQLite database at {self.db_path}")
 
     def close_connection(self):
         """
