@@ -1,26 +1,35 @@
-import os
+import configparser
 from google.oauth2.service_account import Credentials
+import google_helpers
 import gspread
 
-# Path to the JSON key file
-SERVICE_ACCOUNT_FILE = os.path.expanduser("~/isw-personal-scripts-314a6167bf08.json")
+def main():
+    config = configparser.ConfigParser()
+    config.read("config.ini")
 
-# Define the required scopes
-SCOPES = [
-    'https://www.googleapis.com/auth/spreadsheets.readonly',
-    'https://www.googleapis.com/auth/drive.readonly'
-]
+    # Google Cloud Service credentials
+    credentials_file_name = config["Google"]["credentials_file_name"]
 
-# Authenticate using the service account
-credentials = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    spreadsheet_key = config["Google"]["source_spreadsheet_key"]
 
-# Authorize and connect to Google Sheets
-client = gspread.authorize(credentials)
+    credentials_path = google_helpers.get_credentials_path(credentials_file_name)
 
-# Our Finances URL
-spreadsheet_url = "https://docs.google.com/spreadsheets/d/1Sj13auBheoZalYbs1KUe1ESf0Gq-3gD2DfjdFmVEPTc"
+    # Define the required scopes
+    SCOPES = [
+        'https://www.googleapis.com/auth/spreadsheets.readonly',
+        'https://www.googleapis.com/auth/drive.readonly'
+    ]
 
-# Access a Google Sheet
-spreadsheet = client.open_by_url(spreadsheet_url)
+    # Authenticate using the service account
+    credentials = Credentials.from_service_account_file(credentials_path, scopes=SCOPES)
 
-print(spreadsheet.title)
+    # Authorize and connect to Google Sheets
+    client = gspread.authorize(credentials)
+
+    # Access a Google Sheet
+    spreadsheet = client.open_by_key(spreadsheet_key)
+
+    print(spreadsheet.title)
+
+if __name__ == "__main__":
+    main()
