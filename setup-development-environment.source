@@ -24,26 +24,11 @@ else
     echo "Virtual environment is active: $VIRTUAL_ENV"
 fi
 
-#echo "Installing the django web framework"
-#python3 -m pip install django
+install-python-package.sh gspread
 
-#echo "Installing the flask web framework"
-#python3 -m pip install flask
+install-python-package.sh gpandas
 
-#echo "Installing oauth2client"
-#python3 -m pip install oauth2client
-
-#echo "Installing google-auth"
-#python3 -m pip install google-auth
-
-#echo "Installing google-auth-oauthlib"
-#python3 -m pip install google-auth-oauthlib
-
-echo "Installing gspread"
-python3 -m pip install gspread
-
-echo "Installing pandas"
-python3 -m pip install pandas
+install-python-package.sh pytest
 
 python3 -m pip freeze >requirements.txt
 
