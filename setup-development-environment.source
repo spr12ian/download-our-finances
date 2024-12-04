@@ -26,6 +26,7 @@ fi
 
 install-python-package.sh gspread
 install-python-package.sh pandas
+install-python-package.sh pytest
 
 python3 -m pip freeze >requirements.txt
 
