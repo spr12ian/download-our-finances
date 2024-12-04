@@ -11,7 +11,7 @@ def func(x):
     return x + 1
 
 def test_answer():
-    assert func(3) == 5
+    assert func(3) == 4
 
 def test_database_to_spreadsheet():
     database_to_spreadsheet.main()
