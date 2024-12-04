@@ -30,6 +30,6 @@ install-python-package.sh pytest
 
 python3 -m pip freeze >requirements.txt
 
-python3 -m pip list --outdated
+python3 -m pip list --outdated | grep -oP '^\S+' | xargs -n1 python3 -m pip install -U
 
 echo "Remember to deactivate before running this script again!"
