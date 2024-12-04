@@ -93,18 +93,21 @@ class DatabaseSpreadsheetConverter:
         else:
             sheet_name = table_name
 
+        print(f"Trying to upload {sheet_name}.")
         try:
             # Check if sheet exists and clear it
             worksheet = self.spreadsheet.worksheet(sheet_name)
+            print(f"Sheet {sheet_name} exists.")
             worksheet.clear()
-            print(f"Sheet {sheet_name} exists")
         except gspread.exceptions.WorksheetNotFound:
+            print(f"{sheet_name} not found. Trying to add it.")
             # If sheet doesn't exist, create it
             worksheet = self.spreadsheet.add_worksheet(
                 title=sheet_name, rows=100, cols=20
             )
-            print(f"Created sheet {sheet_name}")
+            print(f"Added sheet {sheet_name}")
 
+        print(f"Trying to update {sheet_name}.")
         # Update the sheet with DataFrame content
         worksheet.update(
             [dataframe.columns.values.tolist()] + dataframe.values.tolist()
