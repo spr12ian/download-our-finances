@@ -2,8 +2,11 @@ import configparser
 from google.oauth2.service_account import Credentials
 import google_helpers
 import gspread
+import log_it
+
 
 def main():
+    log_it.print_time()
     config = configparser.ConfigParser()
     config.read("config.ini")
 
@@ -16,8 +19,8 @@ def main():
 
     # Define the required scopes
     SCOPES = [
-        'https://www.googleapis.com/auth/spreadsheets.readonly',
-        'https://www.googleapis.com/auth/drive.readonly'
+        "https://www.googleapis.com/auth/spreadsheets.readonly",
+        "https://www.googleapis.com/auth/drive.readonly",
     ]
 
     # Authenticate using the service account
@@ -29,7 +32,9 @@ def main():
     # Access a Google Sheet
     spreadsheet = client.open_by_key(spreadsheet_key)
 
+    log_it.print_time()
     print(spreadsheet.title)
+
 
 if __name__ == "__main__":
     main()

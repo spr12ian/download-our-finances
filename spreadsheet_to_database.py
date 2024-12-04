@@ -1,6 +1,7 @@
 import configparser
 from google.oauth2.service_account import Credentials
 import gspread
+import log_it
 import pandas as pd
 import sqlite3
 import time
@@ -45,6 +46,7 @@ class SpreadsheetDatabaseConverter:
 
         # Iterate through all worksheets
         for worksheet in self.spreadsheet.worksheets():
+            log_it.print_time()
             # Get worksheet data as a DataFrame
             data = worksheet.get_all_records()
             df = pd.DataFrame(data)
