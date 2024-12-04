@@ -3,9 +3,9 @@
 # Usage: source ./setup-development-environment.source
 
 # Check if the script is being sourced
-(return 0 2>/dev/null) || { 
-    echo "This script should be sourced, not executed." 
-    exit 1 
+(return 0 2>/dev/null) || {
+    echo "This script should be sourced, not executed."
+    exit 1
 }
 
 if command -v python3 &>/dev/null; then
@@ -24,27 +24,11 @@ else
     echo "Virtual environment is active: $VIRTUAL_ENV"
 fi
 
-#echo "Installing the django web framework"
-#python3 -m pip install django
-
-#echo "Installing the flask web framework"
-#python3 -m pip install flask
-
-#echo "Installing oauth2client"
-#python3 -m pip install oauth2client
-
-#echo "Installing google-auth"
-#python3 -m pip install google-auth
-
-#echo "Installing google-auth-oauthlib"
-#python3 -m pip install google-auth-oauthlib
-
-echo "Installing gspread"
-python3 -m pip install gspread
-
-echo "Installing pandas"
-python3 -m pip install pandas
+install-python-package.sh gspread
+install-python-package.sh pandas
 
 python3 -m pip freeze >requirements.txt
+
+python3 -m pip list --outdated
 
 echo "Remember to deactivate before running this script again!"
