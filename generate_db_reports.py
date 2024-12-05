@@ -1,10 +1,6 @@
 import configparser
-from google.oauth2.service_account import Credentials
-import gspread
 import pandas as pd
-import sqlite3
-import time
-import google_helpers
+import sqlite_helpers
 
 
 class Generate_DB_Reports:
@@ -20,37 +16,65 @@ class Generate_DB_Reports:
         self.db_connection = None
         self.db_path = database_name + ".db"
 
-    def first_report(self):
-        """
-        Example data reporting method.
-        """
-        self.open_db_connection()
-
+    def account_owners(self):
         query = """
-            SELECT * FROM 'Account_owners'
+            SELECT * 
+            FROM 'Account_owners'
         """
-        # Create a database cursor
-        cursor = self.db_connection.cursor()
 
-        # Example: Run a complex query
-        cursor.execute(query)
+        dataframe = self.report(query)
 
-        # Convert results back to DataFrame for further processing
-        dataframe = pd.DataFrame(cursor.fetchall())
-
-        self.close_db_connection()
         return dataframe
 
-    def open_db_connection(self):
-        # Connect to SQLite database
-        self.db_connection = sqlite3.connect(self.db_path)
+    def account_balances(self):
+        query = """
+            UPDATE 'Account_balances'
+            SET Balance = printf('%.2f', CAST(Balance AS REAL))
+        """
+        self.executeQuery(query)
 
-    def close_db_connection(self):
+        query = """
+            SELECT Key, Balance 
+            FROM 'Account_balances'
         """
-        Close database connection
+
+        dataframe = self.report(query)
+
+        return dataframe
+
+    def executeQuery(self, query):
         """
-        if self.db_connection:
-            self.db_connection.close()
+        Data reporting method.
+        """
+        print(query)
+
+        db_connection = sqlite_helpers.open_connection(self.db_path)
+
+        cursor = db_connection.cursor()
+        cursor.execute(query)
+        db_connection.commit()
+
+        sqlite_helpers.close_connection(db_connection)
+
+    def report(self, query):
+        """
+        Data reporting method.
+        """
+        print(query)
+
+        db_connection = sqlite_helpers.open_connection(self.db_path)
+
+        dataframe = pd.read_sql(query, db_connection)
+
+        sqlite_helpers.close_connection(db_connection)
+
+        print(dataframe.describe())
+
+        print(dataframe.info())
+
+        print(dataframe)
+
+        return dataframe
 
 
 def main():
@@ -61,13 +85,8 @@ def main():
 
     reporter = Generate_DB_Reports(database_name)
 
-    try:
-        dataframe = reporter.first_report()
-        print(dataframe)
-
-    finally:
-        # Always close the database connection
-        reporter.close_db_connection()
+    dataframe = reporter.account_owners()
+    dataframe = reporter.account_balances()
 
 
 if __name__ == "__main__":
