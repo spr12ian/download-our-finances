@@ -1,6 +1,5 @@
 import configparser
 import google_helpers
-import gspread
 import log_it
 import pandas as pd
 import sqlite_helper
@@ -68,6 +67,9 @@ class SpreadsheetDatabaseConverter:
             ["account_balances", "Credit"],
             ["account_balances", "Debit"],
             ["account_balances", "Balance"],
+            ["transactions", "Credit"],
+            ["transactions", "Debit"],
+            ["transactions", "Nett"],
         ]
 
         for table_name, column_name in real_columns:

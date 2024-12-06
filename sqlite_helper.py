@@ -24,6 +24,7 @@ class SQLiteHelper:
         
         # Create a temporary table without the column to drop
         sql_statement=f"CREATE TABLE {temp_table_name} AS SELECT {column_names_str} FROM {table_name}"
+        print(sql_statement)
         cursor.execute(sql_statement)
         
         # Drop the original table

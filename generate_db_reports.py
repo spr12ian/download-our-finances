@@ -19,7 +19,7 @@ class Generate_DB_Reports:
     def account_balances(self):
         query = """
             SELECT Key, Balance 
-            FROM 'account_balances'
+            FROM account_balances
             WHERE Balance NOT BETWEEN -1 AND 1
         """
 
@@ -30,10 +30,25 @@ class Generate_DB_Reports:
     def account_owners(self):
         query = """
             SELECT * 
-            FROM 'account_owners'
+            FROM account_owners
         """
 
-        print(self.sql.fetch_all(query))
+        for row in self.sql.fetch_all(query):
+            print(row)
+        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
+    def transactions(self):
+        query = """
+            SELECT Category, SUM(Nett) 
+            FROM transactions
+            WHERE Key <> ''
+            AND "Tax year" = '2023 to 2024'
+            AND Category LIKE 'HMRC%'
+            GROUP BY Category
+        """
+
+        for row in self.sql.fetch_all(query):
+            print(row)
         print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 
 
@@ -47,6 +62,7 @@ def main():
 
     reporter.account_balances()
     reporter.account_owners()
+    reporter.transactions()
 
 
 if __name__ == "__main__":
