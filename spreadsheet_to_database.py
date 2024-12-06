@@ -3,7 +3,7 @@ import google_helpers
 import gspread
 import log_it
 import pandas as pd
-import sqlite_helpers
+import sqlite_helper
 import time
 
 
@@ -31,13 +31,14 @@ class SpreadsheetDatabaseConverter:
         # Local database connection
         self.db_connection = None
         self.db_path = database_name + ".db"
+        self.sql = sqlite_helper.SQLiteHelper(self.db_path)
 
     def convert_to_sqlite(self):
         """
         Convert all sheets in the Google Spreadsheet to SQLite tables
         """
 
-        db_connection = sqlite_helpers.open_connection(self.db_path)
+        db_connection = self.sql.open_connection()
 
         # Iterate through all worksheets
         for worksheet in self.spreadsheet.worksheets():
@@ -49,16 +50,28 @@ class SpreadsheetDatabaseConverter:
             df = pd.DataFrame(data)
 
             # Write DataFrame to SQLite table (sheet name becomes table name)
-            table_name = worksheet.title.replace(" ", "_")
+            table_name = worksheet.title.replace(" ", "_").lower()
             print(table_name)
 
-            df.to_sql(table_name, db_connection, if_exists="replace", index=False)
+            df.to_sql(
+                table_name, self.sql.db_connection, if_exists="replace", index=False
+            )
 
             time.sleep(1)
 
-        sqlite_helpers.close_connection(db_connection)
+        self.sql.close_connection()
 
         print(f"Spreadsheet converted to SQLite database at {self.db_path}")
+
+    def text_to_real(self):
+        real_columns = [
+            ["account_balances", "Credit"],
+            ["account_balances", "Debit"],
+            ["account_balances", "Balance"],
+        ]
+
+        for table_name, column_name in real_columns:
+            self.sql.text_to_real(table_name, column_name)
 
 
 def main():
@@ -79,6 +92,7 @@ def main():
 
     # Convert spreadsheet to SQLite
     converter.convert_to_sqlite()
+    converter.text_to_real()
 
 
 if __name__ == "__main__":

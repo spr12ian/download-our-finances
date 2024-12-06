@@ -1,6 +1,5 @@
 import configparser
-import pandas as pd
-import sqlite_helpers
+import sqlite_helper
 
 
 class Generate_DB_Reports:
@@ -15,66 +14,27 @@ class Generate_DB_Reports:
         # Local database connection
         self.db_connection = None
         self.db_path = database_name + ".db"
+        self.sql=sqlite_helper.SQLiteHelper(self.db_path)
+
+    def account_balances(self):
+        query = """
+            SELECT Key, Balance 
+            FROM 'account_balances'
+            WHERE Balance NOT BETWEEN -1 AND 1
+        """
+
+        for row in self.sql.fetch_all(query):
+            print(row)
+        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 
     def account_owners(self):
         query = """
             SELECT * 
-            FROM 'Account_owners'
+            FROM 'account_owners'
         """
 
-        dataframe = self.report(query)
-
-        return dataframe
-
-    def account_balances(self):
-        query = """
-            UPDATE 'Account_balances'
-            SET Balance = printf('%.2f', CAST(Balance AS REAL))
-        """
-        self.executeQuery(query)
-
-        query = """
-            SELECT Key, Balance 
-            FROM 'Account_balances'
-        """
-
-        dataframe = self.report(query)
-
-        return dataframe
-
-    def executeQuery(self, query):
-        """
-        Data reporting method.
-        """
-        print(query)
-
-        db_connection = sqlite_helpers.open_connection(self.db_path)
-
-        cursor = db_connection.cursor()
-        cursor.execute(query)
-        db_connection.commit()
-
-        sqlite_helpers.close_connection(db_connection)
-
-    def report(self, query):
-        """
-        Data reporting method.
-        """
-        print(query)
-
-        db_connection = sqlite_helpers.open_connection(self.db_path)
-
-        dataframe = pd.read_sql(query, db_connection)
-
-        sqlite_helpers.close_connection(db_connection)
-
-        print(dataframe.describe())
-
-        print(dataframe.info())
-
-        print(dataframe)
-
-        return dataframe
+        print(self.sql.fetch_all(query))
+        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 
 
 def main():
@@ -85,8 +45,8 @@ def main():
 
     reporter = Generate_DB_Reports(database_name)
 
-    dataframe = reporter.account_owners()
-    dataframe = reporter.account_balances()
+    reporter.account_balances()
+    reporter.account_owners()
 
 
 if __name__ == "__main__":
