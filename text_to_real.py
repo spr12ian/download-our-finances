@@ -6,7 +6,7 @@ import sqlite_helper
 import time
 
 
-class SpreadsheetDatabaseConverter:
+class TextToReal:
     def __init__(self, credentials_path, spreadsheet_key, database_name):
         """
         Initialize the converter with Google Sheets credentials and spreadsheet name
@@ -32,37 +32,18 @@ class SpreadsheetDatabaseConverter:
         self.db_path = database_name + ".db"
         self.sql = sqlite_helper.SQLiteHelper(self.db_path)
 
-    def convert_to_sqlite(self):
-        """
-        Convert all sheets in the Google Spreadsheet to SQLite tables
-        """
+    def text_to_real(self):
+        real_columns = [
+            ["account_balances", "Credit"],
+            ["account_balances", "Debit"],
+            ["account_balances", "Balance"],
+            ["transactions", "Credit"],
+            ["transactions", "Debit"],
+            ["transactions", "Nett"],
+        ]
 
-        db_connection = self.sql.open_connection()
-
-        # Iterate through all worksheets
-        for worksheet in self.spreadsheet.worksheets():
-            log_helper.tprint(f"Converting {worksheet.title}")
-
-            # Get worksheet data as a DataFrame
-            data = worksheet.get_all_records()
-
-            df = pd.DataFrame(data)
-
-            # Write DataFrame to SQLite table (sheet name becomes table name)
-            table_name = worksheet.title.replace(" ", "_").lower()
-            print(table_name)
-
-            df.to_sql(
-                table_name, self.sql.db_connection, if_exists="replace", index=False
-            )
-
-            log_helper.tprint(f"Converted {table_name}")
-
-            time.sleep(1)
-
-        self.sql.close_connection()
-
-        log_helper.tprint(f"Spreadsheet converted to SQLite database at {self.db_path}")
+        for table_name, column_name in real_columns:
+            self.sql.text_to_real(table_name, column_name)
 
 
 def main():
@@ -77,12 +58,10 @@ def main():
 
     database_name = config["SQLite"]["database_name"]
 
-    converter = SpreadsheetDatabaseConverter(
-        credentials_path, spreadsheet_key, database_name
-    )
+    converter = TextToReal(credentials_path, spreadsheet_key, database_name)
 
-    # Convert spreadsheet to SQLite
-    converter.convert_to_sqlite()
+    # Convert TEXT to REAL for selected columns
+    converter.text_to_real()
 
 
 if __name__ == "__main__":

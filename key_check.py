@@ -2,11 +2,11 @@ import configparser
 from google.oauth2.service_account import Credentials
 import google_helpers
 import gspread
-import log_it
+import log_helper
 
 
 def main():
-    log_it.print_time()
+    log_helper.print_time()
     config = configparser.ConfigParser()
     config.read("config.ini")
 
@@ -32,8 +32,7 @@ def main():
     # Access a Google Sheet
     spreadsheet = client.open_by_key(spreadsheet_key)
 
-    log_it.print_time()
-    print(spreadsheet.title)
+    log_helper.tprint(spreadsheet.title)
 
 
 if __name__ == "__main__":
