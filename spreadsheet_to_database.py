@@ -50,13 +50,12 @@ class SpreadsheetDatabaseConverter:
 
             # Write DataFrame to SQLite table (sheet name becomes table name)
             table_name = worksheet.title.replace(" ", "_").lower()
-            print(table_name)
 
             df.to_sql(
                 table_name, self.sql.db_connection, if_exists="replace", index=False
             )
 
-            log_helper.tprint(f"Converted {table_name}")
+            log_helper.tprint(f"Converted {table_name}\n")
 
             time.sleep(1)
 
