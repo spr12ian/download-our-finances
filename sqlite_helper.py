@@ -65,6 +65,26 @@ class SQLiteHelper:
 
         return fetch_all
 
+    def fetch_one_row(self, query):
+        self.open_connection()
+
+        cursor = self.db_connection.cursor()
+        cursor.execute(query)
+        row = cursor.fetchone()
+
+        self.close_connection()
+
+        return row
+
+    def fetch_one_value(self, query):
+        row = self.fetch_one_row(query)
+        if row:
+            value = row[0]  # Accessing the first element of the tuple
+        else:
+            value = None  # In case no results are returned
+
+        return value
+
     def get_column_info(self, table_name, column_name):
         table_info = self.get_table_info(table_name)
         column_info = None
