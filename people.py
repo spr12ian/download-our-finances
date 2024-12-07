@@ -1,3 +1,4 @@
+from sqlite_helper import SQLiteQueryBuilder
 from sqlite_helper import SQLiteTable
 
 
@@ -7,38 +8,40 @@ class People(SQLiteTable):
         self.code = code
 
     def fetch_by_code(self, code):
-        print(code)
-        query = f"SELECT * FROM {self.table_name} WHERE Code = '{code}'"
-        print(query)
+        query = self.query_builder().where(f"Code = '{self.code}'").build()
         return self.sql.fetch_all(query)
 
     def get_date_of_birth(self):
-        if self.code:
-            print(self.code)
-            query = f'SELECT "Date of birth" FROM {self.table_name} WHERE Code = "{self.code}"'
-            print(query)
-            date_of_birth = self.sql.fetch_one_value(query)
-        else:
-            date_of_birth = None
-        return date_of_birth
+        return self.get_value_by_code("Date of birth")
 
     def get_name(self):
-        if self.code:
-            print(self.code)
-            query = f"SELECT Person FROM {self.table_name} WHERE Code = '{self.code}'"
-            print(query)
-            name = self.sql.fetch_one_value(query)
-        else:
-            name = None
-        return name
+        return self.get_value_by_code("Person")
+
+    def get_national_insurance_number(self):
+        return self.get_value_by_code("NINO")
+
+    def get_phone_number(self):
+        return self.get_value_by_code("Phone number")
 
     def get_spouse_code(self):
-        if self.code:
-            print(self.code)
-            query = f"SELECT Spouse FROM {self.table_name} WHERE Code = '{self.code}'"
-            print(query)
-            spouse_code = self.sql.fetch_one_value(query)
-        else:
-            spouse_code = None
+        return self.get_value_by_code("Spouse")
 
-        return spouse_code
+    def get_unique_tax_reference(self):
+        return self.get_value_by_code("UTR")
+
+    def get_utr_check_digit(self):
+        return self.get_value_by_code("UTR check digit")
+
+    def get_value_by_code(self, column_name):
+        if self.code:
+            query = (
+                self.query_builder()
+                .select(column_name)
+                .where(f"Code = '{self.code}'")
+                .build()
+            )
+            result = self.sql.fetch_one_value(query)
+        else:
+            result = None
+
+        return result

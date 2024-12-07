@@ -194,6 +194,53 @@ FROM {table_name}
             self.rename_column(table_name, f"{column_name}_real", column_name)
 
 
+class SQLiteQueryBuilder:
+    def __init__(self, table_name):
+        self.table_name = table_name
+        self.columns = []
+        self.conditions = []
+        self.order_by = None
+        self.limit = None
+
+    def select(self, *columns):
+        self.columns = [f'"{col}"' for col in columns]
+        return self
+
+    def where(self, condition):
+        self.conditions.append(condition)
+        return self
+
+    def order(self, column, direction="ASC"):
+        self.order_by = f"{column} {direction}"
+        return self
+
+    def set_limit(self, limit):
+        self.limit = limit
+        return self
+
+    def build(self):
+        columns = ", ".join(self.columns) if self.columns else "*"
+        query = f"SELECT {columns} FROM {self.table_name}"
+
+        if self.conditions:
+            conditions = " AND ".join(self.conditions)
+            query += f" WHERE {conditions}"
+
+        if self.order_by:
+            query += f" ORDER BY {self.order_by}"
+
+        if self.limit:
+            query += f" LIMIT {self.limit}"
+
+        return query
+
+    def execute(self, connection):
+        query = self.build()
+        cursor = connection.cursor()
+        cursor.execute(query)
+        return cursor.fetchall()
+
+
 class SQLiteTable:
     def __init__(self, table_name):
         self.sql = SQLiteHelper()
@@ -205,3 +252,6 @@ class SQLiteTable:
 
     def get_how_many(self):
         return self.sql.get_how_many(self.table_name)
+
+    def query_builder(self):
+        return SQLiteQueryBuilder(self.table_name)
