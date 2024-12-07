@@ -2,7 +2,7 @@ import configparser
 import google_helpers
 import log_helper
 import pandas as pd
-import sqlite_helper
+from sqlite_helper import SQLiteHelper
 import time
 
 
@@ -29,8 +29,7 @@ class TextToReal:
 
         # Local database connection
         self.db_connection = None
-        self.db_path = database_name + ".db"
-        self.sql = sqlite_helper.SQLiteHelper(self.db_path)
+        self.sql = SQLiteHelper()
 
     def text_to_real(self):
         real_columns = [

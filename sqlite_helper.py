@@ -1,9 +1,15 @@
+import configparser
 import sqlite3
 
 
 class SQLiteHelper:
-    def __init__(self, db_path):
-        self.db_path = db_path
+    def __init__(self):
+        config = configparser.ConfigParser()
+        config.read("config.ini")
+
+        database_name = config["SQLite"]["database_name"]
+
+        self.db_path = database_name + ".db"
 
     def close_connection(self):
         if self.db_connection:
@@ -94,6 +100,23 @@ class SQLiteHelper:
 
         return column_info
 
+    def get_how_many(self, table_name, where=None):
+        self.open_connection()
+        query = f"""
+SELECT COUNT(*)
+FROM {table_name}
+
+"""
+
+        if where:
+            query += where
+
+        how_many = self.fetch_one_value(query)
+
+        self.close_connection()
+
+        return how_many
+
     def get_table_info(self, table_name):
         query = f"PRAGMA table_info('{table_name}')"
         self.open_connection()
@@ -169,3 +192,16 @@ class SQLiteHelper:
 
             self.drop_column(table_name, column_name)
             self.rename_column(table_name, f"{column_name}_real", column_name)
+
+
+class SQLiteTable:
+    def __init__(self, table_name):
+        self.sql = SQLiteHelper()
+        self.table_name = table_name
+
+    def fetch_all(self):
+        query = f"SELECT * FROM {self.table_name}"
+        return self.sql.fetch_all(query)
+
+    def get_how_many(self):
+        return self.sql.get_how_many(self.table_name)

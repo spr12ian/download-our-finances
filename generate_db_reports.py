@@ -1,11 +1,16 @@
-import configparser
-import sqlite_helper
+from tables import *
+from sqlite_helper import SQLiteHelper
 
 
-class Generate_DB_Reports:
-    def __init__(self, database_name):
+class HMRC:
+    def __init__(self):
+        transactions = Transactions()
+
+
+class Our_Finances:
+    def __init__(self):
         """
-        Initialize the reporter with the database_name name
+        Initialize the report with the database_name name
 
         Args:
             database_name (str): Name of the SQLite database
@@ -13,8 +18,12 @@ class Generate_DB_Reports:
 
         # Local database connection
         self.db_connection = None
-        self.db_path = database_name + ".db"
-        self.sql = sqlite_helper.SQLiteHelper(self.db_path)
+        self.sql = SQLiteHelper()
+
+    def get_hmrc_data(self, person_code, tax_year):
+        self.person = People(person_code)
+        print(self.person.get_name())
+        print(self.person.get_date_of_birth())
 
     def account_balances(self):
         query = """
@@ -38,11 +47,15 @@ class Generate_DB_Reports:
 
         return self.sql.fetch_one_value(query)
 
-    def HMRC(self, owner_code, tax_year):
+    def print_hmrc_report(self, person_code, tax_year):
+        hmrc_data = self.get_hmrc_data(person_code, tax_year)
+        spouse_code = self.person.get_spouse_code()
+        hmrc_spouse_data = self.get_hmrc_data(spouse_code, tax_year)
+
         query = f"""
             SELECT "Person", "Date of birth", "Phone number", "NINO", "UTR", "UTR check digit"
             FROM people
-            WHERE "Code" = '{owner_code}'
+            WHERE "Code" = '{person_code}'
         """
 
         row = self.sql.fetch_one_row(query)
@@ -70,7 +83,7 @@ class Generate_DB_Reports:
             FROM transactions
             WHERE Key <> ''
             AND "Tax year" = '{tax_year}'
-            AND Category LIKE 'HMRC {owner_code} EMP%income'
+            AND Category LIKE 'HMRC {person_code} EMP%income'
         """
 
         how_many = self.sql.fetch_one_value(query)
@@ -92,7 +105,7 @@ class Generate_DB_Reports:
             FROM transactions
             WHERE Key <> ''
             AND "Tax year" = '{tax_year}'
-            AND Category LIKE 'HMRC {owner_code} SE%income'
+            AND Category LIKE 'HMRC {person_code} SE%income'
         """
 
         how_many = self.sql.fetch_one_value(query)
@@ -127,7 +140,7 @@ class Generate_DB_Reports:
             FROM transactions
             WHERE Key <> ''
             AND "Tax year" = '{tax_year}'
-            AND Category LIKE 'HMRC {owner_code} property income%'
+            AND Category LIKE 'HMRC {person_code} property income%'
         """
 
         how_many = self.sql.fetch_one_value(query)
@@ -227,7 +240,7 @@ class Generate_DB_Reports:
         answer = f"{question_number} {question}"
 
         amount = self.get_year_category_total(
-            tax_year, f"HMRC {owner_code} Untaxed UK interest"
+            tax_year, f"HMRC {person_code} Untaxed UK interest"
         )
 
         if amount:
@@ -535,7 +548,6 @@ class Generate_DB_Reports:
         answer = f"{question_number} {question}"
         print(answer)
 
-
         print("\nPage TR 6\n")
 
         question_number = 1
@@ -639,8 +651,6 @@ class Generate_DB_Reports:
         print(answer)
         print(answer)
 
-
-
         print("\nPage TR 7\n")
 
         question_number = 1
@@ -682,8 +692,6 @@ class Generate_DB_Reports:
         question = ": "
         answer = f"{question_number} {question}"
         print(answer)
-
-
 
         print("\nPage TR 8\n")
 
@@ -727,8 +735,6 @@ class Generate_DB_Reports:
         answer = f"{question_number} {question}"
         print(answer)
 
-
-
         print("\nPage Ai 1\n")
 
         question_number = 1
@@ -770,8 +776,6 @@ class Generate_DB_Reports:
         question = ": "
         answer = f"{question_number} {question}"
         print(answer)
-
-
 
         print("\nPage Ai 2\n")
 
@@ -815,9 +819,6 @@ class Generate_DB_Reports:
         answer = f"{question_number} {question}"
         print(answer)
 
-
-
-
         print("\nPage Ai 3\n")
 
         question_number = 1
@@ -859,9 +860,6 @@ class Generate_DB_Reports:
         question = ": "
         answer = f"{question_number} {question}"
         print(answer)
-
-
-
 
         print("\nPage Ai 4\n")
 
@@ -905,10 +903,6 @@ class Generate_DB_Reports:
         answer = f"{question_number} {question}"
         print(answer)
 
-
-
-
-
         print("\nPage SES 1\n")
 
         question_number = 1
@@ -950,9 +944,6 @@ class Generate_DB_Reports:
         question = ": "
         answer = f"{question_number} {question}"
         print(answer)
-
-
-
 
         print("\nPage SES 2\n")
 
@@ -1122,7 +1113,6 @@ class Generate_DB_Reports:
         answer = f"{question_number} {question}"
         print(answer)
 
-
         print("\nPage TC 2\n")
 
         question_number = 1
@@ -1170,7 +1160,7 @@ class Generate_DB_Reports:
             FROM transactions
             WHERE Key <> ''
             AND "Tax year" = '{tax_year}'
-            AND Category LIKE 'HMRC {owner_code}%'
+            AND Category LIKE 'HMRC {person_code}%'
             GROUP BY Category
         """
 
@@ -1204,18 +1194,13 @@ class Generate_DB_Reports:
 
 
 def main():
-    config = configparser.ConfigParser()
-    config.read("config.ini")
+    our_finances = Our_Finances()
 
-    database_name = config["SQLite"]["database_name"]
-
-    reporter = Generate_DB_Reports(database_name)
-
-    # reporter.account_balances()
-    # reporter.people()
-    # reporter.transactions()
-    reporter.HMRC("B", "2023 to 2024")
-    reporter.HMRC("S", "2023 to 2024")
+    # our_finances.print_account_balances()
+    # our_finances.print_people()
+    # our_finances.print_transactions()
+    # our_finances.print_HMRC("B", "2023 to 2024")
+    our_finances.print_hmrc_report("S", "2023 to 2024")
 
 
 if __name__ == "__main__":

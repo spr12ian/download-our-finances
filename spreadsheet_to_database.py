@@ -2,12 +2,12 @@ import configparser
 import google_helpers
 import log_helper
 import pandas as pd
-import sqlite_helper
+from sqlite_helper import SQLiteHelper
 import time
 
 
 class SpreadsheetDatabaseConverter:
-    def __init__(self, credentials_path, spreadsheet_key, database_name):
+    def __init__(self, credentials_path, spreadsheet_key):
         """
         Initialize the converter with Google Sheets credentials and spreadsheet name
 
@@ -29,8 +29,7 @@ class SpreadsheetDatabaseConverter:
 
         # Local database connection
         self.db_connection = None
-        self.db_path = database_name + ".db"
-        self.sql = sqlite_helper.SQLiteHelper(self.db_path)
+        self.sql = SQLiteHelper()
 
     def convert_to_sqlite(self):
         """
@@ -61,7 +60,7 @@ class SpreadsheetDatabaseConverter:
 
         self.sql.close_connection()
 
-        log_helper.tprint(f"Spreadsheet converted to SQLite database at {self.db_path}")
+        log_helper.tprint(f"Spreadsheet imported to SQLite database")
 
 
 def main():
@@ -74,11 +73,7 @@ def main():
 
     spreadsheet_key = config["Google"]["source_spreadsheet_key"]
 
-    database_name = config["SQLite"]["database_name"]
-
-    converter = SpreadsheetDatabaseConverter(
-        credentials_path, spreadsheet_key, database_name
-    )
+    converter = SpreadsheetDatabaseConverter(credentials_path, spreadsheet_key)
 
     # Convert spreadsheet to SQLite
     converter.convert_to_sqlite()
