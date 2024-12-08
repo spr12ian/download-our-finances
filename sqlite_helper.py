@@ -30,7 +30,6 @@ class SQLiteHelper:
 
         # Create a temporary table without the column to drop
         sql_statement = f"CREATE TABLE {temp_table_name} AS SELECT {column_names_str} FROM {table_name}"
-        print(sql_statement)
         cursor.execute(sql_statement)
 
         # Drop the original table
@@ -47,8 +46,6 @@ class SQLiteHelper:
         self.close_connection()
 
     def executeAndCommit(self, sql_statement):
-        print(sql_statement)
-
         self.open_connection()
 
         cursor = self.db_connection.cursor()
@@ -58,8 +55,6 @@ class SQLiteHelper:
         self.close_connection()
 
     def fetch_all(self, query):
-        print(query)
-
         self.open_connection()
 
         cursor = self.db_connection.cursor()
@@ -156,7 +151,6 @@ FROM {table_name}
 
         # Create a new table with the renamed column
         sql_statement = f"CREATE TABLE temp_{table_name} AS SELECT {new_columns_str} FROM {table_name}"
-        print(sql_statement)
         cursor.execute(sql_statement)
 
         # Drop the original table

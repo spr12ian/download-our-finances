@@ -11,8 +11,16 @@ class People(SQLiteTable):
         query = self.query_builder().where(f"Code = '{code}'").build()
         return self.sql.fetch_all(query)
 
+    def get_first_name(self):
+        tokens=self.get_value_by_code("Person").split(' ')
+        return tokens[0]
+
     def get_date_of_birth(self):
         return self.get_value_by_code("Date of birth")
+
+    def get_last_name(self):
+        tokens=self.get_value_by_code("Person").split(' ')
+        return tokens[1]
 
     def get_name(self):
         return self.get_value_by_code("Person")

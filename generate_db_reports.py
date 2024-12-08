@@ -1,68 +1,102 @@
 from hmrc_category import HMRC_Category
+from hmrc_questions import HMRC_Questions
 from tables import *
 from sqlite_helper import SQLiteHelper
+import sys
 
 
 class HMRC:
     def __init__(self, person_code, tax_year):
-        print(person_code)
-        print(tax_year)
-        questions = [
-            ["TR 1", "1", "Your date of birth"],
-            ["TR 1", "3", "Your phone number"],
-            ["TR 3", "2", "Total"],
-            ["SES 1", "9", "Total"],
-            ["UKP 2", "20", "Total"],
-        ]
-
+        self.person_code = person_code
+        self.tax_year = tax_year
         self.person = People(person_code)
-        categories = Categories()
-        transactions = Transactions()
+        self.spouse = People(self.person.get_spouse_code())
+        self.categories = Categories()
+        self.transactions = Transactions()
 
-        for hmrc_page, box, question_type in questions:
-            print(hmrc_page)
-            print(box)
-            print(question_type)
+        # self.list_categories()
+
+    def get_questions(self):
+        return HMRC_Questions(self.tax_year).get_questions()
+
+    def get_answers(self):
+        utr = self.person.get_unique_tax_reference()
+        utr_check_digit = self.person.get_utr_check_digit()
+        full_utr = utr + utr_check_digit
+        answer = f"HMRC {self.tax_year} tax return for {self.person.get_name()} - {full_utr}\n"
+
+        answers = {"Title": answer}
+        for hmrc_page, box, question_type in self.get_questions():
             match question_type:
+                case "Your name and address":
+                    pass
+                case "Declaration":
+                    question = question_type
+                    answer = "Sign & date"
+                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
+                case "Collect by PAYE":
+                    question = question_type
+                    answer = "NO"
+                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
+                case "Collect small amounts by PAYE":
+                    question = question_type
+                    answer = "NO"
+                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
+                case "Date of marriage":
+                    question = question_type
+                    answer = "10/04/2018"
+                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
+                case "Your spouse's first name":
+                    question = question_type
+                    answer = self.spouse.get_first_name()
+                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
+                case "Your spouse's last name":
+                    question = question_type
+                    answer = self.spouse.get_last_name()
+                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
                 case "Your date of birth":
                     question = question_type
                     answer = self.person.get_date_of_birth()
-                    self.hmrc_print(hmrc_page, box, question, answer)
+                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
+                case "Your spouse's date of birth":
+                    question = question_type
+                    answer = self.spouse.get_date_of_birth()
+                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
                 case "Your phone number":
                     question = question_type
                     answer = self.person.get_phone_number()
-                    self.hmrc_print(hmrc_page, box, question, answer)
+                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
+                case "Your National Insurance number":
+                    question = question_type
+                    answer = self.person.get_national_insurance_number()
+                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
+                case "Your spouse's National Insurance number":
+                    question = question_type
+                    answer = self.spouse.get_national_insurance_number()
+                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
                 case "Total":
-                    category = categories.fetch_by_hmrc_page_id(
-                        hmrc_page, box, person_code
+                    category = self.categories.fetch_by_hmrc_page_id(
+                        hmrc_page, box, self.person_code
                     )
-                    print(category)
                     if category:
-                        hmrc_category = HMRC_Category(category, person_code)
+                        hmrc_category = HMRC_Category(category, self.person_code)
                         question = hmrc_category.get_description()
 
-                        amount = transactions.fetch_total_by_tax_year_category(
-                            tax_year, category
+                        amount = self.transactions.fetch_total_by_tax_year_category(
+                            self.tax_year, category
                         )
 
-                        self.hmrc_print(hmrc_page, box, question, amount, "£")
+                        answers[question] = (
+                            f"{hmrc_page} {box} {question}: £{amount:,.2f}"
+                        )
                     else:
-                        self.hmrc_print(
-                            hmrc_page, box, person_code, "Category not found"
+                        sys.stderr.write(
+                            f'{hmrc_page}, {box}, {self.person_code}, "Category not found"\n'
                         )
+                case _:
+                    sys.stderr.write(f"Unhandled question_type: {question_type}\n")
 
-        query = (
-            transactions.query_builder()
-            .select_raw("DISTINCT Category")
-            .where(
-                f'"Tax year" = "{tax_year}" AND "Category" LIKE "HMRC {person_code}%"'
-            )
-            .build()
-        )
-        print(query)
-        sql = SQLiteHelper()
-        hmrc_transactions = sql.fetch_all(query)
-        print(hmrc_transactions)
+        return answers
 
     def get_spouse_code(self):
         return self.person.get_spouse_code()
@@ -72,18 +106,28 @@ class HMRC:
             answer = f"£{answer:,.2f}"
         print(f"Page {hmrc_page} box {box} {question}: {answer}")
 
+    def list_categories(self):
+        query = (
+            self.transactions.query_builder()
+            .select_raw("DISTINCT Category")
+            .where(
+                f'"Tax year" = "{self.tax_year}" AND "Category" LIKE "HMRC {self.person_code}%" ORDER BY Category'
+            )
+            .build()
+        )
+        print(query)
+
+        categories = SQLiteHelper().fetch_all(query)
+        for row in categories:
+            print(row[0])
+
 
 class OurFinances:
     def __init__(self):
         """
         Initialize the report with the database_name name
-
-        Args:
-            database_name (str): Name of the SQLite database
         """
 
-        # Local database connection
-        self.db_connection = None
         self.sql = SQLiteHelper()
 
     def account_balances(self):
@@ -114,35 +158,11 @@ class OurFinances:
         return self.sql.fetch_one_value(query)
 
     def print_hmrc_report(self, person_code, tax_year):
-        hmrc_data = self.get_hmrc_data(person_code, tax_year)
-        spouse_code = hmrc_data.get_spouse_code()
-        print(spouse_code)
-        print(tax_year)
-        hmrc_spouse_data = self.get_hmrc_data(spouse_code, tax_year)
-
-        query = f"""
-            SELECT "Person", "Date of birth", "Phone number", "NINO", "UTR", "UTR check digit"
-            FROM people
-            WHERE "Code" = '{person_code}'
-        """
-
-        row = self.sql.fetch_one_row(query)
-        person_name = row[0]
-        date_of_birth = row[1]
-        phone_number = row[2]
-        national_insurance_number = row[3]
-        unique_tax_reference = row[4]
-        utr_check_digit = row[5]
-
-        print(
-            f"HMRC {tax_year} tax return for {person_name} - {unique_tax_reference}{utr_check_digit}"
-        )
-
-        print("\nPage TR 1\n")
-
-        print(f"1 Your date of birth: {date_of_birth}")
-        print(f"3 Your phone number: {phone_number}")
-        print(f"4 Your National Insurance number: {national_insurance_number}")
+        hmrc = HMRC(person_code, tax_year)
+        answers = hmrc.get_answers()
+        
+        for question, answer in answers.items():
+            print(f"{answer}")
 
         print("\nPage TR 2\n")
 
@@ -1267,8 +1287,8 @@ def main():
     # our_finances.print_account_balances()
     # our_finances.print_people()
     # our_finances.print_transactions()
-    # our_finances.print_HMRC("B", "2023 to 2024")
     our_finances.print_hmrc_report("B", "2023 to 2024")
+    our_finances.print_hmrc_report("S", "2023 to 2024")
 
 
 if __name__ == "__main__":
