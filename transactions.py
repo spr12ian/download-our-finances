@@ -8,9 +8,8 @@ class Transactions(SQLiteTable):
     def fetch_total_by_tax_year_category(self, tax_year, category):
         query = (
             self.query_builder()
-                .total('Nett')
-                .where(f'"Tax year" = "{tax_year}" AND "Category" = "{category}"')
-                .build()
+            .total("Nett")
+            .where(f'"Tax year" = "{tax_year}" AND "Category" = "{category}"')
+            .build()
         )
-        print(query)
         return self.sql.fetch_one_value(query)

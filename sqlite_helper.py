@@ -7,7 +7,7 @@ class SQLiteHelper:
         config = ConfigHelper()
 
         self.db_path = config["SQLite"]["database_name"] + ".db"
-        
+
         self.db_connection = None
 
     def close_connection(self):
@@ -198,11 +198,16 @@ class SQLiteQueryBuilder:
         self.table_name = table_name
         self.columns = []
         self.conditions = []
+        self.group_by = []
         self.order_by = None
         self.limit = None
 
     def select(self, *columns):
         self.columns = [f'"{col}"' for col in columns]
+        return self
+
+    def select_raw(self, select_str):
+        self.columns = [select_str]
         return self
 
     def total(self, column):
@@ -223,6 +228,7 @@ class SQLiteQueryBuilder:
 
     def build(self):
         columns = ", ".join(self.columns) if self.columns else "*"
+
         query = f"SELECT {columns} FROM {self.table_name}"
 
         if self.conditions:

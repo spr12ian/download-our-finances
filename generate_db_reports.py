@@ -1,28 +1,76 @@
+from hmrc_category import HMRC_Category
 from tables import *
 from sqlite_helper import SQLiteHelper
 
 
 class HMRC:
     def __init__(self, person_code, tax_year):
+        print(person_code)
+        print(tax_year)
+        questions = [
+            ["TR 1", "1", "Your date of birth"],
+            ["TR 1", "3", "Your phone number"],
+            ["TR 3", "2", "Total"],
+            ["SES 1", "9", "Total"],
+            ["UKP 2", "20", "Total"],
+        ]
+
         self.person = People(person_code)
-        print(self.person.get_name())
-        print(self.person.get_date_of_birth())
+        categories = Categories()
+        transactions = Transactions()
 
-        transactions= Transactions()
+        for hmrc_page, box, question_type in questions:
+            print(hmrc_page)
+            print(box)
+            print(question_type)
+            match question_type:
+                case "Your date of birth":
+                    question = question_type
+                    answer = self.person.get_date_of_birth()
+                    self.hmrc_print(hmrc_page, box, question, answer)
+                case "Your phone number":
+                    question = question_type
+                    answer = self.person.get_phone_number()
+                    self.hmrc_print(hmrc_page, box, question, answer)
+                case "Total":
+                    category = categories.fetch_by_hmrc_page_id(
+                        hmrc_page, box, person_code
+                    )
+                    print(category)
+                    if category:
+                        hmrc_category = HMRC_Category(category, person_code)
+                        question = hmrc_category.get_description()
 
-        query = (transactions
-                             .query_builder()
-                             .where(f'"Tax year" = "{tax_year}" AND "Category" LIKE "HMRC {person_code}%"')
-                             .build())
+                        amount = transactions.fetch_total_by_tax_year_category(
+                            tax_year, category
+                        )
+
+                        self.hmrc_print(hmrc_page, box, question, amount, "£")
+                    else:
+                        self.hmrc_print(
+                            hmrc_page, box, person_code, "Category not found"
+                        )
+
+        query = (
+            transactions.query_builder()
+            .select_raw("DISTINCT Category")
+            .where(
+                f'"Tax year" = "{tax_year}" AND "Category" LIKE "HMRC {person_code}%"'
+            )
+            .build()
+        )
         print(query)
-        hmrc_transactions = transactions.fetch_all()
-        # print(hmrc_transactions)
-        category=f'HMRC {person_code} Untaxed UK interest'
-        interest=transactions.fetch_total_by_tax_year_category(tax_year, category)
-        print(interest)
+        sql = SQLiteHelper()
+        hmrc_transactions = sql.fetch_all(query)
+        print(hmrc_transactions)
 
     def get_spouse_code(self):
         return self.person.get_spouse_code()
+
+    def hmrc_print(self, hmrc_page, box, question, answer, answer_type=None):
+        if answer_type == "£":
+            answer = f"£{answer:,.2f}"
+        print(f"Page {hmrc_page} box {box} {question}: {answer}")
 
 
 class OurFinances:
@@ -50,6 +98,8 @@ class OurFinances:
         print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 
     def get_hmrc_data(self, person_code, tax_year):
+        print(person_code)
+        print(tax_year)
         return HMRC(person_code, tax_year)
 
     def get_year_category_total(self, tax_year, category):
@@ -66,6 +116,8 @@ class OurFinances:
     def print_hmrc_report(self, person_code, tax_year):
         hmrc_data = self.get_hmrc_data(person_code, tax_year)
         spouse_code = hmrc_data.get_spouse_code()
+        print(spouse_code)
+        print(tax_year)
         hmrc_spouse_data = self.get_hmrc_data(spouse_code, tax_year)
 
         query = f"""
@@ -1216,7 +1268,7 @@ def main():
     # our_finances.print_people()
     # our_finances.print_transactions()
     # our_finances.print_HMRC("B", "2023 to 2024")
-    our_finances.print_hmrc_report("S", "2023 to 2024")
+    our_finances.print_hmrc_report("B", "2023 to 2024")
 
 
 if __name__ == "__main__":
