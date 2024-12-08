@@ -9,6 +9,7 @@ def test_people():
     person_code = "S"
     person = People(person_code)
     name = person.get_name()
+
     print(f"Person '{person_code}' is '{name}'")
     print(f"Person '{person_code}' was born '{person.get_date_of_birth()}'")
     print(f"Person '{person_code}' has phone number '{person.get_phone_number()}'")
@@ -22,4 +23,4 @@ def test_people():
     assert people.get_how_many() == 6
 
 
-test_people()
+#test_people()

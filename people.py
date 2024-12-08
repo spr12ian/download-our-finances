@@ -8,7 +8,7 @@ class People(SQLiteTable):
         self.code = code
 
     def fetch_by_code(self, code):
-        query = self.query_builder().where(f"Code = '{self.code}'").build()
+        query = self.query_builder().where(f"Code = '{code}'").build()
         return self.sql.fetch_all(query)
 
     def get_date_of_birth(self):
@@ -37,7 +37,7 @@ class People(SQLiteTable):
             query = (
                 self.query_builder()
                 .select(column_name)
-                .where(f"Code = '{self.code}'")
+                .where(f'"Code" = "{self.code}"')
                 .build()
             )
             result = self.sql.fetch_one_value(query)

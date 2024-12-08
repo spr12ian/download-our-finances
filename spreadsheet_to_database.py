@@ -1,5 +1,4 @@
-import configparser
-import google_helpers
+from google_helper import GoogleHelper
 import log_helper
 import pandas as pd
 from sqlite_helper import SQLiteHelper
@@ -7,7 +6,7 @@ import time
 
 
 class SpreadsheetDatabaseConverter:
-    def __init__(self, credentials_path, spreadsheet_key):
+    def __init__(self):
         """
         Initialize the converter with Google Sheets credentials and spreadsheet name
 
@@ -15,20 +14,15 @@ class SpreadsheetDatabaseConverter:
             credentials_path (str): Path to your Google Cloud service account JSON
             spreadsheet_name (str): Name of the Google Spreadsheet
         """
-
+        
         # Define the required scopes
         scopes = [
             "https://www.googleapis.com/auth/spreadsheets.readonly",
             "https://www.googleapis.com/auth/drive.readonly",
         ]
 
-        client = google_helpers.get_authorized_client(credentials_path, scopes)
+        self.spreadsheet = GoogleHelper().get_spreadsheet(scopes)
 
-        # Open the spreadsheet
-        self.spreadsheet = client.open_by_key(spreadsheet_key)
-
-        # Local database connection
-        self.db_connection = None
         self.sql = SQLiteHelper()
 
     def convert_to_sqlite(self):
@@ -62,22 +56,27 @@ class SpreadsheetDatabaseConverter:
 
         log_helper.tprint(f"Spreadsheet imported to SQLite database")
 
+    def text_to_real(self):
+        real_columns = [
+            ["account_balances", "Credit"],
+            ["account_balances", "Debit"],
+            ["account_balances", "Balance"],
+            ["transactions", "Credit"],
+            ["transactions", "Debit"],
+            ["transactions", "Nett"],
+        ]
+
+        for table_name, column_name in real_columns:
+            self.sql.text_to_real(table_name, column_name)
 
 def main():
-    config = configparser.ConfigParser()
-    config.read("config.ini")
-
-    # Google Cloud Service credentials
-    credentials_file_name = config["Google"]["credentials_file_name"]
-    credentials_path = google_helpers.get_credentials_path(credentials_file_name)
-
-    spreadsheet_key = config["Google"]["source_spreadsheet_key"]
-
-    converter = SpreadsheetDatabaseConverter(credentials_path, spreadsheet_key)
+    converter = SpreadsheetDatabaseConverter()
 
     # Convert spreadsheet to SQLite
     converter.convert_to_sqlite()
 
+    # Convert TEXT to REAL for selected columns
+    converter.text_to_real()
 
 if __name__ == "__main__":
     main()

@@ -1,15 +1,14 @@
-import configparser
+from config_helper import ConfigHelper
 import sqlite3
 
 
 class SQLiteHelper:
     def __init__(self):
-        config = configparser.ConfigParser()
-        config.read("config.ini")
+        config = ConfigHelper()
 
-        database_name = config["SQLite"]["database_name"]
-
-        self.db_path = database_name + ".db"
+        self.db_path = config["SQLite"]["database_name"] + ".db"
+        
+        self.db_connection = None
 
     def close_connection(self):
         if self.db_connection:
@@ -204,6 +203,10 @@ class SQLiteQueryBuilder:
 
     def select(self, *columns):
         self.columns = [f'"{col}"' for col in columns]
+        return self
+
+    def total(self, column):
+        self.columns = [f'SUM("{column}")']
         return self
 
     def where(self, condition):

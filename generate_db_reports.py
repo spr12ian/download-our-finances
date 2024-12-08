@@ -3,11 +3,29 @@ from sqlite_helper import SQLiteHelper
 
 
 class HMRC:
-    def __init__(self):
-        transactions = Transactions()
+    def __init__(self, person_code, tax_year):
+        self.person = People(person_code)
+        print(self.person.get_name())
+        print(self.person.get_date_of_birth())
+
+        transactions= Transactions()
+
+        query = (transactions
+                             .query_builder()
+                             .where(f'"Tax year" = "{tax_year}" AND "Category" LIKE "HMRC {person_code}%"')
+                             .build())
+        print(query)
+        hmrc_transactions = transactions.fetch_all()
+        # print(hmrc_transactions)
+        category=f'HMRC {person_code} Untaxed UK interest'
+        interest=transactions.fetch_total_by_tax_year_category(tax_year, category)
+        print(interest)
+
+    def get_spouse_code(self):
+        return self.person.get_spouse_code()
 
 
-class Our_Finances:
+class OurFinances:
     def __init__(self):
         """
         Initialize the report with the database_name name
@@ -20,11 +38,6 @@ class Our_Finances:
         self.db_connection = None
         self.sql = SQLiteHelper()
 
-    def get_hmrc_data(self, person_code, tax_year):
-        self.person = People(person_code)
-        print(self.person.get_name())
-        print(self.person.get_date_of_birth())
-
     def account_balances(self):
         query = """
             SELECT Key, Balance 
@@ -35,6 +48,9 @@ class Our_Finances:
         for row in self.sql.fetch_all(query):
             print(row)
         print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
+    def get_hmrc_data(self, person_code, tax_year):
+        return HMRC(person_code, tax_year)
 
     def get_year_category_total(self, tax_year, category):
         query = f"""
@@ -49,7 +65,7 @@ class Our_Finances:
 
     def print_hmrc_report(self, person_code, tax_year):
         hmrc_data = self.get_hmrc_data(person_code, tax_year)
-        spouse_code = self.person.get_spouse_code()
+        spouse_code = hmrc_data.get_spouse_code()
         hmrc_spouse_data = self.get_hmrc_data(spouse_code, tax_year)
 
         query = f"""
@@ -1194,7 +1210,7 @@ class Our_Finances:
 
 
 def main():
-    our_finances = Our_Finances()
+    our_finances = OurFinances()
 
     # our_finances.print_account_balances()
     # our_finances.print_people()
