@@ -68,6 +68,71 @@ class HMRC:
 
         return how_many > 0
 
+    def get_were_you_self_employed_in_this_tax_year(self):
+        # search the transactions table for any records in this tax year
+        # which have an employment income category for the current person
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("COUNT(*)")
+            .where(
+                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} SES%"'
+            )
+            .build()
+        )
+
+        how_many = self.sql.fetch_one_value(query)
+
+        return how_many > 0
+
+    def get_how_many_employments(self):
+        # search the transactions table for any records in this tax year
+        # which have an employment income category for the current person
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("COUNT(DISTINCT Category)")
+            .where(
+                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} EMP%"'
+            )
+            .build()
+        )
+
+        how_many = self.sql.fetch_one_value(query)
+        
+        # query = (
+        #     self.transactions.query_builder()
+        #     .select_raw("DISTINCT Key, SUBSTR(Category, 1, 6)")
+        #     .where('Category LIKE "HMRC%"')
+        #     .build()
+        # )
+
+        # rows = self.sql.fetch_all(query)
+        # for row in rows:
+        #     print(row)
+
+        return how_many
+
+    def get_how_many_businesses(self):
+        # search the transactions table for any records in this tax year
+        # which have an employment income category for the current person
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("COUNT(DISTINCT Category)")
+            .where(
+                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} SES%income"'
+            )
+            .build()
+        )
+
+        how_many = self.sql.fetch_one_value(query)
+
+        return how_many
+
     def get_answers(self):
         answers = []
         for question, section, box, method_name in self.get_questions():
@@ -171,11 +236,6 @@ class OurFinances:
         for row in self.sql.fetch_all(query):
             print(row)
         print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-
-    def get_hmrc_data(self, person_code, tax_year):
-        print(person_code)
-        print(tax_year)
-        return HMRC(person_code, tax_year)
 
     def get_year_category_total(self, tax_year, category):
         query = f"""
