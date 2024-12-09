@@ -1,5 +1,4 @@
 from hmrc_category import HMRC_Category
-from hmrc_questions import HMRC_Questions
 from tables import *
 from sqlite_helper import SQLiteHelper
 import sys
@@ -13,98 +12,130 @@ class HMRC:
         self.spouse = People(self.person.get_spouse_code())
         self.categories = Categories()
         self.transactions = Transactions()
+        self.sql = SQLiteHelper()
 
         # self.list_categories()
 
     def get_questions(self):
-        return HMRC_Questions(self.tax_year).get_questions()
+        return HMRC_QuestionsByYear(self.tax_year).get_questions()
 
-    def get_answers(self):
+    def get_full_utr(self):
         utr = self.person.get_unique_tax_reference()
         utr_check_digit = self.person.get_utr_check_digit()
-        full_utr = utr + utr_check_digit
-        answer = f"HMRC {self.tax_year} tax return for {self.person.get_name()} - {full_utr}\n"
+        return utr + utr_check_digit
 
-        answers = {"Title": answer}
-        for hmrc_page, box, question_type in self.get_questions():
-            match question_type:
-                case "Your name and address":
-                    pass
-                case "Declaration":
-                    question = question_type
-                    answer = "Sign & date"
-                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
-                case "Collect by PAYE":
-                    question = question_type
-                    answer = "NO"
-                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
-                case "Collect small amounts by PAYE":
-                    question = question_type
-                    answer = "NO"
-                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
-                case "Date of marriage":
-                    question = question_type
-                    answer = "10/04/2018"
-                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
-                case "Your spouse's first name":
-                    question = question_type
-                    answer = self.spouse.get_first_name()
-                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
-                case "Your spouse's last name":
-                    question = question_type
-                    answer = self.spouse.get_last_name()
-                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
-                case "Your date of birth":
-                    question = question_type
-                    answer = self.person.get_date_of_birth()
-                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
-                case "Your spouse's date of birth":
-                    question = question_type
-                    answer = self.spouse.get_date_of_birth()
-                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
-                case "Your phone number":
-                    question = question_type
-                    answer = self.person.get_phone_number()
-                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
-                case "Your National Insurance number":
-                    question = question_type
-                    answer = self.person.get_national_insurance_number()
-                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
-                case "Your spouse's National Insurance number":
-                    question = question_type
-                    answer = self.spouse.get_national_insurance_number()
-                    answers[question] = f"{hmrc_page} {box} {question}: {answer}"
-                case "Total":
-                    category = self.categories.fetch_by_hmrc_page_id(
-                        hmrc_page, box, self.person_code
-                    )
-                    if category:
-                        hmrc_category = HMRC_Category(category, self.person_code)
-                        question = hmrc_category.get_description()
+    def get_title(self):
+        full_utr = self.get_full_utr()
+        person_name = self.person.get_name()
+        tax_year = self.tax_year
 
-                        amount = self.transactions.fetch_total_by_tax_year_category(
-                            self.tax_year, category
-                        )
+        return f"HMRC {tax_year} tax return for {person_name} - {full_utr}\n"
 
-                        answers[question] = (
-                            f"{hmrc_page} {box} {question}: £{amount:,.2f}"
-                        )
-                    else:
-                        sys.stderr.write(
-                            f'{hmrc_page}, {box}, {self.person_code}, "Category not found"\n'
-                        )
-                case _:
-                    sys.stderr.write(f"Unhandled question_type: {question_type}\n")
+    def call_method(self, method_name):
+        try:
+            method = getattr(self, method_name)
+            return method()
+        except AttributeError:
+            print(f"Method {method_name} not found")
+
+    def get_your_date_of_birth(self):
+        return self.person.get_date_of_birth()
+
+    def get_your_name_and_address(self):
+        return self.person.get_name()
+
+    def get_your_phone_number(self):
+        return self.person.get_phone_number()
+
+    def get_your_national_insurance_number(self):
+        return self.person.get_national_insurance_number()
+
+    def get_were_you_employed_in_this_tax_year(self):
+        # search the transactions table for any records in this tax year
+        # which have an employment income category for the current person
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("COUNT(*)")
+            .where(
+                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} EMP%"'
+            )
+            .build()
+        )
+
+        how_many = self.sql.fetch_one_value(query)
+
+        return how_many > 0
+
+    def get_answers(self):
+        answers = []
+        for question, section, box, method_name in self.get_questions():
+            answer = self.call_method(method_name)
+
+            answers.append([section, box, question, answer])
+            # match question:
+            #     case "Your name and address":
+            #         pass
+            #     case "Declaration":
+            #         answer = "Sign & date"
+            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #     case "Collect by PAYE":
+            #         answer = "NO"
+            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #     case "Collect small amounts by PAYE":
+            #         answer = "NO"
+            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #     case "Date of marriage":
+            #         answer = "10/04/2018"
+            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #     case "Your spouse's first name":
+            #         answer = self.spouse.get_first_name()
+            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #     case "Your spouse's last name":
+            #         answer = self.spouse.get_last_name()
+            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #     case "Your date of birth":
+            #         answer = self.person.get_date_of_birth()
+            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #     case "Your spouse's date of birth":
+            #         answer = self.spouse.get_date_of_birth()
+            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #     case "Your phone number":
+            #         answer = self.person.get_phone_number()
+            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #     case "Your National Insurance number":
+            #         answer = self.person.get_national_insurance_number()
+            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #     case "Your spouse's National Insurance number":
+            #         answer = self.spouse.get_national_insurance_number()
+            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #     case "Total":
+            #         category = self.categories.fetch_by_section_box(
+            #             section, box, self.person_code
+            #         )
+            #         if category:
+            #             hmrc_category = HMRC_Category(category, self.person_code)
+            #             question = hmrc_category.get_description()
+
+            #             amount = self.transactions.fetch_total_by_tax_year_category(
+            #                 self.tax_year, category
+            #             )
+
+            #             answers[question] = (
+            #                 f"{section} {box} {question}: £{amount:,.2f}"
+            #             )
+            #         else:
+            #             sys.stderr.write(
+            #                 f'{section}, {box}, {self.person_code}, "Category not found"\n'
+            #             )
+            #     case _:
+            #         sys.stderr.write(f"Unhandled question: {question}\n")
 
         return answers
 
     def get_spouse_code(self):
         return self.person.get_spouse_code()
-
-    def hmrc_print(self, hmrc_page, box, question, answer, answer_type=None):
-        if answer_type == "£":
-            answer = f"£{answer:,.2f}"
-        print(f"Page {hmrc_page} box {box} {question}: {answer}")
 
     def list_categories(self):
         query = (
@@ -157,12 +188,29 @@ class OurFinances:
 
         return self.sql.fetch_one_value(query)
 
+    def print_answer(self, section, box, question, answer):
+        if isinstance(answer, bool):
+            answer = "Yes" if answer else "No"
+        elif isinstance(answer, float):
+            answer = f"£{answer:,.2f}"
+        elif isinstance(answer, int):
+            answer = f"{answer:,}"
+        elif isinstance(answer, str):
+            pass  # No change needed for strings
+        else:
+            answer = str(answer)
+
+        print(f"{section} {box} {question}: {answer}")
+
     def print_hmrc_report(self, person_code, tax_year):
         hmrc = HMRC(person_code, tax_year)
+
+        print(hmrc.get_title())
+
         answers = hmrc.get_answers()
-        
-        for question, answer in answers.items():
-            print(f"{answer}")
+
+        for section, box, question, answer in answers:
+            self.print_answer(section, box, question, answer)
 
         print("\nPage TR 2\n")
 
