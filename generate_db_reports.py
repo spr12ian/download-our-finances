@@ -16,27 +16,6 @@ class HMRC:
 
         # self.list_categories()
 
-    def get_were_you_in_partnership_s__this_tax_year(self):
-        return False
-    
-    def get_how_many_partnerships(self):
-        return 0
-
-    def get_questions(self):
-        return HMRC_QuestionsByYear(self.tax_year).get_questions()
-
-    def get_full_utr(self):
-        utr = self.person.get_unique_tax_reference()
-        utr_check_digit = self.person.get_utr_check_digit()
-        return utr + utr_check_digit
-
-    def get_title(self):
-        full_utr = self.get_full_utr()
-        person_name = self.person.get_name()
-        tax_year = self.tax_year
-
-        return f"HMRC {tax_year} tax return for {person_name} - {full_utr}\n"
-
     def call_method(self, method_name):
         try:
             method = getattr(self, method_name)
@@ -44,110 +23,16 @@ class HMRC:
         except AttributeError:
             print(f"Method {method_name} not found")
 
-    def get_your_date_of_birth(self):
-        return self.person.get_date_of_birth()
-
-    def get_your_name_and_address(self):
-        return self.person.get_name()
-
-    def get_your_phone_number(self):
-        return self.person.get_phone_number()
-
-    def get_your_national_insurance_number(self):
-        return self.person.get_national_insurance_number()
-
-    def get_were_you_employed_in_this_tax_year(self):
-        # search the transactions table for any records in this tax year
-        # which have an employment income category for the current person
-        person_code = self.person.code
-        tax_year = self.tax_year
-        query = (
-            self.transactions.query_builder()
-            .select_raw("COUNT(*)")
-            .where(
-                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} EMP%"'
-            )
-            .build()
-        )
-
-        how_many = self.sql.fetch_one_value(query)
-
-        return how_many > 0
-
-    def get_were_you_self_employed_in_this_tax_year(self):
-        # search the transactions table for any records in this tax year
-        # which have an employment income category for the current person
-        person_code = self.person.code
-        tax_year = self.tax_year
-        query = (
-            self.transactions.query_builder()
-            .select_raw("COUNT(*)")
-            .where(
-                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} SES%"'
-            )
-            .build()
-        )
-
-        how_many = self.sql.fetch_one_value(query)
-
-        return how_many > 0
-
-    def get_how_many_employments(self):
-        # search the transactions table for any records in this tax year
-        # which have an employment income category for the current person
-        person_code = self.person.code
-        tax_year = self.tax_year
-        query = (
-            self.transactions.query_builder()
-            .select_raw("COUNT(DISTINCT Category)")
-            .where(
-                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} EMP%"'
-            )
-            .build()
-        )
-
-        how_many = self.sql.fetch_one_value(query)
-        
-        # query = (
-        #     self.transactions.query_builder()
-        #     .select_raw("DISTINCT Key, SUBSTR(Category, 1, 6)")
-        #     .where('Category LIKE "HMRC%"')
-        #     .build()
-        # )
-
-        # rows = self.sql.fetch_all(query)
-        # for row in rows:
-        #     print(row)
-
-        return how_many
-
-    def get_how_many_businesses(self):
-        # search the transactions table for any records in this tax year
-        # which have an employment income category for the current person
-        person_code = self.person.code
-        tax_year = self.tax_year
-        query = (
-            self.transactions.query_builder()
-            .select_raw("COUNT(DISTINCT Category)")
-            .where(
-                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} SES%income"'
-            )
-            .build()
-        )
-
-        how_many = self.sql.fetch_one_value(query)
-
-        return how_many
+    def get_additional_information__yes_no_(self):
+        return False
 
     def get_answers(self):
-        answers = []
+        answers = [["Section", "Box", "Question", "Answer"]]
         for question, section, box, method_name in self.get_questions():
             answer = self.call_method(method_name)
 
             answers.append([section, box, question, answer])
             # match question:
-            #     case "Your name and address":
-            #         pass
             #     case "Declaration":
             #         answer = "Sign & date"
             #         answers[question] = f"{section} {box} {question}: {answer}"
@@ -205,8 +90,152 @@ class HMRC:
 
         return answers
 
+    def get_capital_gains_tax_summary__yes_no_(self):
+        return False
+
+    def get_computations_provided__yes_no_(self):
+        return False
+
+    def get_foreign__yes_no_(self):
+        return False
+
+    def get_full_utr(self):
+        utr = self.person.get_unique_tax_reference()
+        utr_check_digit = self.person.get_utr_check_digit()
+        return utr + utr_check_digit
+
+    def get_how_many_businesses(self):
+        # search the transactions table for any records in this tax year
+        # which have an employment income category for the current person
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("COUNT(DISTINCT Category)")
+            .where(
+                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} SES%income"'
+            )
+            .build()
+        )
+
+        how_many = self.sql.fetch_one_value(query)
+
+        return how_many
+
+    def get_how_many_employments(self):
+        # search the transactions table for any records in this tax year
+        # which have an employment income category for the current person
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("COUNT(DISTINCT Category)")
+            .where(
+                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} EMP%"'
+            )
+            .build()
+        )
+
+        how_many = self.sql.fetch_one_value(query)
+
+        return how_many
+
+    def get_how_many_partnerships(self):
+        return 0
+
+    def get_more_pages__yes_no_(self):
+        return False
+
+    def get_residence__remittance_basis_etc__yes_no_(self):
+        return False
+
+    def get_questions(self):
+        return HMRC_QuestionsByYear(self.tax_year).get_questions()
+
     def get_spouse_code(self):
         return self.person.get_spouse_code()
+
+    def get_taxed_uk_interest(self):
+        pass
+
+    def get_title(self):
+        full_utr = self.get_full_utr()
+        person_name = self.person.get_name()
+        tax_year = self.tax_year
+
+        return f"HMRC {tax_year} tax return for {person_name} - {full_utr}\n"
+
+    def get_trusts_etc__yes_no_(self):
+        return False
+
+    def get_uk_property__yes_no_(self):
+        # search the transactions table for any records in this tax year
+        # which have a UKP income category for the current person
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("COUNT(DISTINCT Category)")
+            .where(
+                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} UKP income%"'
+            )
+            .build()
+        )
+
+        how_many = self.sql.fetch_one_value(query)
+
+        return how_many > 0
+
+    def get_your_date_of_birth(self):
+        return self.person.get_date_of_birth()
+
+    def get_your_name_and_address(self):
+        return self.person.get_name()
+
+    def get_your_national_insurance_number(self):
+        return self.person.get_national_insurance_number()
+
+    def get_your_phone_number(self):
+        return self.person.get_phone_number()
+
+    def get_were_you_employed_in_this_tax_year(self):
+        # search the transactions table for any records in this tax year
+        # which have an employment income category for the current person
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("COUNT(*)")
+            .where(
+                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} EMP%income"'
+            )
+            .build()
+        )
+
+        how_many = self.sql.fetch_one_value(query)
+
+        return how_many > 0
+
+    def get_were_you_in_partnership_s__this_tax_year(self):
+        return False
+
+    def get_were_you_self_employed_in_this_tax_year(self):
+        # search the transactions table for any records in this tax year
+        # which have an employment income category for the current person
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("COUNT(*)")
+            .where(
+                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} SES%income"'
+            )
+            .build()
+        )
+
+        how_many = self.sql.fetch_one_value(query)
+
+        return how_many > 0
 
     def list_categories(self):
         query = (
@@ -223,37 +252,6 @@ class HMRC:
         for row in categories:
             print(row[0])
 
-
-class OurFinances:
-    def __init__(self):
-        """
-        Initialize the report with the database_name name
-        """
-
-        self.sql = SQLiteHelper()
-
-    def account_balances(self):
-        query = """
-            SELECT Key, Balance 
-            FROM account_balances
-            WHERE Balance NOT BETWEEN -1 AND 1
-        """
-
-        for row in self.sql.fetch_all(query):
-            print(row)
-        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-
-    def get_year_category_total(self, tax_year, category):
-        query = f"""
-            SELECT SUM(Nett) 
-            FROM transactions
-            WHERE Key <> ''
-            AND "Tax year" = '{tax_year}'
-            AND Category = '{category}'
-        """
-
-        return self.sql.fetch_one_value(query)
-
     def print_answer(self, section, box, question, answer):
         if isinstance(answer, bool):
             answer = "Yes" if answer else "No"
@@ -266,181 +264,35 @@ class OurFinances:
         else:
             answer = str(answer)
 
-        answer=self.format_answer(section, box, question, answer)
+        formatted_answer = self.format_answer([section, box, question, answer])
 
-        #print(f"{section} {box} {question}: {answer}")
+        print(formatted_answer)
 
-    def format_answer(self, section, box, question, answer):
-        strings = [section, box, question, answer]
-        start_positions = [0, 5, 10, 40]
+    def print_report(self):
 
-        new_string = ""
-        for i in range(len(strings)):
-            new_string += strings[i][start_positions[i]:] + " "
+        print(self.get_title())
 
-        print(new_string)
-
-    def print_hmrc_report(self, person_code, tax_year):
-        hmrc = HMRC(person_code, tax_year)
-
-        print(hmrc.get_title())
-
-        answers = hmrc.get_answers()
+        answers = self.get_answers()
 
         for section, box, question, answer in answers:
             self.print_answer(section, box, question, answer)
 
-        print("\nPage TR 2\n")
+    def format_answer(self, string_list):
+        s1 = string_list[0]
+        s2 = string_list[1]
+        s3 = string_list[2]
+        s4 = string_list[3]
 
-        query = f"""
-            SELECT COUNT(DISTINCT Category)
-            FROM transactions
-            WHERE Key <> ''
-            AND "Tax year" = '{tax_year}'
-            AND Category LIKE 'HMRC {person_code} EMP%income'
-        """
+        widths = [8, 5, 41]
+        w1 = widths[0]
+        w2 = widths[1]
+        w3 = widths[2]
 
-        how_many = self.sql.fetch_one_value(query)
+        return f"{s1:<{w1}}{s2:<{w2}}{s3:<{w3}}{s4}"
 
-        question_number = 1
-        question = "Employment"
-        answer = f"{question_number} {question}"
-        if how_many:
-            answer += f" - Yes: X"
-            answer += f", Number: {how_many}"
-        else:
-            answer += f" - No: X"
-            answer += f", Number: 0"
-
-        print(answer)
-
-        query = f"""
-            SELECT COUNT(DISTINCT Category)
-            FROM transactions
-            WHERE Key <> ''
-            AND "Tax year" = '{tax_year}'
-            AND Category LIKE 'HMRC {person_code} SE%income'
-        """
-
-        how_many = self.sql.fetch_one_value(query)
-
-        question_number += 1
-        question = "Self-employment"
-        answer = f"{question_number} {question}"
-        if how_many:
-            answer += f" - Yes: X"
-            answer += f", Number: {how_many}"
-        else:
-            answer += f" - No: X"
-            answer += f", Number: 0"
-
-        print(answer)
-
-        how_many = 0
-        question_number += 1
-        question = "Partnership"
-        answer = f"{question_number} {question}"
-        if how_many:
-            answer += f" - Yes: X"
-            answer += f", Number: {how_many}"
-        else:
-            answer += f" - No: X"
-            answer += f", Number: 0"
-
-        print(answer)
-
-        query = f"""
-            SELECT COUNT(DISTINCT Category)
-            FROM transactions
-            WHERE Key <> ''
-            AND "Tax year" = '{tax_year}'
-            AND Category LIKE 'HMRC {person_code} property income%'
-        """
-
-        how_many = self.sql.fetch_one_value(query)
-
-        question_number += 1
-        question = "UK property"
-        answer = f"{question_number} {question}"
-        if how_many:
-            answer += f" - Yes: X"
-        else:
-            answer += f" - No: X"
-
-        print(answer)
-
-        how_many = 0
-
-        question_number += 1
-        question = "Foreign"
-        answer = f"{question_number} {question}"
-        if how_many:
-            answer += f" - Yes: X"
-        else:
-            answer += f" - No: X"
-
-        print(answer)
-
-        how_many = 0
-
-        question_number += 1
-        question = "Trusts etc"
-        answer = f"{question_number} {question}"
-        if how_many:
-            answer += f" - Yes: X"
-        else:
-            answer += f" - No: X"
-
-        print(answer)
-
-        how_many = 0
-
-        question_number += 1
-        question = "Capital Gains Tax summary"
-        answer = f"{question_number} {question}"
-        if how_many:
-            answer += f" - Yes: X"
-            answer += f", Computation(s) provided: "
-        else:
-            answer += f" - No: X"
-
-        print(answer)
-
-        how_many = 0
-
-        question_number += 1
-        question = "Residence remittance basis etc"
-        answer = f"{question_number} {question}"
-        if how_many:
-            answer += f" - Yes: X"
-        else:
-            answer += f" - No: X"
-
-        print(answer)
-
-        how_many = 0
-
-        question_number += 1
-        question = "Additional information"
-        answer = f"{question_number} {question}"
-        if how_many:
-            answer += f" - Yes: X"
-        else:
-            answer += f" - No: X"
-
-        print(answer)
-
-        how_many = 0
-
-        question_number += 1
-        question = "If you need more pages"
-        answer = f"{question_number} {question}"
-        if how_many:
-            answer += f" - Yes: X"
-        else:
-            answer += f" - No: X"
-
-        print(answer)
+    def print_hmrc_report(self):
+        tax_year = self.tax_year
+        person_code = self.person_code
 
         print("\nPage TR 3\n")
 
@@ -1382,6 +1234,37 @@ class OurFinances:
             print(row)
         print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 
+
+class OurFinances:
+    def __init__(self):
+        """
+        Initialize the report with the database_name name
+        """
+
+        self.sql = SQLiteHelper()
+
+    def account_balances(self):
+        query = """
+            SELECT Key, Balance 
+            FROM account_balances
+            WHERE Balance NOT BETWEEN -1 AND 1
+        """
+
+        for row in self.sql.fetch_all(query):
+            print(row)
+        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
+    def get_year_category_total(self, tax_year, category):
+        query = f"""
+            SELECT SUM(Nett) 
+            FROM transactions
+            WHERE Key <> ''
+            AND "Tax year" = '{tax_year}'
+            AND Category = '{category}'
+        """
+
+        return self.sql.fetch_one_value(query)
+
     def people(self):
         query = """
             SELECT * 
@@ -1413,8 +1296,12 @@ def main():
     # our_finances.print_account_balances()
     # our_finances.print_people()
     # our_finances.print_transactions()
-    our_finances.print_hmrc_report("B", "2023 to 2024")
-    our_finances.print_hmrc_report("S", "2023 to 2024")
+
+    hmrc = HMRC("B", "2023 to 2024")
+    hmrc.print_report()
+
+    hmrc = HMRC("S", "2023 to 2024")
+    hmrc.print_report()
 
 
 if __name__ == "__main__":
