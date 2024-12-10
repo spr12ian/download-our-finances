@@ -26,9 +26,32 @@ class HMRC:
     def get_additional_information__yes_no_(self):
         return False
 
+    def append_header(self, answers, header):
+        header = f"\n{header.upper()}"
+        this_return = f"{self.person.get_name()} {self.tax_year}"
+
+        answers.append([header, "", "", this_return])
+
+        answers.append(["Section", "Box", "Question", "Answer"])
+
+        return answers
+
     def get_answers(self):
-        answers = [["Section", "Box", "Question", "Answer"]]
+        answers = []
         for question, section, box, method_name in self.get_questions():
+            if box == "1":
+                match section:
+                    case "TR 1":
+                        answers = self.append_header(
+                            answers, "Starting your tax return"
+                        )
+                    case "TR 2":
+                        answers = self.append_header(
+                            answers, "What makes up your tax return"
+                        )
+                    case "TR 3":
+                        answers = self.append_header(answers, "Income")
+
             answer = self.call_method(method_name)
 
             answers.append([section, box, question, answer])
@@ -278,17 +301,23 @@ class HMRC:
             self.print_answer(section, box, question, answer)
 
     def format_answer(self, string_list):
-        s1 = string_list[0]
-        s2 = string_list[1]
-        s3 = string_list[2]
-        s4 = string_list[3]
+        if len(string_list[2]) > 0:
+            widths = [8, 5, 41]  # Define column widths
 
-        widths = [8, 5, 41]
-        w1 = widths[0]
-        w2 = widths[1]
-        w3 = widths[2]
+            # Use zip to pair strings with widths and format them in one step
+            formatted_parts = [
+                f"{string:<{width}}" for string, width in zip(string_list[:3], widths)
+            ]
+        else:
+            widths = [55]  # Define column widths
 
-        return f"{s1:<{w1}}{s2:<{w2}}{s3:<{w3}}{s4}"
+            # Use zip to pair strings with widths and format them in one step
+            formatted_parts = [
+                f"{string:<{width}}" for string, width in zip(string_list[:1], widths)
+            ]
+
+        # Join the formatted parts and append the fourth string without formatting
+        return "".join(formatted_parts) + string_list[3]
 
     def print_hmrc_report(self):
         tax_year = self.tax_year
