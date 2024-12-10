@@ -16,6 +16,16 @@ class HMRC:
 
         # self.list_categories()
 
+    def append_header(self, answers, header):
+        header = f"\n{header.upper()}"
+        this_return = f"{self.person.get_name()} {self.tax_year}\n"
+
+        answers.append([header, "", "", this_return])
+
+        answers.append(["Section", "Box", "Question", "Answer"])
+
+        return answers
+
     def call_method(self, method_name):
         try:
             method = getattr(self, method_name)
@@ -25,14 +35,14 @@ class HMRC:
 
     def format_answer(self, string_list):
         if len(string_list[2]) > 0:
-            widths = [8, 5, 51]  # Define column widths
+            widths = [8, 5, 55]  # Define column widths
 
             # Use zip to pair strings with widths and format them in one step
             formatted_parts = [
                 f"{string:<{width}}" for string, width in zip(string_list[:3], widths)
             ]
         else:
-            widths = [55]  # Define column widths
+            widths = [69]  # Define column widths
 
             # Use zip to pair strings with widths and format them in one step
             formatted_parts = [
@@ -44,16 +54,6 @@ class HMRC:
 
     def get_additional_information__yes_no_(self):
         return False
-
-    def append_header(self, answers, header):
-        header = f"\n{header.upper()}"
-        this_return = f"{self.person.get_name()} {self.tax_year}"
-
-        answers.append([header, "", "", this_return])
-
-        answers.append(["Section", "Box", "Question", "Answer"])
-
-        return answers
 
     def get_answers(self):
         answers = []
@@ -132,12 +132,21 @@ class HMRC:
 
         return answers
 
+    def get_any_tax_taken_off_box_17(self):
+        return 0
+    
+    def get_benefit_from_pre_owned_assets(self):
+        return 0
+
     def get_capital_gains_tax_summary__yes_no_(self):
         return False
 
     def get_computations_provided__yes_no_(self):
         return False
 
+    def get_description_of_income_in_boxes_17_and_20(self):
+        return ''
+    
     def get_dividends_from_uk_companies(self):
         person_code = self.person_code
         tax_year = self.tax_year
@@ -201,6 +210,9 @@ class HMRC:
     def get_how_many_partnerships(self):
         return 0
 
+    def get_jobseeker_s_allowance(self):
+        return 0
+    
     def get_more_pages__yes_no_(self):
         return False
     
@@ -212,6 +224,12 @@ class HMRC:
             tax_year, f"HMRC {person_code} INC Other dividends"
         )
     
+    def get_other_taxable_income(self):
+        return 0
+    
+    def get_pensions__other_than_state_pension_(self):
+        return 0
+    
     def get_residence__remittance_basis_etc__yes_no_(self):
         return False
 
@@ -221,9 +239,27 @@ class HMRC:
     def get_spouse_code(self):
         return self.person.get_spouse_code()
 
+    def get_state_pension(self):
+        return 0
+    
+    def get_state_pension_lump_sum(self):
+        return 0
+    
+    def get_tax_taken_off_box_9(self):
+        return 0
+    
+    def get_tax_taken_off_box_11(self):
+        return 0
+    
     def get_tax_taken_off_foreign_dividends(self):
         return 0
     
+    def get_tax_taken_off_incapacity_benefit_in_box_13(self):
+        return 0
+    
+    def get_taxable_incapacity_benefit(self):
+        return 0
+
     def get_taxed_uk_interest(self):
         person_code = self.person_code
         tax_year = self.tax_year
@@ -231,13 +267,20 @@ class HMRC:
         return self.get_year_category_total(
             tax_year, f"HMRC {person_code} INC Taxed UK interest"
         )
+    
     def get_title(self):
         full_utr = self.get_full_utr()
         person_name = self.person.get_name()
         tax_year = self.tax_year
 
         return f"HMRC {tax_year} tax return for {person_name} - {full_utr}\n"
+    
+    def get_total_amount_of_allowable_expenses(self):
+        return 0
 
+    def get_total_of_any_other_taxable_state_pensions_and_benefits(self):
+        return 0
+    
     def get_trusts_etc__yes_no_(self):
         return False
 
@@ -368,6 +411,10 @@ class HMRC:
 
         for section, box, question, answer in answers:
             self.print_answer(section, box, question, answer)
+        
+
+
+        print("\n=========================================================================================\n")
 
     def print_hmrc_report(self):
         tax_year = self.tax_year
