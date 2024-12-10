@@ -16,6 +16,12 @@ class HMRC:
 
         # self.list_categories()
 
+    def get_were_you_in_partnership_s__this_tax_year(self):
+        return False
+    
+    def get_how_many_partnerships(self):
+        return 0
+
     def get_questions(self):
         return HMRC_QuestionsByYear(self.tax_year).get_questions()
 
@@ -260,7 +266,19 @@ class OurFinances:
         else:
             answer = str(answer)
 
-        print(f"{section} {box} {question}: {answer}")
+        answer=self.format_answer(section, box, question, answer)
+
+        #print(f"{section} {box} {question}: {answer}")
+
+    def format_answer(self, section, box, question, answer):
+        strings = [section, box, question, answer]
+        start_positions = [0, 5, 10, 40]
+
+        new_string = ""
+        for i in range(len(strings)):
+            new_string += strings[i][start_positions[i]:] + " "
+
+        print(new_string)
 
     def print_hmrc_report(self, person_code, tax_year):
         hmrc = HMRC(person_code, tax_year)
