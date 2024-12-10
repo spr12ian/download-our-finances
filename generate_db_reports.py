@@ -23,6 +23,25 @@ class HMRC:
         except AttributeError:
             print(f"Method {method_name} not found")
 
+    def format_answer(self, string_list):
+        if len(string_list[2]) > 0:
+            widths = [8, 5, 51]  # Define column widths
+
+            # Use zip to pair strings with widths and format them in one step
+            formatted_parts = [
+                f"{string:<{width}}" for string, width in zip(string_list[:3], widths)
+            ]
+        else:
+            widths = [55]  # Define column widths
+
+            # Use zip to pair strings with widths and format them in one step
+            formatted_parts = [
+                f"{string:<{width}}" for string, width in zip(string_list[:1], widths)
+            ]
+
+        # Join the formatted parts and append the fourth string without formatting
+        return "".join(formatted_parts) + string_list[3]
+
     def get_additional_information__yes_no_(self):
         return False
 
@@ -119,6 +138,22 @@ class HMRC:
     def get_computations_provided__yes_no_(self):
         return False
 
+    def get_dividends_from_uk_companies(self):
+        person_code = self.person_code
+        tax_year = self.tax_year
+
+        return self.get_year_category_total(
+            tax_year, f"HMRC {person_code} INC Dividends from UK companies"
+        )
+    
+    def get_foreign_dividends(self):
+        person_code = self.person_code
+        tax_year = self.tax_year
+
+        return self.get_year_category_total(
+            tax_year, f"HMRC {person_code} INC Foreign dividends"
+        )
+    
     def get_foreign__yes_no_(self):
         return False
 
@@ -168,7 +203,15 @@ class HMRC:
 
     def get_more_pages__yes_no_(self):
         return False
+    
+    def get_other_dividends(self):
+        person_code = self.person_code
+        tax_year = self.tax_year
 
+        return self.get_year_category_total(
+            tax_year, f"HMRC {person_code} INC Other dividends"
+        )
+    
     def get_residence__remittance_basis_etc__yes_no_(self):
         return False
 
@@ -178,9 +221,16 @@ class HMRC:
     def get_spouse_code(self):
         return self.person.get_spouse_code()
 
+    def get_tax_taken_off_foreign_dividends(self):
+        return 0
+    
     def get_taxed_uk_interest(self):
-        pass
+        person_code = self.person_code
+        tax_year = self.tax_year
 
+        return self.get_year_category_total(
+            tax_year, f"HMRC {person_code} INC Taxed UK interest"
+        )
     def get_title(self):
         full_utr = self.get_full_utr()
         person_name = self.person.get_name()
@@ -190,6 +240,22 @@ class HMRC:
 
     def get_trusts_etc__yes_no_(self):
         return False
+
+    def get_untaxed_foreign_interest(self):
+        person_code = self.person_code
+        tax_year = self.tax_year
+
+        return self.get_year_category_total(
+            tax_year, f"HMRC {person_code} INC Untaxed foreign interest"
+        )
+    
+    def get_untaxed_uk_interest(self):
+        person_code = self.person_code
+        tax_year = self.tax_year
+
+        return self.get_year_category_total(
+            tax_year, f"HMRC {person_code} INC Untaxed UK interest"
+        )
 
     def get_uk_property__yes_no_(self):
         # search the transactions table for any records in this tax year
@@ -208,6 +274,9 @@ class HMRC:
         how_many = self.sql.fetch_one_value(query)
 
         return how_many > 0
+
+    def get_year_category_total(self, tax_year, category):
+        return self.transactions.fetch_total_by_tax_year_category(tax_year, category)
 
     def get_your_date_of_birth(self):
         return self.person.get_date_of_birth()
@@ -299,25 +368,6 @@ class HMRC:
 
         for section, box, question, answer in answers:
             self.print_answer(section, box, question, answer)
-
-    def format_answer(self, string_list):
-        if len(string_list[2]) > 0:
-            widths = [8, 5, 41]  # Define column widths
-
-            # Use zip to pair strings with widths and format them in one step
-            formatted_parts = [
-                f"{string:<{width}}" for string, width in zip(string_list[:3], widths)
-            ]
-        else:
-            widths = [55]  # Define column widths
-
-            # Use zip to pair strings with widths and format them in one step
-            formatted_parts = [
-                f"{string:<{width}}" for string, width in zip(string_list[:1], widths)
-            ]
-
-        # Join the formatted parts and append the fourth string without formatting
-        return "".join(formatted_parts) + string_list[3]
 
     def print_hmrc_report(self):
         tax_year = self.tax_year
@@ -1282,17 +1332,6 @@ class OurFinances:
         for row in self.sql.fetch_all(query):
             print(row)
         print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-
-    def get_year_category_total(self, tax_year, category):
-        query = f"""
-            SELECT SUM(Nett) 
-            FROM transactions
-            WHERE Key <> ''
-            AND "Tax year" = '{tax_year}'
-            AND Category = '{category}'
-        """
-
-        return self.sql.fetch_one_value(query)
 
     def people(self):
         query = """

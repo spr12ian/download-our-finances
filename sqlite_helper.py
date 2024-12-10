@@ -205,7 +205,7 @@ class SQLiteQueryBuilder:
         return self
 
     def total(self, column):
-        self.columns = [f'SUM("{column}")']
+        self.columns = [f'COALESCE(SUM("{column}"), 0)']
         return self
 
     def where(self, condition):
