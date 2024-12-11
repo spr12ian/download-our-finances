@@ -19,46 +19,17 @@ class HMRC_QuestionsByYear(SQLiteTable):
             [
                 row[0],
                 (split := row[1].split(","))[0],
-                (
-                    split[1] if len(split) > 1 else None
-                ),  # Handle cases with missing parts
+                (split[1] if len(split) > 1 else None),
                 "get_" + to_valid_method_name(row[0]),
+                (split[2] if len(split) > 2 else None),
             ]
             for row in self.sql.fetch_all(query)
         ]
 
         return questions
 
-    def get_questionsX(self):
-        match self.tax_year:
-            case "2023 to 2024":
-                return self.get_questions_2023_2024()
-            case _:
-                raise ValueError(f"No questions available for {self.tax_year}")
-
     def get_questions_2023_2024X(self):
         return [
-            ["TR 1", "1", "Your date of birth"],
-            ["TR 1", "2", "Your name and address"],
-            ["TR 1", "3", "Your phone number"],
-            ["TR 1", "4", "Your National Insurance number"],
-            ["TR 2", "1", "Employment (Yes/No)"],
-            ["TR 2", "1.1", "How many employments?"],
-            ["TR 2", "2", "Self-employment (Yes/No)"],
-            ["TR 2", "2.1", "How many businesses?"],
-            ["TR 2", "3", "Partnership (Yes/No)"],
-            ["TR 2", "3.1", "How many partnerships?"],
-            ["TR 2", "4", "UK property (Yes/No)"],
-            ["TR 2", "5", "Foreign (Yes/No)"],
-            ["TR 2", "6", "Trusts etc (Yes/No)"],
-            ["TR 2", "7", "Capital Gains Tax summary (Yes/No)"],
-            ["TR 2", "7.1", "Computations provided (Yes/No)"],
-            ["TR 2", "8", "Residence, remittance basis etc (Yes/No)"],
-            ["TR 2", "9", "Additional information (Yes/No)"],
-            ["TR 2", "10", "More pages (Yes/No)"],
-            ["TR 1", "1", "Your date of birth"],
-            ["TR 3", "2", "Total"],
-            ["TR 3", "16", "Total"],
             ["TR 4", "1", "Total"],
             ["TR 4", "1.1", "Total"],
             ["TR 5", "1", "Your spouse's first name"],
