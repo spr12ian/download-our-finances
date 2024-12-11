@@ -1,8 +1,11 @@
 from google_helper import GoogleHelper
 import log_helper
 import pandas as pd
-from sqlite_helper import SQLiteHelper
+import re
+from sqlalchemy import create_engine, Table, MetaData, Column, Text
+from sqlalchemy.orm import Session
 import time
+from initial_models import *
 
 
 class SpreadsheetDatabaseConverter:
@@ -23,17 +26,22 @@ class SpreadsheetDatabaseConverter:
 
         self.spreadsheet = GoogleHelper().get_spreadsheet(scopes)
 
-        self.sql = SQLiteHelper()
+        url = f"sqlite:///our_finances_orm.db"
+
+        engine = create_engine(url, echo=True)
+
+        self.session = Session(engine)
 
     def convert_to_sqlite(self):
-        """
-        Convert all sheets in the Google Spreadsheet to SQLite tables
-        """
-
-        db_connection = self.sql.open_connection()
-
+        tables = {}
         # Iterate through all worksheets
         for worksheet in self.spreadsheet.worksheets():
+            print(worksheet.title)
+            # table_name = worksheet.title.replace("-", "_").replace(" ", "_").lower()
+            table_name = re.sub(r"[- ]", "_", worksheet.title).lower()
+            print(table_name)
+            tables = {f"{table_name}": eval(f"t_{table_name}")}
+
             log_helper.tprint(f"Converting {worksheet.title}")
 
             # Get worksheet data as a DataFrame
@@ -42,19 +50,34 @@ class SpreadsheetDatabaseConverter:
             df = pd.DataFrame(data)
 
             # Write DataFrame to SQLite table (sheet name becomes table name)
-            table_name = worksheet.title.replace(" ", "_").lower()
 
-            df.to_sql(
-                table_name, self.sql.db_connection, if_exists="replace", index=False
-            )
+            self.to_sql(df, tables.get(table_name))
 
             log_helper.tprint(f"Converted {table_name}\n")
 
             time.sleep(1)
 
-        self.sql.close_connection()
-
         log_helper.tprint(f"Spreadsheet imported to SQLite database")
+
+    def to_sql(self, df, table: Table):
+        session = self.session
+        try:
+            with session.begin():
+                # Create the table if it does not exist
+                table.create(session.bind, checkfirst=True)
+
+                # Convert the DataFrame to a list of dictionaries
+                data_dicts = df.to_dict(orient="records")
+
+                # Insert data into the table using the session
+                session.execute(table.insert(), data_dicts)
+                session.commit()
+        except Exception as e:
+            # Rollback in case of an error
+            session.rollback()
+            print(f"Transaction failed: {e}")
+        finally:
+            session.close()
 
 
 def main():
