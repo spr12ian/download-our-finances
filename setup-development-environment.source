@@ -24,9 +24,10 @@ else
     echo "Virtual environment is active: $VIRTUAL_ENV"
 fi
 
-install-python-package.sh gspread
-install-python-package.sh pandas
-install-python-package.sh pytest
+install-python-package gspread
+install-python-package pandas
+install-python-package pytest
+install-python-package SQLAlchemy
 
 python3 -m pip freeze >requirements.txt
 
