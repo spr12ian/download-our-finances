@@ -1308,9 +1308,9 @@ t__szopa1 = Table(
 t_account_balances = Table(
     'account_balances', metadata,
     Column('Key', Text),
-    Column('Credit', Float),
-    Column('Debit', Float),
-    Column('Balance', Float)
+    Column('Credit', Text),
+    Column('Debit', Text),
+    Column('Balance', Text)
 )
 
 
@@ -1859,13 +1859,6 @@ t_hmrc_queries = Table(
 )
 
 
-t_hmrc_question_boxes_by_year = Table(
-    'hmrc_question_boxes_by_year', metadata,
-    Column('Question', Text),
-    Column('2023 to 2024', Text)
-)
-
-
 t_hmrc_questions = Table(
     'hmrc_questions', metadata,
     Column('Question', Text),
@@ -2382,13 +2375,6 @@ t_shares = Table(
 )
 
 
-t_some_table = Table(
-    'some_table', metadata,
-    Column('x', Integer),
-    Column('y', Integer)
-)
-
-
 t_spreadsheet_summary = Table(
     'spreadsheet_summary', metadata,
     Column('Sheet name', Text),
@@ -2416,9 +2402,12 @@ t_transactions = Table(
     Column('Key', Text),
     Column('Date', Text),
     Column('Description', Text),
+    Column('Credit', Text),
+    Column('Debit', Text),
     Column('Note', Text),
     Column('CPTY', Text),
     Column('CPTY Date', Text),
+    Column('Nett', Text),
     Column('Tax year', Text),
     Column('Description + Note', Text),
     Column('Account + Description + Note', Text),
@@ -2429,10 +2418,7 @@ t_transactions = Table(
     Column('Reverse', Text),
     Column('Xfer date', Text),
     Column('Account type', Text),
-    Column("Helper for 'Check fixed amounts'", Text),
-    Column('Credit', Float),
-    Column('Debit', Float),
-    Column('Nett', Float)
+    Column("Helper for 'Check fixed amounts'", Text)
 )
 
 

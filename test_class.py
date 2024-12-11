@@ -1,7 +1,7 @@
 import database_to_spreadsheet
 import key_check
 import pytest
-import spreadsheet_to_database
+import spreadsheet_to_our_finances
 
 
 def f():
@@ -36,7 +36,7 @@ def test_one():
 
 
 def test_spreadsheet_to_database():
-    spreadsheet_to_database.main()
+    spreadsheet_to_our_finances.main()
 
 
 def test_two():

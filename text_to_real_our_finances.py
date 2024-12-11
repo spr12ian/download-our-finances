@@ -1,5 +1,3 @@
-import log_helper
-import pandas as pd
 from sqlite_helper import SQLiteHelper
 
 

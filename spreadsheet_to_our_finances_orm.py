@@ -2,10 +2,10 @@ from google_helper import GoogleHelper
 import log_helper
 import pandas as pd
 import re
-from sqlalchemy import create_engine, Table, MetaData, Column, Text
-from sqlalchemy.orm import Session
+from sqlalchemy import create_engine, Table
+from sqlalchemy_helper import SQLAlchemyHelper
 import time
-from initial_models import *
+from our_finances_text_only_tables import *
 
 
 class SpreadsheetDatabaseConverter:
@@ -26,11 +26,7 @@ class SpreadsheetDatabaseConverter:
 
         self.spreadsheet = GoogleHelper().get_spreadsheet(scopes)
 
-        url = f"sqlite:///our_finances_orm.db"
-
-        engine = create_engine(url, echo=True)
-
-        self.session = Session(engine)
+        self.sql=SQLAlchemyHelper()
 
     def convert_to_sqlite(self):
         tables = {}
@@ -60,7 +56,7 @@ class SpreadsheetDatabaseConverter:
         log_helper.tprint(f"Spreadsheet imported to SQLite database")
 
     def to_sql(self, df, table: Table):
-        session = self.session
+        session = self.sql.get_session()
         try:
             with session.begin():
                 # Create the table if it does not exist
@@ -71,7 +67,6 @@ class SpreadsheetDatabaseConverter:
 
                 # Insert data into the table using the session
                 session.execute(table.insert(), data_dicts)
-                session.commit()
         except Exception as e:
             # Rollback in case of an error
             session.rollback()
