@@ -10,36 +10,28 @@ class People(SQLiteTable):
         query = self.query_builder().where(f"Code = '{code}'").build()
         return self.sql.fetch_all(query)
 
-    def get_first_name(self):
-        tokens = self.get_value_by_code("Person").split(" ")
-        return tokens[0]
+    def get_address(self):
+        return self.get_value_by_code_column("Address")
 
     def get_date_of_birth(self):
-        return self.get_value_by_code("Date of birth")
+        return self.get_value_by_code_column("Date of birth")
+
+    def get_first_name(self):
+        return self.get_value_by_code_column("First name")
 
     def get_last_name(self):
-        tokens = self.get_value_by_code("Person").split(" ")
-        return tokens[1]
+        return self.get_value_by_code_column("Surname")
+
+    def get_middle_name(self):
+        return self.get_value_by_code_column("Middle name")
 
     def get_name(self):
-        return self.get_value_by_code("Person")
-
-    def get_national_insurance_number(self):
-        return self.get_value_by_code("NINO")
+        return self.get_value_by_code_column("Person")
 
     def get_phone_number(self):
-        return self.get_value_by_code("Phone number")
+        return self.get_value_by_code_column("Phone number")
 
-    def get_spouse_code(self):
-        return self.get_value_by_code("Spouse")
-
-    def get_unique_tax_reference(self):
-        return self.get_value_by_code("UTR")
-
-    def get_utr_check_digit(self):
-        return self.get_value_by_code("UTR check digit")
-
-    def get_value_by_code(self, column_name):
+    def get_value_by_code_column(self, column_name):
         if self.code:
             query = (
                 self.query_builder()

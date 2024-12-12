@@ -20,10 +20,6 @@ databases=("our_finances" "our_finances_orm")
 # Loop through each database
 for db in "${databases[@]}"; do
     db_filename="${db}.db"
-    if [ -f "${db_filename}" ]; then
-        echo rm "${db_filename}"
-        rm "${db_filename}"
-    fi
 
     stop_if_module_has_errors "spreadsheet_to_${db}"
 

@@ -7,8 +7,7 @@ class LogHelper:
 
     def print_date_today(self):
         dt = self.dt
-        now = dt.get_date_now()
-        print(dt.format_date_with_ordinal(now))
+        print(dt.get_date_today)
 
     def print_time(self):
         dt = self.dt

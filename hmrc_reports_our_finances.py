@@ -2,22 +2,42 @@ from tables import *
 from cls_helper_sqlite import SQLiteHelper
 
 
+class HMRC_Person(People):
+    def __init__(self, code):
+        super().__init__(code)
+
+        self.hmrc_person_details = HMRC_PeopleDetails(code)
+
+    def get_marriage_date(self):
+        return self.hmrc_person_details.get_marriage_date()
+
+    def get_national_insurance_number(self):
+        return self.hmrc_person_details.get_national_insurance_number()
+
+    def get_spouse_code(self):
+        return self.hmrc_person_details.get_spouse_code()
+
+    def get_unique_tax_reference(self) -> str:
+        return self.hmrc_person_details.get_unique_tax_reference()
+
+    def get_utr_check_digit(self) -> str:
+        return self.hmrc_person_details.get_utr_check_digit()
+
+
 class HMRC:
     def __init__(self, person_code, tax_year):
-        # print(__class__)
         self.person_code = person_code
         self.tax_year = tax_year
-        self.person = HMRC_PeopleDetails(person_code)
-        print("alpha")
+
+        self.person = HMRC_Person(person_code)
+
         spouse_code = self.person.get_spouse_code()
-        print("beta")
-        print(spouse_code)
-        self.spouse = HMRC_PeopleDetails(spouse_code)
+
+        self.spouse = HMRC_Person(spouse_code)
+
         self.categories = Categories()
         self.transactions = Transactions()
-        print("kappa")
         self.sql = SQLiteHelper()
-        print("omega")
 
         # self.list_categories()
 
@@ -162,9 +182,7 @@ class HMRC:
         return False
 
     def get_full_utr(self) -> str:
-        print(type(self.person.get_unique_tax_reference()))
         utr: str = self.person.get_unique_tax_reference()
-        print(type(self.person.get_utr_check_digit()))
         utr_check_digit: str = self.person.get_utr_check_digit()
         return utr + utr_check_digit
 
@@ -378,7 +396,6 @@ class HMRC:
             )
             .build()
         )
-        print(query)
 
         categories = SQLiteHelper().fetch_all(query)
         for row in categories:
@@ -401,8 +418,6 @@ class HMRC:
         print(formatted_answer)
 
     def print_report(self):
-        print(__class__.__name__)
-
         print(self.get_title())
 
         answers = self.get_answers()
@@ -1360,8 +1375,6 @@ class HMRC:
 
 
 def main():
-    # print(__name__)
-
     hmrc = HMRC("B", "2023 to 2024")
     hmrc.print_report()
 
@@ -1370,5 +1383,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # print(__file__)
     main()

@@ -4,8 +4,6 @@ from cls_helper_sqlite import SQLiteHelper
 
 class OurFinances:
     def __init__(self):
-        print(__class__)
-
         self.sql = SQLiteHelper()
 
     def account_balances(self):

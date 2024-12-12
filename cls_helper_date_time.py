@@ -16,8 +16,9 @@ class DateTimeHelper:
         suffix = self.get_ordinal_suffix(day)
         return date.strftime(f"%A, %B {day}{suffix}, %Y")
 
-    def get_date_now(self):
-        date = datetime.date()
+    def get_date_today(self):
+        now=datetime.now()
+        return self.format_date_with_ordinal(now)
 
     def get_time_now(self):
         now = datetime.now()

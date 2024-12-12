@@ -1,5 +1,5 @@
 from cls_helper_google import GoogleHelper
-from cls_helper_log import tprint
+from cls_helper_log import LogHelper
 
 
 def main():
@@ -11,7 +11,8 @@ def main():
 
     spreadsheet = GoogleHelper().get_spreadsheet(scopes)
 
-    tprint(f"Spreadsheet name: {spreadsheet.title}")
+
+    LogHelper().tprint(f"Spreadsheet name: {spreadsheet.title}")
 
 
 if __name__ == "__main__":

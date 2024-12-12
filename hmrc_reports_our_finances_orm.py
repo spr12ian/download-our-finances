@@ -370,7 +370,6 @@ class HMRC:
             )
             .build()
         )
-        print(query)
 
         categories = SQLAlchemyHelper().fetch_all(query)
         for row in categories:

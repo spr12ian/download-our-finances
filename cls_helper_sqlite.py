@@ -4,13 +4,9 @@ import sqlite3
 
 class SQLiteHelper:
     def __init__(self):
-        print("lamda")
-        print(__class__)
-        print("mu")
         config = ConfigHelper()
 
         self.db_path = config["SQLite"]["database_name"] + ".db"
-        print(self.db_path)
 
         self.db_connection = None
 
@@ -81,7 +77,6 @@ class SQLiteHelper:
         return row
 
     def fetch_one_value(self, query):
-        print(__class__.__name__)
         row = self.fetch_one_row(query)
         if row:
             value = row[0]  # Accessing the first element of the tuple
@@ -152,7 +147,6 @@ FROM {table_name}
             for col in columns
         ]
         new_columns_str = ", ".join(new_columns)
-        old_columns_str = ", ".join([col[1] for col in columns])
 
         # Create a new table with the renamed column
         sql_statement = f"CREATE TABLE temp_{table_name} AS SELECT {new_columns_str} FROM {table_name}"

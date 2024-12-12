@@ -3,8 +3,6 @@ from cls_sqlite_table import SQLiteTable
 
 class HMRC_PeopleDetails(SQLiteTable):
     def __init__(self, code=None):
-        print(__class__)
-        print(code)
         super().__init__("hmrc_people_details")
         self.code = code
 
@@ -12,45 +10,25 @@ class HMRC_PeopleDetails(SQLiteTable):
         query = self.query_builder().where(f"Code = '{code}'").build()
         return self.sql.fetch_all(query)
 
-    def get_first_name(self):
-        tokens = self.get_value_by_code("Person").split(" ")
-        return tokens[0]
-
-    def get_date_of_birth(self):
-        return self.get_value_by_code("Date of birth")
-
-    def get_last_name(self):
-        tokens = self.get_value_by_code("Person").split(" ")
-        return tokens[1]
-
-    def get_name(self):
-        return self.get_value_by_code("Person")
+    def get_marriage_date(self):
+        return self.get_value_by_code_column("Marriage date")
 
     def get_national_insurance_number(self):
-        return self.get_value_by_code("NINO")
-
-    def get_phone_number(self):
-        return self.get_value_by_code("Phone number")
+        return self.get_value_by_code_column("NINO")
 
     def get_spouse_code(self):
-        print(__class__.__name__)
-        return self.get_value_by_code("Spouse code")
+        return self.get_value_by_code_column("Spouse code")
 
     def get_unique_tax_reference(self):
-        return self.get_value_by_code("UTR")
+        return self.get_value_by_code_column("UTR")
 
     def get_utr_check_digit(self) -> str:
-        utr_check_digit = self.get_value_by_code("UTR check digit")
-        print(type(utr_check_digit))
-        print(len(utr_check_digit))
-        print(utr_check_digit)
+        utr_check_digit = self.get_value_by_code_column("UTR check digit")
         if not utr_check_digit:
             utr_check_digit = ""
-        print(type(utr_check_digit))
         return utr_check_digit
 
-    def get_value_by_code(self, column_name):
-        print(__class__.__name__)
+    def get_value_by_code_column(self, column_name):
         if self.code:
             query = (
                 self.query_builder()
@@ -58,7 +36,7 @@ class HMRC_PeopleDetails(SQLiteTable):
                 .where(f'"Code" = "{self.code}"')
                 .build()
             )
-            result = self.sql.fetch_one_value(query)
+            result = str(self.sql.fetch_one_value(query))
         else:
             result = None
 

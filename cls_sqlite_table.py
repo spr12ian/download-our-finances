@@ -4,7 +4,6 @@ from cls_sqlite_query_builder import SQLiteQueryBuilder
 
 class SQLiteTable:
     def __init__(self, table_name):
-        print(__class__)
         self.sql = SQLiteHelper()
         self.table_name = table_name
 
