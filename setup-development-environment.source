@@ -30,7 +30,7 @@ install-python-package pandas-stubs
 install-python-package pytest
 install-python-package SQLAlchemy
 install-python-package sqlalchemy-stubs
-install-python-package sqlacodegen
+install-python-package sqlacodegen_v2
 
 python3 -m pip freeze >requirements.txt
 
