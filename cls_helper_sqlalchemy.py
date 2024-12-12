@@ -1,7 +1,8 @@
-from config_helper import ConfigHelper
+from cls_helper_config import ConfigHelper
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
+
 
 class SQLAlchemyHelper:
     def __init__(self):
@@ -15,11 +16,11 @@ class SQLAlchemyHelper:
         self.Session = sessionmaker(bind=self.engine)
 
     def get_session(self):
-        return Session(self.engine)        
+        return Session(self.engine)
 
     def get_table_info(self, table_name):
         query = text(f"PRAGMA table_info('{table_name}')")
-        
+
         # Open a session
         session = self.Session()
         try:
@@ -29,7 +30,7 @@ class SQLAlchemyHelper:
         finally:
             # Close the session
             session.close()
-        
+
         return table_info
 
     def text_to_real(self, table_name, column_name):

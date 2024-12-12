@@ -1,12 +1,16 @@
-from config_helper import ConfigHelper
+from cls_helper_config import ConfigHelper
 import sqlite3
 
 
 class SQLiteHelper:
     def __init__(self):
+        print("lamda")
+        print(__class__)
+        print("mu")
         config = ConfigHelper()
 
         self.db_path = config["SQLite"]["database_name"] + ".db"
+        print(self.db_path)
 
         self.db_connection = None
 
@@ -77,6 +81,7 @@ class SQLiteHelper:
         return row
 
     def fetch_one_value(self, query):
+        print(__class__.__name__)
         row = self.fetch_one_row(query)
         if row:
             value = row[0]  # Accessing the first element of the tuple
@@ -185,76 +190,3 @@ FROM {table_name}
 
             self.drop_column(table_name, column_name)
             self.rename_column(table_name, f"{column_name}_real", column_name)
-
-
-class SQLiteQueryBuilder:
-    def __init__(self, table_name):
-        self.table_name = table_name
-        self.columns = []
-        self.conditions = []
-        self.group_by = []
-        self.order_by = None
-        self.limit = None
-
-    def select(self, *columns):
-        self.columns = [f'"{col}"' for col in columns]
-        return self
-
-    def select_raw(self, select_str):
-        self.columns = [select_str]
-        return self
-
-    def total(self, column):
-        self.columns = [f'COALESCE(SUM("{column}"), 0)']
-        return self
-
-    def where(self, condition):
-        self.conditions.append(condition)
-        return self
-
-    def order(self, column, direction="ASC"):
-        self.order_by = f"{column} {direction}"
-        return self
-
-    def set_limit(self, limit):
-        self.limit = limit
-        return self
-
-    def build(self):
-        columns = ", ".join(self.columns) if self.columns else "*"
-
-        query = f"SELECT {columns} FROM {self.table_name}"
-
-        if self.conditions:
-            conditions = " AND ".join(self.conditions)
-            query += f" WHERE {conditions}"
-
-        if self.order_by:
-            query += f" ORDER BY {self.order_by}"
-
-        if self.limit:
-            query += f" LIMIT {self.limit}"
-
-        return query
-
-    def execute(self, connection):
-        query = self.build()
-        cursor = connection.cursor()
-        cursor.execute(query)
-        return cursor.fetchall()
-
-
-class SQLiteTable:
-    def __init__(self, table_name):
-        self.sql = SQLiteHelper()
-        self.table_name = table_name
-
-    def fetch_all(self):
-        query = f"SELECT * FROM {self.table_name}"
-        return self.sql.fetch_all(query)
-
-    def get_how_many(self):
-        return self.sql.get_how_many(self.table_name)
-
-    def query_builder(self):
-        return SQLiteQueryBuilder(self.table_name)

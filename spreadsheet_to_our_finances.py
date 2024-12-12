@@ -1,11 +1,11 @@
-from google_helper import GoogleHelper
-import log_helper
+from cls_helper_google import GoogleHelper
+from cls_helper_log import LogHelper
 import pandas as pd
-from sqlite_helper import SQLiteHelper
+from cls_helper_sqlite import SQLiteHelper
 import time
 
 
-class SpreadsheetDatabaseConverter:
+class SpreadsheetToSqliteDb:
     def __init__(self):
         """
         Initialize the converter with Google Sheets credentials and spreadsheet name
@@ -14,6 +14,8 @@ class SpreadsheetDatabaseConverter:
             credentials_path (str): Path to your Google Cloud service account JSON
             spreadsheet_name (str): Name of the Google Spreadsheet
         """
+
+        self.log = LogHelper()
 
         # Define the required scopes
         scopes = [
@@ -34,7 +36,7 @@ class SpreadsheetDatabaseConverter:
 
         # Iterate through all worksheets
         for worksheet in self.spreadsheet.worksheets():
-            log_helper.tprint(f"Converting {worksheet.title}")
+            self.log.tprint(f"Converting {worksheet.title}")
 
             # Get worksheet data as a DataFrame
             data = worksheet.get_all_records()
@@ -48,20 +50,24 @@ class SpreadsheetDatabaseConverter:
                 table_name, self.sql.db_connection, if_exists="replace", index=False
             )
 
-            log_helper.tprint(f"Converted {table_name}\n")
+            self.log.tprint(f"Converted {table_name}\n")
 
             time.sleep(1)
 
         self.sql.close_connection()
 
-        log_helper.tprint(f"Spreadsheet imported to SQLite database")
-
 
 def main():
-    converter = SpreadsheetDatabaseConverter()
+    log = LogHelper()
+    log.print_date_today()
+    log.tprint(f"Converting Google Sheets spreadsheet to SQLite database")
+
+    converter = SpreadsheetToSqliteDb()
 
     # Convert spreadsheet to SQLite
     converter.convert_to_sqlite()
+
+    log.tprint(f"Converted Google Sheets spreadsheet to SQLite database")
 
 
 if __name__ == "__main__":

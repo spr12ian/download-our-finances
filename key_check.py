@@ -1,5 +1,5 @@
-from google_helper import GoogleHelper
-from log_helper import tprint
+from cls_helper_google import GoogleHelper
+from cls_helper_log import tprint
 
 
 def main():

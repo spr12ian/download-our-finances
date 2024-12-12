@@ -1,5 +1,5 @@
 from useful_functions import to_valid_method_name
-from sqlite_helper import SQLiteTable
+from cls_sqlite_table import SQLiteTable
 
 
 class HMRC_QuestionsByYear(SQLiteTable):

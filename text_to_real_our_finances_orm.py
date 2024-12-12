@@ -1,4 +1,4 @@
-from sqlalchemy_helper import SQLAlchemyHelper
+from cls_helper_sqlalchemy import SQLAlchemyHelper
 
 
 class TextToReal:

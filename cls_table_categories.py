@@ -1,5 +1,4 @@
-from sqlite_helper import SQLiteQueryBuilder
-from sqlite_helper import SQLiteTable
+from cls_sqlite_table import SQLiteTable
 
 
 class Categories(SQLiteTable):

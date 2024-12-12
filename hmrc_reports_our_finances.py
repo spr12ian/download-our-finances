@@ -1,18 +1,23 @@
-from hmrc_category import HMRC_Category
-from sqlalchemy_helper import SQLAlchemyHelper
-import sys
-from our_finances_tables import *
 from tables import *
+from cls_helper_sqlite import SQLiteHelper
+
 
 class HMRC:
     def __init__(self, person_code, tax_year):
+        # print(__class__)
         self.person_code = person_code
         self.tax_year = tax_year
-        self.person = People(person_code)
-        self.spouse = People(self.person.get_spouse_code())
+        self.person = HMRC_PeopleDetails(person_code)
+        print("alpha")
+        spouse_code = self.person.get_spouse_code()
+        print("beta")
+        print(spouse_code)
+        self.spouse = HMRC_PeopleDetails(spouse_code)
         self.categories = Categories()
         self.transactions = Transactions()
-        self.sql = SQLAlchemyHelper()
+        print("kappa")
+        self.sql = SQLiteHelper()
+        print("omega")
 
         # self.list_categories()
 
@@ -156,9 +161,11 @@ class HMRC:
     def get_foreign__yes_no_(self):
         return False
 
-    def get_full_utr(self):
-        utr = self.person.get_unique_tax_reference()
-        utr_check_digit = self.person.get_utr_check_digit()
+    def get_full_utr(self) -> str:
+        print(type(self.person.get_unique_tax_reference()))
+        utr: str = self.person.get_unique_tax_reference()
+        print(type(self.person.get_utr_check_digit()))
+        utr_check_digit: str = self.person.get_utr_check_digit()
         return utr + utr_check_digit
 
     def get_how_many_businesses(self):
@@ -373,7 +380,7 @@ class HMRC:
         )
         print(query)
 
-        categories = SQLAlchemyHelper().fetch_all(query)
+        categories = SQLiteHelper().fetch_all(query)
         for row in categories:
             print(row[0])
 
@@ -394,6 +401,7 @@ class HMRC:
         print(formatted_answer)
 
     def print_report(self):
+        print(__class__.__name__)
 
         print(self.get_title())
 
@@ -1351,56 +1359,8 @@ class HMRC:
         print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 
 
-class OurFinances:
-    def __init__(self):
-        """
-        Initialize the report with the database_name name
-        """
-
-        self.sql = SQLAlchemyHelper()
-
-    def account_balances(self):
-        query = """
-            SELECT Key, Balance 
-            FROM account_balances
-            WHERE Balance NOT BETWEEN -1 AND 1
-        """
-
-        for row in self.sql.fetch_all(query):
-            print(row)
-        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-
-    def people(self):
-        query = """
-            SELECT * 
-            FROM people
-        """
-
-        for row in self.sql.fetch_all(query):
-            print(row)
-        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-
-    def transactions(self):
-        query = """
-            SELECT Category, SUM(Nett) 
-            FROM transactions
-            WHERE Key <> ''
-            AND "Tax year" = '2023 to 2024'
-            AND Category LIKE 'HMRC%'
-            GROUP BY Category
-        """
-
-        for row in self.sql.fetch_all(query):
-            print(row)
-        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-
-
 def main():
-    our_finances = OurFinances()
-
-    # our_finances.print_account_balances()
-    # our_finances.print_people()
-    # our_finances.print_transactions()
+    # print(__name__)
 
     hmrc = HMRC("B", "2023 to 2024")
     hmrc.print_report()
@@ -1410,4 +1370,5 @@ def main():
 
 
 if __name__ == "__main__":
+    # print(__file__)
     main()

@@ -1,10 +1,11 @@
-from sqlite_helper import SQLiteQueryBuilder
-from sqlite_helper import SQLiteTable
+from cls_sqlite_table import SQLiteTable
 
 
-class People(SQLiteTable):
+class HMRC_PeopleDetails(SQLiteTable):
     def __init__(self, code=None):
-        super().__init__("people")
+        print(__class__)
+        print(code)
+        super().__init__("hmrc_people_details")
         self.code = code
 
     def fetch_by_code(self, code):
@@ -12,14 +13,14 @@ class People(SQLiteTable):
         return self.sql.fetch_all(query)
 
     def get_first_name(self):
-        tokens=self.get_value_by_code("Person").split(' ')
+        tokens = self.get_value_by_code("Person").split(" ")
         return tokens[0]
 
     def get_date_of_birth(self):
         return self.get_value_by_code("Date of birth")
 
     def get_last_name(self):
-        tokens=self.get_value_by_code("Person").split(' ')
+        tokens = self.get_value_by_code("Person").split(" ")
         return tokens[1]
 
     def get_name(self):
@@ -32,15 +33,24 @@ class People(SQLiteTable):
         return self.get_value_by_code("Phone number")
 
     def get_spouse_code(self):
-        return self.get_value_by_code("Spouse")
+        print(__class__.__name__)
+        return self.get_value_by_code("Spouse code")
 
     def get_unique_tax_reference(self):
         return self.get_value_by_code("UTR")
 
-    def get_utr_check_digit(self):
-        return self.get_value_by_code("UTR check digit")
+    def get_utr_check_digit(self) -> str:
+        utr_check_digit = self.get_value_by_code("UTR check digit")
+        print(type(utr_check_digit))
+        print(len(utr_check_digit))
+        print(utr_check_digit)
+        if not utr_check_digit:
+            utr_check_digit = ""
+        print(type(utr_check_digit))
+        return utr_check_digit
 
     def get_value_by_code(self, column_name):
+        print(__class__.__name__)
         if self.code:
             query = (
                 self.query_builder()

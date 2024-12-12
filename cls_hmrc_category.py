@@ -1,4 +1,4 @@
-from categories import Categories
+from cls_table_categories import Categories
 
 
 class HMRC_Category(Categories):

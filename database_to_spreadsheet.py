@@ -4,7 +4,7 @@ import gspread
 import pandas as pd
 import sqlite3
 import time
-import google_helper
+import cls_helper_google
 
 
 class DatabaseSpreadsheetConverter:
@@ -127,7 +127,7 @@ def main():
 
     database_name = config["SQLite"]["database_name"]
 
-    credentials_path = google_helper.get_credentials_path(credentials_file_name)
+    credentials_path = cls_helper_google.get_credentials_path(credentials_file_name)
 
     converter = DatabaseSpreadsheetConverter(
         credentials_path, spreadsheet_key, database_name

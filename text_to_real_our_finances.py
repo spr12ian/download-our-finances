@@ -1,4 +1,4 @@
-from sqlite_helper import SQLiteHelper
+from cls_helper_sqlite import SQLiteHelper
 
 
 class TextToReal:

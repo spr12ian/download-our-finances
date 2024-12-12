@@ -1,18 +1,17 @@
-from hmrc_category import HMRC_Category
+from cls_helper_sqlalchemy import SQLAlchemyHelper
+from our_finances_tables import *
 from tables import *
-from sqlite_helper import SQLiteHelper
-import sys
 
 
 class HMRC:
     def __init__(self, person_code, tax_year):
         self.person_code = person_code
         self.tax_year = tax_year
-        self.person = People(person_code)
-        self.spouse = People(self.person.get_spouse_code())
+        self.person = HMRC_PeopleDetails(person_code)
+        self.spouse = HMRC_PeopleDetails(self.person.get_spouse_code())
         self.categories = Categories()
         self.transactions = Transactions()
-        self.sql = SQLiteHelper()
+        self.sql = SQLAlchemyHelper()
 
         # self.list_categories()
 
@@ -373,7 +372,7 @@ class HMRC:
         )
         print(query)
 
-        categories = SQLiteHelper().fetch_all(query)
+        categories = SQLAlchemyHelper().fetch_all(query)
         for row in categories:
             print(row[0])
 
@@ -1357,7 +1356,7 @@ class OurFinances:
         Initialize the report with the database_name name
         """
 
-        self.sql = SQLiteHelper()
+        self.sql = SQLAlchemyHelper()
 
     def account_balances(self):
         query = """

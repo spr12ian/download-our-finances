@@ -1,14 +1,14 @@
-from google_helper import GoogleHelper
-import log_helper
+from cls_helper_google import GoogleHelper
+import cls_helper_log
 import pandas as pd
 import re
 from sqlalchemy import create_engine, Table
-from sqlalchemy_helper import SQLAlchemyHelper
+from cls_helper_sqlalchemy import SQLAlchemyHelper
 import time
 from our_finances_text_only_tables import *
 
 
-class SpreadsheetDatabaseConverter:
+class SpreadsheetToSqliteDbViaAlchemy:
     def __init__(self):
         """
         Initialize the converter with Google Sheets credentials and spreadsheet name
@@ -26,7 +26,7 @@ class SpreadsheetDatabaseConverter:
 
         self.spreadsheet = GoogleHelper().get_spreadsheet(scopes)
 
-        self.sql=SQLAlchemyHelper()
+        self.sql = SQLAlchemyHelper()
 
     def convert_to_sqlite(self):
         tables = {}
@@ -38,7 +38,7 @@ class SpreadsheetDatabaseConverter:
             print(table_name)
             tables = {f"{table_name}": eval(f"t_{table_name}")}
 
-            log_helper.tprint(f"Converting {worksheet.title}")
+            cls_helper_log.tprint(f"Converting {worksheet.title}")
 
             # Get worksheet data as a DataFrame
             data = worksheet.get_all_records()
@@ -49,11 +49,11 @@ class SpreadsheetDatabaseConverter:
 
             self.to_sql(df, tables.get(table_name))
 
-            log_helper.tprint(f"Converted {table_name}\n")
+            cls_helper_log.tprint(f"Converted {table_name}\n")
 
             time.sleep(1)
 
-        log_helper.tprint(f"Spreadsheet imported to SQLite database")
+        cls_helper_log.tprint(f"Spreadsheet imported to SQLite database")
 
     def to_sql(self, df, table: Table):
         session = self.sql.get_session()
@@ -76,7 +76,7 @@ class SpreadsheetDatabaseConverter:
 
 
 def main():
-    converter = SpreadsheetDatabaseConverter()
+    converter = SpreadsheetToSqliteDbViaAlchemy()
 
     # Convert spreadsheet to SQLite
     converter.convert_to_sqlite()
