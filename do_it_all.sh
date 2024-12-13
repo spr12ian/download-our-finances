@@ -24,20 +24,20 @@ for db in "${databases[@]}"; do
     stop_if_module_has_errors "spreadsheet_to_${db}"
 
     if [ -f "${db_filename}" ]; then
-        text_only_db_filename="${db}_text_only.db"
+        #text_only_db_filename="${db}_text_only.db"
 
-        echo cp "${db_filename}" "${text_only_db_filename}"
-        cp "${db_filename}" "${text_only_db_filename}"
+        #echo cp "${db_filename}" "${text_only_db_filename}"
+        #cp "${db_filename}" "${text_only_db_filename}"
 
-        echo sqlacodegen "sqlite:///${db_filename}" --outfile "${db}_text_only_tables.py"
-        sqlacodegen_v2 "sqlite:///${db_filename}" --outfile "${db}_text_only_tables.py"
+        #echo sqlacodegen "sqlite:///${db_filename}" --outfile "${db}_text_only_tables.py"
+        #sqlacodegen_v2 "sqlite:///${db_filename}" --outfile "${db}_text_only_tables.py"
 
-        stop_if_module_has_errors "text_to_real_${db}"
+        #stop_if_module_has_errors "text_to_real_${db}"
 
         echo sqlacodegen "sqlite:///${db_filename}" --outfile "${db}_tables.py"
         sqlacodegen_v2 "sqlite:///${db_filename}" --outfile "${db}_tables.py"
 
-        stop_if_module_has_errors vacuum_databases
+        stop_if_module_has_errors "vacuum__${db}"
 
         stop_if_module_has_errors "hmrc_reports_${db}"
     fi

@@ -4,9 +4,6 @@ from sqlalchemy.orm import sessionmaker
 
 databases = [
     "our_finances",
-    "our_finances_orm",
-    "our_finances_text_only",
-    "our_finances_orm_text_only",
 ]
 
 for database in databases:

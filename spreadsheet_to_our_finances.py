@@ -1,6 +1,7 @@
 from cls_helper_google import GoogleHelper
 from cls_helper_log import LogHelper
 import pandas as pd
+import re
 from cls_helper_sqlite import SQLiteHelper
 import time
 
@@ -34,9 +35,45 @@ class SpreadsheetToSqliteDb:
 
         db_connection = self.sql.open_connection()
 
+        real_columns = [
+            "Account maximum",
+            "Account minimum",
+            "Amount",
+            "Annual",
+            "Annual interest (AER)",
+            "Asset value",
+            "Balance",
+            "Change",
+            "Change required",
+            "Credit",
+            "Credits due",
+            "Daily",
+            "Debit",
+            "Debits due",
+            "Dynamic amount",
+            "Excess",
+            "Fixed amount",
+            "Four weekly",
+            "Interest",
+            "Interest rate",
+            "Minimum today",
+            "Monthly",
+            "Monthly interest",
+            "Nett",
+            "Shortfall",
+            "Sporadic",
+            "Taxable interest",
+            "Tolerance",
+            "Total credit",
+            "Total debit",
+            "Weekly",
+        ]
+
         # Iterate through all worksheets
         for worksheet in self.spreadsheet.worksheets():
             self.log.tprint(f"Converting {worksheet.title}")
+
+            table_name = worksheet.title.replace(" ", "_").lower()
 
             # Get worksheet data as a DataFrame
             data = worksheet.get_all_values()
@@ -45,13 +82,16 @@ class SpreadsheetToSqliteDb:
             columns = data[0]  # Assume the first row contains headers
             rows = data[1:]  # Remaining rows are the data
             df = pd.DataFrame(rows, columns=columns)
-
-            df["Credit"] = df["Credit"].astype("float")
-            df["Debit"] = df["Debit"].astype("float")
-            df["Nett"] = df["Nett"].astype("float")
+            for real_column in real_columns:
+                if real_column in df.columns:
+                    try:
+                        df[real_column] = df[real_column].apply(self.string_to_float)
+                    except:
+                        print(table_name)
+                        print(real_column)
+                        raise
 
             # Write DataFrame to SQLite table (sheet name becomes table name)
-            table_name = worksheet.title.replace(" ", "_").lower()
 
             df.to_sql(
                 table_name, self.sql.db_connection, if_exists="replace", index=False
@@ -62,6 +102,14 @@ class SpreadsheetToSqliteDb:
             time.sleep(1)
 
         self.sql.close_connection()
+
+    # Function to convert currency strings to float
+    def string_to_float(self, string):
+        if string.strip() == "":  # Check if the string is empty or whitespace
+            return 0.0
+        else:
+            # Remove the currency symbol (£), commas, and percent then convert to float
+            return float(re.sub(r"[£,%]", "", string))
 
 
 def main():
