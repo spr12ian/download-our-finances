@@ -39,9 +39,16 @@ class SpreadsheetToSqliteDb:
             self.log.tprint(f"Converting {worksheet.title}")
 
             # Get worksheet data as a DataFrame
-            data = worksheet.get_all_records()
+            data = worksheet.get_all_values()
 
-            df = pd.DataFrame(data)
+            # Create a DataFrame
+            columns = data[0]  # Assume the first row contains headers
+            rows = data[1:]  # Remaining rows are the data
+            df = pd.DataFrame(rows, columns=columns)
+
+            df["Credit"] = df["Credit"].astype("float")
+            df["Debit"] = df["Debit"].astype("float")
+            df["Nett"] = df["Nett"].astype("float")
 
             # Write DataFrame to SQLite table (sheet name becomes table name)
             table_name = worksheet.title.replace(" ", "_").lower()

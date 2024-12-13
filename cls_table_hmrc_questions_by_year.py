@@ -17,11 +17,11 @@ class HMRC_QuestionsByYear(SQLiteTable):
 
         questions = [
             [
-                row[0],
-                (split := row[1].split(","))[0],
-                (split[1] if len(split) > 1 else None),
-                "get_" + to_valid_method_name(row[0]),
-                (split[2] if len(split) > 2 else None),
+                row[0],  # question
+                (split := row[1].split(","))[0],  # section
+                (split[1] if len(split) > 1 else None),  # box
+                "get_" + to_valid_method_name(row[0]),  # method
+                (split[2] if len(split) > 2 else None),  # header
             ]
             for row in self.sql.fetch_all(query)
         ]

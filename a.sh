@@ -10,7 +10,7 @@ for db in "${databases[@]}"; do
         echo rm "${db_filename}"
         rm "${db_filename}"
     fi
-    
+
     text_only_db_filename="${db}_text_only.db"
     if [ -f "${text_only_db_filename}" ]; then
         echo rm "${text_only_db_filename}"
@@ -18,6 +18,11 @@ for db in "${databases[@]}"; do
     fi
 done
 
-rm "*.log"
+rm -v ./*.log
 
 ./do_it_all.sh >do_it_all.log 2>do_it_all_error.log
+
+# Check if the file exists and its size is zero
+if [ -f "do_it_all_error.log" ] && [ ! -s "do_it_all_error.log" ]; then
+    rm "do_it_all_error.log"
+fi

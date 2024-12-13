@@ -30,12 +30,12 @@ for db in "${databases[@]}"; do
         cp "${db_filename}" "${text_only_db_filename}"
 
         echo sqlacodegen "sqlite:///${db_filename}" --outfile "${db}_text_only_tables.py"
-        sqlacodegen "sqlite:///${db_filename}" --outfile "${db}_text_only_tables.py"
+        sqlacodegen_v2 "sqlite:///${db_filename}" --outfile "${db}_text_only_tables.py"
 
         stop_if_module_has_errors "text_to_real_${db}"
 
         echo sqlacodegen "sqlite:///${db_filename}" --outfile "${db}_tables.py"
-        sqlacodegen "sqlite:///${db_filename}" --outfile "${db}_tables.py"
+        sqlacodegen_v2 "sqlite:///${db_filename}" --outfile "${db}_tables.py"
 
         stop_if_module_has_errors vacuum_databases
 

@@ -58,7 +58,7 @@ class HMRC:
         except AttributeError:
             print(f"Method {method_name} not found")
 
-    def format_answer(self, string_list):
+    def format_answer(self, string_list) -> str:
         if len(string_list[2]) > 0:
             widths = [8, 5, 55]  # Define column widths
 
@@ -288,7 +288,7 @@ class HMRC:
         person_name = self.person.get_name()
         tax_year = self.tax_year
 
-        return f"HMRC {tax_year} tax return for {person_name} - {full_utr}\n"
+        return f"HMRC {tax_year} tax return for {person_name} - UTR {full_utr}\n"
 
     def get_total_amount_of_allowable_expenses(self):
         return 0

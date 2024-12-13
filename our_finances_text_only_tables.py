@@ -1,5 +1,5 @@
-# coding: utf-8
-from sqlalchemy import Column, Float, Integer, MetaData, Table, Text
+from sqlalchemy import Column, MetaData, Table, Text
+from sqlalchemy.orm.base import Mapped
 
 metadata = MetaData()
 
@@ -385,12 +385,12 @@ t__bsasav = Table(
     '_bsasav', metadata,
     Column('Date', Text),
     Column('Description', Text),
-    Column('Credit', Integer),
-    Column('Debit', Integer),
+    Column('Credit', Text),
+    Column('Debit', Text),
     Column('Note', Text),
     Column('CPTY', Text),
     Column('CPTY Date', Text),
-    Column('Balance', Integer)
+    Column('Balance', Text)
 )
 
 
@@ -581,10 +581,10 @@ t__jwaleu = Table(
     Column('CPTY', Text),
     Column('CPTY Date', Text),
     Column('Balance', Text),
-    Column('Exchange rate (GBP/EUR)', Float),
-    Column('Credit (EUR)', Float),
-    Column('Debit (EUR)', Float),
-    Column('Balance (EUR)', Float)
+    Column('Exchange rate (GBP/EUR)', Text),
+    Column('Credit (EUR)', Text),
+    Column('Debit (EUR)', Text),
+    Column('Balance (EUR)', Text)
 )
 
 
@@ -1380,7 +1380,7 @@ t_bank_accounts = Table(
 
 t_bank_cards = Table(
     'bank_cards', metadata,
-    Column('Last 4 digits', Integer),
+    Column('Last 4 digits', Text),
     Column('Account', Text),
     Column('Valid from', Text),
     Column('Expiry date', Text),
@@ -1462,9 +1462,9 @@ t_budget_annual_transactions = Table(
     Column('Payment type', Text),
     Column('Category', Text),
     Column('Subcategory', Text),
-    Column('Frequency (years)', Integer),
-    Column('Day', Integer),
-    Column('Month', Integer),
+    Column('Frequency (years)', Text),
+    Column('Day', Text),
+    Column('Month', Text),
     Column('Payment Method', Text),
     Column('Day of week', Text),
     Column('Key', Text)
@@ -1528,7 +1528,7 @@ t_budget_four_weekly_transactions = Table(
     Column('Subcategory', Text),
     Column('Annual', Text),
     Column('Monthly', Text),
-    Column('Day', Integer),
+    Column('Day', Text),
     Column('Payment type', Text)
 )
 
@@ -1551,7 +1551,7 @@ t_budget_monthly_transactions = Table(
     Column('Note', Text),
     Column('CPTY', Text),
     Column('Key', Text),
-    Column('Day of month', Integer),
+    Column('Day of month', Text),
     Column('Account', Text),
     Column('Payment method', Text)
 )
@@ -1618,7 +1618,7 @@ t_budget_weekly_transactions = Table(
     Column('Subcategory', Text),
     Column('Annual', Text),
     Column('Monthly', Text),
-    Column('Day', Integer),
+    Column('Day', Text),
     Column('Payment type', Text)
 )
 
@@ -1626,7 +1626,7 @@ t_budget_weekly_transactions = Table(
 t_categories = Table(
     'categories', metadata,
     Column('Category', Text),
-    Column('How many', Integer),
+    Column('How many', Text),
     Column('HMRC page', Text),
     Column('HMRC box', Text),
     Column('Description', Text),
@@ -1706,10 +1706,10 @@ t_description_replacements = Table(
 t_gift_recipients = Table(
     'gift_recipients', metadata,
     Column('Name', Text),
-    Column('Birth day', Integer),
-    Column('Birth month', Integer),
+    Column('Birth day', Text),
+    Column('Birth month', Text),
     Column('Birth year', Text),
-    Column('Tier', Integer),
+    Column('Tier', Text),
     Column('Gift amount', Text),
     Column('Connection', Text)
 )
@@ -1717,7 +1717,7 @@ t_gift_recipients = Table(
 
 t_gift_tiers = Table(
     'gift_tiers', metadata,
-    Column('Tier', Integer),
+    Column('Tier', Text),
     Column('Gift amount', Text),
     Column('Recipients', Text)
 )
@@ -1790,42 +1790,18 @@ t_hmrc_income_streams = Table(
 )
 
 
-t_hmrc_individuals = Table(
-    'hmrc_individuals', metadata,
-    Column('Key', Text),
-    Column('When', Text),
-    Column('First name', Text),
-    Column('Middle name', Text),
-    Column('Surname', Text),
-    Column('UTR', Integer),
-    Column('Check digit', Text),
-    Column('NINO', Text),
-    Column('Phone', Integer),
-    Column('Email', Text),
-    Column('Address line 1', Text),
-    Column('Address line 2', Text),
-    Column('Postcode', Text),
-    Column('Address correct?', Text),
-    Column('Taxpayer residency', Text),
-    Column('D.O.B', Text),
-    Column('Marital status', Text),
-    Column('Blind?', Text),
-    Column('Student Loan?', Text)
-)
-
-
 t_hmrc_l1_3bh = Table(
     'hmrc_l1_3bh', metadata,
     Column('Tax Year', Text),
     Column('Rent Income', Text),
     Column('Management Fee', Text),
     Column('Replacement Costs', Text),
-    Column('Service charges', Float),
+    Column('Service charges', Text),
     Column('Description', Text),
     Column('Total Expenses', Text),
-    Column('Rent, rates, insurance, ground rents etc', Integer),
-    Column('Cost of replacing domestic items', Integer),
-    Column('Legal, management and other professional fees', Integer),
+    Column('Rent, rates, insurance, ground rents etc', Text),
+    Column('Cost of replacing domestic items', Text),
+    Column('Legal, management and other professional fees', Text),
     Column('Taxable profit', Text)
 )
 
@@ -1842,6 +1818,23 @@ t_hmrc_pensions = Table(
     Column('Blank', Text),
     Column('Query', Text),
     Column('Data', Text)
+)
+
+
+t_hmrc_people_details = Table(
+    'hmrc_people_details', metadata,
+    Column('Code', Text),
+    Column('When', Text),
+    Column('UTR', Text),
+    Column('UTR check digit', Text),
+    Column('NINO', Text),
+    Column('Address correct?', Text),
+    Column('Taxpayer residency', Text),
+    Column('Marital status', Text),
+    Column('Blind?', Text),
+    Column('Student Loan?', Text),
+    Column('Spouse code', Text),
+    Column('Marriage date', Text)
 )
 
 
@@ -1862,7 +1855,7 @@ t_hmrc_queries = Table(
 t_hmrc_questions = Table(
     'hmrc_questions', metadata,
     Column('Question', Text),
-    Column('String length', Integer),
+    Column('String length', Text),
     Column('Max string length', Text),
     Column('54', Text)
 )
@@ -2028,7 +2021,7 @@ t_irf_xfer_check = Table(
     Column('CPTY', Text),
     Column('CPTY Date', Text),
     Column('Counterparty date', Text),
-    Column('-Nett', Float),
+    Column('-Nett', Text),
     Column('WHERE', Text),
     Column('a', Text),
     Column('b', Text),
@@ -2086,13 +2079,13 @@ t_loan_charlie_bernard = Table(
 
 t_loan_glenburnie = Table(
     'loan_glenburnie', metadata,
-    Column('Date', Integer),
+    Column('Date', Text),
     Column('Description', Text),
     Column('Credit', Text),
     Column('Debit', Text),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('Balance', Float),
+    Column('Balance', Text),
     Column('Key', Text)
 )
 
@@ -2106,7 +2099,7 @@ t_loan_linda_hayman = Table(
     Column('Note', Text),
     Column('CPTY', Text),
     Column('CPTY Date', Text),
-    Column('Balance', Float)
+    Column('Balance', Text)
 )
 
 
@@ -2162,7 +2155,7 @@ t_my_formulas_examples = Table(
 t_not_in_transaction_categories = Table(
     'not_in_transaction_categories', metadata,
     Column('Account + Description + Note', Text),
-    Column('How Many?', Integer)
+    Column('How Many?', Text)
 )
 
 
@@ -2227,13 +2220,17 @@ t_pensions = Table(
 t_people = Table(
     'people', metadata,
     Column('Code', Text),
-    Column('Person', Text),
+    Column('First name', Text),
+    Column('Middle name', Text),
+    Column('Surname', Text),
     Column('Date of birth', Text),
     Column('Phone number', Text),
-    Column('NINO', Text),
-    Column('UTR', Text),
-    Column('UTR check digit', Text),
-    Column('Spouse', Text),
+    Column('Address line 1', Text),
+    Column('Address line 2', Text),
+    Column('City', Text),
+    Column('Postcode', Text),
+    Column('Person', Text),
+    Column('Full name', Text),
     Column('Address', Text)
 )
 
@@ -2378,10 +2375,10 @@ t_shares = Table(
 t_spreadsheet_summary = Table(
     'spreadsheet_summary', metadata,
     Column('Sheet name', Text),
-    Column('Last row', Integer),
-    Column('Last column', Integer),
-    Column('Max rows', Integer),
-    Column('Max columns', Integer),
+    Column('Last row', Text),
+    Column('Last column', Text),
+    Column('Max rows', Text),
+    Column('Max columns', Text),
     Column('Account?', Text),
     Column('Budget?', Text)
 )
@@ -2482,7 +2479,7 @@ t_transactions_by_date = Table(
 t_transactions_categories = Table(
     'transactions_categories', metadata,
     Column('Transaction Descriptions', Text),
-    Column('How Many', Integer),
+    Column('How Many', Text),
     Column('Category', Text),
     Column('XLOOKUP category', Text)
 )
@@ -2528,7 +2525,7 @@ t_unreconciled = Table(
 t_weekday = Table(
     'weekday', metadata,
     Column('Sunday', Text),
-    Column('1', Integer)
+    Column('1', Text)
 )
 
 
