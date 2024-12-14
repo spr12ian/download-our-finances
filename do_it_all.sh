@@ -1,5 +1,11 @@
 #!/bin/bash
-trap 'echo "Executing: $BASH_COMMAND"' DEBUG
+
+# Check if DEBUG is set to true
+if [ "$DEBUG" = "true" ]; then
+    set -x # Enable debugging
+else
+    set +x # Disable debugging
+fi
 
 stop_if_module_has_errors() {
     module=$1
@@ -15,7 +21,7 @@ stop_if_module_has_errors() {
 stop_if_module_has_errors key_check
 
 # List of databases
-databases=("our_finances" "our_finances_orm")
+databases=("our_finances")
 
 # Loop through each database
 for db in "${databases[@]}"; do
@@ -24,23 +30,11 @@ for db in "${databases[@]}"; do
     stop_if_module_has_errors "spreadsheet_to_${db}"
 
     if [ -f "${db_filename}" ]; then
-        #text_only_db_filename="${db}_text_only.db"
+        echo sqlacodegen_v2 "sqlite:///${db_filename}" --outfile "tables_sqlalchemy.py"
+        sqlacodegen_v2 "sqlite:///${db_filename}" --outfile "tables_sqlalchemy.py"
 
-        #echo cp "${db_filename}" "${text_only_db_filename}"
-        #cp "${db_filename}" "${text_only_db_filename}"
-
-        #echo sqlacodegen "sqlite:///${db_filename}" --outfile "${db}_text_only_tables.py"
-        #sqlacodegen_v2 "sqlite:///${db_filename}" --outfile "${db}_text_only_tables.py"
-
-        #stop_if_module_has_errors "text_to_real_${db}"
-
-        echo sqlacodegen "sqlite:///${db_filename}" --outfile "${db}_tables.py"
-        sqlacodegen_v2 "sqlite:///${db_filename}" --outfile "${db}_tables.py"
-
-        stop_if_module_has_errors "vacuum__${db}"
+        stop_if_module_has_errors "vacuum_${db}"
 
         stop_if_module_has_errors "hmrc_reports_${db}"
     fi
 done
-
-trap - DEBUG

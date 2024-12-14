@@ -1,8 +1,8 @@
+from cls_helper_sql import SQL_Helper
 from tables import *
-from cls_helper_sqlite import SQLiteHelper
 
 
-class HMRC_Person(People):
+class HMRC_People(People):
     def __init__(self, code):
         super().__init__(code)
 
@@ -29,15 +29,16 @@ class HMRC:
         self.person_code = person_code
         self.tax_year = tax_year
 
-        self.person = HMRC_Person(person_code)
+        self.person = HMRC_People(person_code)
 
         spouse_code = self.person.get_spouse_code()
 
-        self.spouse = HMRC_Person(spouse_code)
+        self.spouse = HMRC_People(spouse_code)
 
         self.categories = Categories()
         self.transactions = Transactions()
-        self.sql = SQLiteHelper()
+
+        self.sql = SQL_Helper().select_sql_helper("SQLite")
 
         # self.list_categories()
 
@@ -242,6 +243,15 @@ class HMRC:
     def get_other_taxable_income(self):
         return 0
 
+    def get_payments_to_pension_schemes__relief_at_source_(self):
+        my_payments = self.transactions.fetch_total_by_tax_year_category(
+            self.tax_year, "HMRC S pension contribution"
+        )
+        hmrc_contribution = self.transactions.fetch_total_by_tax_year_category(
+            self.tax_year, "HMRC S pension tax relief"
+        )
+        return my_payments + hmrc_contribution
+
     def get_pensions__other_than_state_pension_(self):
         return 0
 
@@ -292,6 +302,15 @@ class HMRC:
 
     def get_total_amount_of_allowable_expenses(self):
         return 0
+
+    def get_total_of_any__one_off__payments_in_box_1(self):
+        my_payments = self.transactions.fetch_total_by_tax_year_category(
+            self.tax_year, "HMRC S pension contribution"
+        )
+        hmrc_contribution = self.transactions.fetch_total_by_tax_year_category(
+            self.tax_year, "HMRC S pension tax relief"
+        )
+        return my_payments + hmrc_contribution
 
     def get_total_of_any_other_taxable_state_pensions_and_benefits(self):
         return 0
@@ -397,7 +416,7 @@ class HMRC:
             .build()
         )
 
-        categories = SQLiteHelper().fetch_all(query)
+        categories = self.sql.fetch_all(query)
         for row in categories:
             print(row[0])
 

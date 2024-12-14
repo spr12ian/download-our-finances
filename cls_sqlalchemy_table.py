@@ -1,10 +1,10 @@
-from cls_helper_sqlite import SQLiteHelper
+from cls_helper_sqlalchemy import SQLAlchemyHelper
 from cls_query_builder import QueryBuilder
 
 
 class SQLiteTable:
     def __init__(self, table_name):
-        self.sql = SQLiteHelper()
+        self.sql = SQLAlchemyHelper()
         self.table_name = table_name
 
     def fetch_all(self):

@@ -1,6 +1,6 @@
 from cls_helper_sqlalchemy import SQLAlchemyHelper
-from our_finances_tables import *
-from tables import *
+from tables_sqlalchemy import *
+from tables_sqlite import *
 
 
 class HMRC:

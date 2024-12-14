@@ -15,6 +15,21 @@ class SQLAlchemyHelper:
         self.engine = create_engine(url, echo=True)
         self.Session = sessionmaker(bind=self.engine)
 
+    def fetch_one_value(self, query):
+        query = text(query)
+
+        # Open a session
+        session = self.Session()
+        try:
+            # Execute the query
+            result = session.execute(query)
+            value = result.scalar()
+        finally:
+            # Close the session
+            session.close()
+
+        return value
+
     def get_session(self):
         return Session(self.engine)
 

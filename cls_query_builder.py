@@ -1,4 +1,4 @@
-class SQLiteQueryBuilder:
+class QueryBuilder:
     def __init__(self, table_name):
         self.table_name = table_name
         self.columns = []
@@ -47,9 +47,3 @@ class SQLiteQueryBuilder:
             query += f" LIMIT {self.limit}"
 
         return query
-
-    def execute(self, connection):
-        query = self.build()
-        cursor = connection.cursor()
-        cursor.execute(query)
-        return cursor.fetchall()
