@@ -42,13 +42,13 @@ class HMRC:
 
         # self.list_categories()
 
-    def append_header(self, answers, header):
-        header = f"\n{header.upper()}"
+    def append_section(self, answers, section):
+        section = f"\n{section.upper()}"
         this_return = f"{self.person.get_name()} {self.tax_year}\n"
 
-        answers.append([header, "", "", this_return])
+        answers.append([section, "", "", this_return])
 
-        answers.append(["Section", "Box", "Question", "Answer"])
+        answers.append(["Page", "Box", "Question", "Answer"])
 
         return answers
 
@@ -83,50 +83,50 @@ class HMRC:
 
     def get_answers(self):
         answers = []
-        for question, section, box, method_name, header in self.get_questions():
-            if header:
-                answers = self.append_header(answers, header)
+        for question, page, section, box, method_name in self.get_questions():
+            if box=="1":
+                answers = self.append_section(answers, section)
 
             answer = self.call_method(method_name)
 
-            answers.append([section, box, question, answer])
+            answers.append([page, box, question, answer])
             # match question:
             #     case "Declaration":
             #         answer = "Sign & date"
-            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #         answers[question] = f"{page} {box} {question}: {answer}"
             #     case "Collect by PAYE":
             #         answer = "NO"
-            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #         answers[question] = f"{page} {box} {question}: {answer}"
             #     case "Collect small amounts by PAYE":
             #         answer = "NO"
-            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #         answers[question] = f"{page} {box} {question}: {answer}"
             #     case "Date of marriage":
             #         answer = "10/04/2018"
-            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #         answers[question] = f"{page} {box} {question}: {answer}"
             #     case "Your spouse's first name":
             #         answer = self.spouse.get_first_name()
-            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #         answers[question] = f"{page} {box} {question}: {answer}"
             #     case "Your spouse's last name":
             #         answer = self.spouse.get_last_name()
-            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #         answers[question] = f"{page} {box} {question}: {answer}"
             #     case "Your date of birth":
             #         answer = self.person.get_date_of_birth()
-            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #         answers[question] = f"{page} {box} {question}: {answer}"
             #     case "Your spouse's date of birth":
             #         answer = self.spouse.get_date_of_birth()
-            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #         answers[question] = f"{page} {box} {question}: {answer}"
             #     case "Your phone number":
             #         answer = self.person.get_phone_number()
-            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #         answers[question] = f"{page} {box} {question}: {answer}"
             #     case "Your National Insurance number":
             #         answer = self.person.get_national_insurance_number()
-            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #         answers[question] = f"{page} {box} {question}: {answer}"
             #     case "Your spouse's National Insurance number":
             #         answer = self.spouse.get_national_insurance_number()
-            #         answers[question] = f"{section} {box} {question}: {answer}"
+            #         answers[question] = f"{page} {box} {question}: {answer}"
             #     case "Total":
-            #         category = self.categories.fetch_by_section_box(
-            #             section, box, self.person_code
+            #         category = self.categories.fetch_by_page_box(
+            #             page, box, self.person_code
             #         )
             #         if category:
             #             hmrc_category = HMRC_Category(category, self.person_code)
@@ -137,11 +137,11 @@ class HMRC:
             #             )
 
             #             answers[question] = (
-            #                 f"{section} {box} {question}: £{amount:,.2f}"
+            #                 f"{page} {box} {question}: £{amount:,.2f}"
             #             )
             #         else:
             #             sys.stderr.write(
-            #                 f'{section}, {box}, {self.person_code}, "Category not found"\n'
+            #                 f'{page}, {box}, {self.person_code}, "Category not found"\n'
             #             )
             #     case _:
             #         sys.stderr.write(f"Unhandled question: {question}\n")
@@ -420,7 +420,7 @@ class HMRC:
         for row in categories:
             print(row[0])
 
-    def print_answer(self, section, box, question, answer):
+    def print_answer(self, page, box, question, answer):
         if isinstance(answer, bool):
             answer = "Yes" if answer else "No"
         elif isinstance(answer, float):
@@ -432,7 +432,7 @@ class HMRC:
         else:
             answer = str(answer)
 
-        formatted_answer = self.format_answer([section, box, question, answer])
+        formatted_answer = self.format_answer([page, box, question, answer])
 
         print(formatted_answer)
 
@@ -441,8 +441,8 @@ class HMRC:
 
         answers = self.get_answers()
 
-        for section, box, question, answer in answers:
-            self.print_answer(section, box, question, answer)
+        for page, box, question, answer in answers:
+            self.print_answer(page, box, question, answer)
 
         print(
             "\n=========================================================================================\n"

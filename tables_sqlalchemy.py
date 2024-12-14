@@ -1864,6 +1864,10 @@ t_hmrc_questions = Table(
 t_hmrc_questions_by_year = Table(
     'hmrc_questions_by_year', metadata,
     Column('Question', Text),
+    Column('Order', Text),
+    Column('Page label', Text),
+    Column('Header', Text),
+    Column('Box', Text),
     Column('2023 to 2024', Text)
 )
 
