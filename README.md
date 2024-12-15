@@ -1,6 +1,9 @@
 # download-our-finances
 Python repository
 
+SQLAlchemy tutorial
+https://docs.sqlalchemy.org/en/20/tutorial/metadata.html
+
 VS Code extensions:
 Black Formatter by Microsoft
 
