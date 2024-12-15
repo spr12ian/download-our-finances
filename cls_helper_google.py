@@ -16,12 +16,20 @@ class GoogleHelper:
     def get_authorized_client(self, scopes):
         # from_service_account_file requires scopes to be passed as a keyword arguement
 
-        credentials_path = self.get_credentials_path()
-
-        creds = Credentials.from_service_account_file(credentials_path, scopes=scopes)
-        client = gspread.authorize(creds)
+        #creds = Credentials.from_service_account_file(credentials_path, scopes=scopes)
+        credentials = self.get_credentials(scopes)
+        
+        client = gspread.authorize(credentials)
 
         return client
+
+    def get_credentials(self, scopes):
+        service_account_file = self.get_credentials_path()
+        return Credentials.from_service_account_file(
+            service_account_file, scopes=scopes
+        )
+
+        return f"{home_directory}/{self.credentials_file_name}.json"
 
     def get_credentials_path(self):
         home_directory = OsHelper().get_home_directory()
