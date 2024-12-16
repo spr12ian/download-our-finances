@@ -1,5 +1,7 @@
+from cls_date_columns import DateColumns
 from cls_helper_google import GoogleHelper
 from cls_helper_log import LogHelper
+from cls_helper_pandas import PandasHelper
 from cls_helper_sql import SQL_Helper
 from cls_real_columns import RealColumns
 import time
@@ -43,7 +45,9 @@ class SpreadsheetToSqliteDb:
             data = worksheet.get_all_values()
 
             try:
-                df = RealColumns().to_dataframe(data)
+                df = PandasHelper().worksheet_values_to_dataframe(data)
+                df = RealColumns().convert(df)
+                df = DateColumns().convert(df)
             except:
                 print(table_name)
                 raise

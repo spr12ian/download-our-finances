@@ -12,7 +12,7 @@ t__ahalif = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -25,7 +25,7 @@ t__asanta = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -38,7 +38,7 @@ t__bchase = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -51,7 +51,7 @@ t__bchrnd = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -64,7 +64,7 @@ t__bchsav = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -77,7 +77,7 @@ t__bcoisa = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -90,7 +90,7 @@ t__bcoloy = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -103,7 +103,7 @@ t__bcyner = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -116,7 +116,7 @@ t__bfamil = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -129,7 +129,7 @@ t__bgoldm = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -142,7 +142,7 @@ t__bhasav = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -155,7 +155,7 @@ t__bhault = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -168,7 +168,7 @@ t__bmetro = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -181,7 +181,7 @@ t__bmocha = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -194,7 +194,7 @@ t__bmofwn = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -207,7 +207,7 @@ t__bmokid = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -220,7 +220,7 @@ t__bmonzo = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -233,7 +233,7 @@ t__bmopar = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -246,7 +246,7 @@ t__bmosav = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -259,7 +259,7 @@ t__bnspbz = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -272,7 +272,7 @@ t__boaisa = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -285,7 +285,7 @@ t__boakno = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -298,7 +298,7 @@ t__boxbur = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -311,7 +311,7 @@ t__bpaypa = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -324,7 +324,7 @@ t__bposto = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -337,7 +337,7 @@ t__bsaisa = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -350,7 +350,7 @@ t__bsanta = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -363,7 +363,7 @@ t__bsasa2 = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -376,7 +376,7 @@ t__bsasa3 = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -389,7 +389,7 @@ t__bsasav = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -402,7 +402,7 @@ t__bsatax = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -415,7 +415,7 @@ t__btes01 = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -428,7 +428,7 @@ t__btesco = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -441,7 +441,7 @@ t__btrisa = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -454,7 +454,7 @@ t__bvanga = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float),
     Column('Cash balance', Text),
     Column('Investment date', Text),
@@ -475,7 +475,7 @@ t__bvmisa = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -488,7 +488,7 @@ t__bvmsav = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -501,7 +501,7 @@ t__bwalle = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -514,7 +514,7 @@ t__clloyd = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -527,7 +527,7 @@ t__cmetro = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -540,7 +540,7 @@ t__cvitra = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -553,7 +553,7 @@ t__jfixes = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -566,7 +566,7 @@ t__jsanta = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -579,7 +579,7 @@ t__jwaleu = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float),
     Column('Exchange rate (GBP/EUR)', Text),
     Column('Credit (EUR)', Text),
@@ -596,7 +596,7 @@ t__samazo = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float),
     Column('Actual note', Text),
     Column('Payment type', Text),
@@ -613,7 +613,7 @@ t__schase = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -626,7 +626,7 @@ t__schbst = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -639,7 +639,7 @@ t__schrnd = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -652,7 +652,7 @@ t__schsav = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -665,7 +665,7 @@ t__scois2 = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -678,7 +678,7 @@ t__scoisa = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -691,7 +691,7 @@ t__scoloy = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -704,7 +704,7 @@ t__sfamil = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -717,7 +717,7 @@ t__sgoldm = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -730,7 +730,7 @@ t__sjl3bh = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float),
     Column('Date from', Text),
     Column('Date to', Text)
@@ -745,7 +745,7 @@ t__ski3bh = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float),
     Column('Date from', Text),
     Column('Date to', Text)
@@ -760,7 +760,7 @@ t__skrooo = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -773,7 +773,7 @@ t__smetro = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -786,7 +786,7 @@ t__smonz1 = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -799,7 +799,7 @@ t__smonzo = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -812,7 +812,7 @@ t__snspbz = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float),
     Column('Bond numbers', Text)
 )
@@ -826,7 +826,7 @@ t__soaisa = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -839,7 +839,7 @@ t__soakno = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -852,7 +852,7 @@ t__soxbur = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -865,7 +865,7 @@ t__spaypa = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -878,7 +878,7 @@ t__sposto = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -891,7 +891,7 @@ t__srevol = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float),
     Column('Exchange rate', Text),
     Column('Euro credit', Text),
@@ -908,7 +908,7 @@ t__ssacr1 = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -921,7 +921,7 @@ t__ssacrd = Table(
     Column('Debit', Float),
     Column('#REF!', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float),
     Column('Card', Text),
     Column('Actual Note', Text)
@@ -936,7 +936,7 @@ t__ssaisa = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -949,7 +949,7 @@ t__ssant1 = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -962,7 +962,7 @@ t__ssanta = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -975,7 +975,7 @@ t__ssaprm = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -988,7 +988,7 @@ t__ssaz01 = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -1001,7 +1001,7 @@ t__ssaz02 = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -1014,7 +1014,7 @@ t__ssaz03 = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -1027,7 +1027,7 @@ t__sstarb = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -1040,7 +1040,7 @@ t__sstarl = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -1053,7 +1053,7 @@ t__stafix = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -1066,7 +1066,7 @@ t__stasav = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -1079,7 +1079,7 @@ t__stes01 = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -1092,7 +1092,7 @@ t__stes02 = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -1105,7 +1105,7 @@ t__stes03 = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -1118,7 +1118,7 @@ t__stesco = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -1131,7 +1131,7 @@ t__strisa = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -1144,7 +1144,7 @@ t__svanga = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float),
     Column('Cash balance', Text),
     Column('Investment date', Text),
@@ -1165,7 +1165,7 @@ t__svi2tj = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float),
     Column('Range', Text),
     Column('Query', Text)
@@ -1180,7 +1180,7 @@ t__svi3bh = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float),
     Column('Date from', Text),
     Column('Date to', Text)
@@ -1195,7 +1195,7 @@ t__svigb2 = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float),
     Column('Account', Text),
     Column('Date2', Text),
@@ -1204,7 +1204,7 @@ t__svigb2 = Table(
     Column('Debit2', Text),
     Column('Note2', Text),
     Column('CPTY2', Text),
-    Column('CPTY Date2', Text),
+    Column('CPTY date2', Text),
     Column('Balance2', Text)
 )
 
@@ -1217,7 +1217,7 @@ t__svigbl = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float),
     Column('Account', Text),
     Column('Date2', Text),
@@ -1226,7 +1226,7 @@ t__svigbl = Table(
     Column('Debit2', Text),
     Column('Note2', Text),
     Column('CPTY2', Text),
-    Column('CPTY Date2', Text),
+    Column('CPTY date2', Text),
     Column('Balance2', Text)
 )
 
@@ -1239,7 +1239,7 @@ t__sviirf = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float),
     Column('Key', Text),
     Column('Date2', Text),
@@ -1261,7 +1261,7 @@ t__svmisa = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -1274,7 +1274,7 @@ t__svmsav = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -1287,7 +1287,7 @@ t__swalle = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -1300,7 +1300,7 @@ t__szopa1 = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -2023,7 +2023,7 @@ t_irf_xfer_check = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Counterparty date', Text),
     Column('-Nett', Text),
     Column('WHERE', Text),
@@ -2063,7 +2063,7 @@ t_loan_adam_perry = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -2076,7 +2076,7 @@ t_loan_charlie_bernard = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -2102,7 +2102,7 @@ t_loan_linda_hayman = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Balance', Float)
 )
 
@@ -2245,7 +2245,7 @@ t_property = Table(
     Column('Property', Text),
     Column('Valuation type', Text),
     Column('Amount', Float),
-    Column('Last Updated', Text),
+    Column('Last updated', Text),
     Column('Annual income', Text),
     Column('Annual expense', Text)
 )
@@ -2408,7 +2408,7 @@ t_transactions = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Nett', Float),
     Column('Tax year', Text),
     Column('Description + Note', Text),
@@ -2426,7 +2426,7 @@ t_transactions = Table(
 
 t_transactions_builder = Table(
     'transactions_builder', metadata,
-    Column('116', Text),
+    Column('115', Text),
     Column('rows on this sheet', Text),
     Column('a1', Text),
     Column('a2', Text),
@@ -2465,7 +2465,7 @@ t_transactions_by_date = Table(
     Column('Debit', Float),
     Column('Note', Text),
     Column('CPTY', Text),
-    Column('CPTY Date', Text),
+    Column('CPTY date', Text),
     Column('Nett', Float),
     Column('Tax year', Text),
     Column('Description + Note', Text),
@@ -2547,15 +2547,15 @@ t_xfers_check = Table(
 
 t_xfers_mismatch = Table(
     'xfers_mismatch', metadata,
-    Column('Date', Text),
+    Column('Xfer date', Text),
     Column('Xfer', Text),
     Column('Mismatch', Text),
-    Column('a', Text),
-    Column('b', Text),
-    Column('c', Text),
-    Column('d', Text),
+    Column('Key', Text),
+    Column('Date', Text),
+    Column('CPTY', Text),
+    Column('CPTY date', Text),
     Column('e', Text),
-    Column('f', Text),
+    Column('Xfer date 2', Text),
     Column('g', Text),
     Column('h', Text)
 )

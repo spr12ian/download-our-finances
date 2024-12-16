@@ -1,8 +1,17 @@
-import pandas as pd
 import re
 
 
 class RealColumns:
+    def convert(self, df):
+        for real_column in RealColumns().get_real_columns():
+            if real_column in df.columns:
+                try:
+                    df[real_column] = df[real_column].apply(self.string_to_float)
+                except:
+                    print(real_column)
+                    raise
+        return df
+    
     def get_real_columns(self):
         return [
             "Account maximum",
@@ -42,20 +51,6 @@ class RealColumns:
     def string_to_float(self, string):
         if string.strip() == "":  # Check if the string is empty or whitespace
             return 0.0
-        else:
-            # Remove the currency symbol (£), commas, and percent then convert to float
-            return float(re.sub(r"[£,%]", "", string))
-
-    def to_dataframe(self, data):
-        # Create a DataFrame
-        columns = data[0]  # Assume the first row contains headers
-        rows = data[1:]  # Remaining rows are the data
-        df = pd.DataFrame(rows, columns=columns)
-        for real_column in RealColumns().get_real_columns():
-            if real_column in df.columns:
-                try:
-                    df[real_column] = df[real_column].apply(self.string_to_float)
-                except:
-                    print(real_column)
-                    raise
-        return df
+  
+        # Remove the currency symbol (£), commas, and percent then convert to float
+        return float(re.sub(r"[£,%]", "", string))
