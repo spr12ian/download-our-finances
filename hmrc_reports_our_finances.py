@@ -8,11 +8,26 @@ class HMRC_People(People):
 
         self.hmrc_person_details = HMRC_PeopleDetails(code)
 
+    def get_bank_account_number(self):
+        refunds_to = self.hmrc_person_details.get_refunds_to()
+        return BankAccounts(refunds_to).get_account_number()
+
+    def get_bank_name(self):
+        refunds_to = self.hmrc_person_details.get_refunds_to()
+        return BankAccounts(refunds_to).get_bank_name()
+
+    def get_branch_sort_code(self):
+        refunds_to = self.hmrc_person_details.get_refunds_to()
+        return BankAccounts(refunds_to).get_sort_code()
+
     def get_marriage_date(self):
         return self.hmrc_person_details.get_marriage_date()
 
     def get_national_insurance_number(self):
         return self.hmrc_person_details.get_national_insurance_number()
+
+    def get_refunds_to(self):
+        return self.hmrc_person_details.get_refunds_to()
 
     def get_spouse_code(self):
         return self.hmrc_person_details.get_spouse_code()
@@ -80,6 +95,102 @@ class HMRC:
 
     def get_additional_information__yes_no_(self):
         return False
+
+    def get_number_of_properties_rented_out(self):
+        return "Not applicable"
+
+    def get_ceased_renting__consider_cgt__yes_no_(self):
+        return "Not applicable"
+
+    def get_property_let_jointly__yes_no_(self):
+        return "Not applicable"
+
+    def get_rent_a_room_relief__yes_no_(self):
+        return "Not applicable"
+
+    def get_total_rents_and_other_income_from_property(self):
+        return "Not applicable"
+
+    def get_property_income_allowance(self):
+        return "Not applicable"
+
+    def get_ukp_cash_basis__yes_no_(self):
+        return "Not applicable"
+
+    def get_tax_taken_off_any_income_in_box_20(self):
+        return "Not applicable"
+
+    def get_premiums_for_the_grant_of_a_lease(self):
+        return "Not applicable"
+
+    def get_reverse_premiums(self):
+        return "Not applicable"
+
+    def get_rent__rates__insurance_and_ground_rents(self):
+        return "Not applicable"
+
+    def get_property_repairs_and_maintenance(self):
+        return "Not applicable"
+
+    def get_non_residential_finance_property_costs(self):
+        return "Not applicable"
+
+    def get_legal__management_and_other_professional_fees(self):
+        return "Not applicable"
+
+    def get_costs_of_services_provided__including_wages(self):
+        return "Not applicable"
+
+    def get_other_allowable_property_expenses(self):
+        return "Not applicable"
+
+    def get_private_use_adjustment(self):
+        return "Not applicable"
+
+    def get_balancing_charges(self):
+        return "Not applicable"
+
+    def get_structures_and_buildings_allowance(self):
+        return "Not applicable"
+
+    def get_electric_charge_point_allowance(self):
+        return "Not applicable"
+
+    def get_freeport_allowance(self):
+        return "Not applicable"
+
+    def get_zero_emissions_allowance(self):
+        return "Not applicable"
+
+    def get_all_other_capital_allowances(self):
+        return "Not applicable"
+
+    def get_costs_of_replacing_domestic_items(self):
+        return "Not applicable"
+
+    def get_rent_a_room_exempt_amount(self):
+        return "Not applicable"
+
+    def get_adjusted_profit_for_the_year(self):
+        return "Not applicable"
+
+    def get_taxable_profit_for_the_year(self):
+        return "Not applicable"
+
+    def get_adjusted_loss_for_the_year(self):
+        return "Not applicable"
+
+    def get_loss_set_off_against_income(self):
+        return "Not applicable"
+
+    def get_loss_to_carry_forward(self):
+        return "Not applicable"
+
+    def get_residential_property_finance_costs(self):
+        return "Not applicable"
+
+    def get_unused_residential_finance_costs_brought_forward(self):
+        return "Not applicable"
 
     def get_answers(self):
         answers = []
@@ -498,31 +609,31 @@ class HMRC:
         return "Not applicable"
 
     def get_use_paye_for_small_amount_payments__yes_no_(self):
-        return "Not applicable"
+        return "No"
 
     def get_use_paye_for_tax_on_savings__yes_no_(self):
-        return "Not applicable"
+        return "No"
 
     def get_bank_name(self):
-        return "Not applicable"
+        return self.person.get_bank_name()
 
     def get_bank_account_holder(self):
-        return "Not applicable"
+        return self.person.get_name()
 
     def get_branch_sort_code(self):
-        return "Not applicable"
+        return self.person.get_branch_sort_code()
 
     def get_bank_account_number(self):
-        return "Not applicable"
+        return self.person.get_bank_account_number()
 
     def get_building_society_reference_number(self):
         return "Not applicable"
 
     def get_cheque__yes_no_(self):
-        return "Not applicable"
+        return "No"
 
     def get_did_you_put_a_nominee_s_name_in_box_5__yes_no_(self):
-        return "Not applicable"
+        return "No"
 
     def get_is_your_nominee_your_tax_advisor__yes_no_(self):
         return "Not applicable"

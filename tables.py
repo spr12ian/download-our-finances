@@ -1,3 +1,4 @@
+from cls_table_bank_accounts import BankAccounts
 from cls_table_categories import Categories
 from cls_table_hmrc_people_details import HMRC_PeopleDetails
 from cls_table_hmrc_questions_by_year import HMRC_QuestionsByYear

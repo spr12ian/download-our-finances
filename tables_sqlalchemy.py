@@ -1834,7 +1834,8 @@ t_hmrc_people_details = Table(
     Column('Blind?', Text),
     Column('Student Loan?', Text),
     Column('Spouse code', Text),
-    Column('Marriage date', Text)
+    Column('Marriage date', Text),
+    Column('Refunds to', Text)
 )
 
 
