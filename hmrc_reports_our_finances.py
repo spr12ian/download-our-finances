@@ -94,7 +94,8 @@ class HMRC:
         return "".join(formatted_parts) + string_list[3]
 
     def get_additional_information__yes_no_(self):
-        return False
+        return "Maybe: Married couples allowance section"
+        # return False
 
     def get_number_of_properties_rented_out(self):
         return "Not applicable"
@@ -929,10 +930,10 @@ class HMRC:
         return self.transactions.fetch_total_by_tax_year_category(tax_year, category)
 
     def get_your_date_of_birth(self):
-        return self.person.get_date_of_birth()
+        return self.person.get_uk_date_of_birth()
 
     def get_your_name_and_address(self):
-        return self.person.get_name()
+        return "Leave blank - not changed"
 
     def get_your_national_insurance_number(self):
         return self.person.get_national_insurance_number()

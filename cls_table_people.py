@@ -1,3 +1,4 @@
+from cls_helper_date_time import DateTimeHelper
 from cls_sqlite_table import SQLiteTable
 
 
@@ -18,6 +19,9 @@ class People(SQLiteTable):
 
     def get_first_name(self):
         return self.get_value_by_code_column("First name")
+
+    def get_uk_date_of_birth(self):
+        return DateTimeHelper().ISO_to_UK(self.get_date_of_birth())
 
     def get_last_name(self):
         return self.get_value_by_code_column("Surname")

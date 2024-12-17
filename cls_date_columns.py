@@ -1,4 +1,4 @@
-from datetime import datetime
+from cls_helper_date_time import DateTimeHelper
 
 
 class DateColumns:
@@ -27,13 +27,6 @@ class DateColumns:
             "Start date",
         ]
 
-    # Function to convert Google sheets date strings (DD-MM-YYYY) to Sqlite date strings YYYY-MM-DD
+    # Function to convert Google sheets date strings (DD/MM/YYYY) to Sqlite date strings YYYY-MM-DD
     def reverse_date_string(self, g_date_str):
-        if g_date_str.strip() == "":  # Check if the string is empty or whitespace
-            return ""
-
-        # Convert the string to a datetime object
-        date_obj = datetime.strptime(g_date_str, "%d/%m/%Y")
-
-        # Convert the datetime object back to a string in the desired format
-        return date_obj.strftime("%Y-%m-%d")
+        return DateTimeHelper().UK_to_ISO(g_date_str)
