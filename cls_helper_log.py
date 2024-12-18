@@ -48,6 +48,15 @@ class LogHelper:
 
         print("Current Time:", time_now)
 
+    def tdebug(self, msg):
+        if self.debug_enabled:
+            dt = self.dt
+
+            time_now = dt.get_time_now()
+
+            message = f"{time_now}: {msg}"
+            print(message)
+
     def tprint(self, msg):
         dt = self.dt
 

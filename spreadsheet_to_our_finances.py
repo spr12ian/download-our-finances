@@ -37,44 +37,47 @@ class SpreadsheetToSqliteDb:
 
         # Iterate through all worksheets
         for worksheet in self.spreadsheet.worksheets():
-            self.log.tprint(f"Converting {worksheet.title}")
 
-            table_name = worksheet.title.replace(" ", "_").lower()
-
-            # Get worksheet data as a DataFrame
-            data = worksheet.get_all_values()
-
-            try:
-                df = PandasHelper().worksheet_values_to_dataframe(data)
-                df = RealColumns().convert(df)
-                df = DateColumns().convert(df)
-            except:
-                print(table_name)
-                raise
-
-            # Write DataFrame to SQLite table (sheet name becomes table name)
-            df.to_sql(
-                table_name, self.sql.db_connection, if_exists="replace", index=False
-            )
-
-            self.log.tprint(f"Converted {table_name}\n")
+            self.convert_worksheet(worksheet)
 
             time.sleep(1)
 
         self.sql.close_connection()
 
+    @LogHelper.log_execution_time
+    def convert_worksheet(self, worksheet):
+        self.log.debug(f"Converting {worksheet.title}")
+
+        table_name = worksheet.title.replace(" ", "_").lower()
+
+        # Get worksheet data as a DataFrame
+        data = worksheet.get_all_values()
+
+        try:
+            df = PandasHelper().worksheet_values_to_dataframe(data)
+            df = RealColumns().convert(df)
+            df = DateColumns().convert(df)
+        except:
+            print(table_name)
+            raise
+
+        # Write DataFrame to SQLite table (sheet name becomes table name)
+        df.to_sql(table_name, self.sql.db_connection, if_exists="replace", index=False)
+
 
 def main():
+
+    LogHelper.debug_enabled = True
     log = LogHelper()
     log.print_date_today()
-    log.tprint(f"Converting Google Sheets spreadsheet to SQLite database\n")
+    log.tdebug(f"Converting Google Sheets spreadsheet to SQLite database\n")
 
     converter = SpreadsheetToSqliteDb()
 
     # Convert spreadsheet to SQLite
     converter.convert_to_sqlite()
 
-    log.tprint(f"Converted Google Sheets spreadsheet to SQLite database")
+    log.tdebug(f"Converted Google Sheets spreadsheet to SQLite database")
 
 
 if __name__ == "__main__":

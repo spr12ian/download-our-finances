@@ -11,6 +11,10 @@ stop_if_module_has_errors() {
     module=$1
     echo "pwl ${module}"
     pwl "${module}"
+    log_file="${module}.log"
+    if [ -f "${log_file}" ]; then
+        cat "${log_file}"
+    fi
     error_file="${module}_error.log"
     if [ -f "${error_file}" ]; then
         echo "Check ${error_file}"
