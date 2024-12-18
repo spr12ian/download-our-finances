@@ -1,9 +1,41 @@
 from cls_helper_date_time import DateTimeHelper
+from functools import wraps
+import time
+
+# LogHelper.debug_enabled = True
+# @LogHelper.log_execution_time
 
 
 class LogHelper:
+    debug_enabled = False
+
     def __init__(self):
         self.dt = DateTimeHelper()
+
+    def debug(self, string):
+        if self.debug_enabled:
+            print(string)
+
+    @staticmethod
+    def log_execution_time(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if LogHelper.debug_enabled:
+                start_time = time.time()
+                print(f"Starting '{func.__name__}' at {time.ctime(start_time)}")
+
+            result = func(*args, **kwargs)
+
+            if LogHelper.debug_enabled:
+                end_time = time.time()
+                print(f"Finished '{func.__name__}' at {time.ctime(end_time)}")
+
+                execution_time = end_time - start_time
+                print(f"Execution time: {execution_time:.2f} seconds")
+
+            return result
+
+        return wrapper
 
     def print_date_today(self):
         dt = self.dt
