@@ -16,6 +16,10 @@ class LogHelper:
         if self.debug_enabled:
             print(string)
 
+    def debug_date_today(self):
+        if self.debug_enabled:
+            self.print_date_today()
+
     @staticmethod
     def log_execution_time(func):
         @wraps(func)
