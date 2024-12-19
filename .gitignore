@@ -1,7 +1,6 @@
+*.csv
 *.db
-initial_models.py
 config.ini
-test.sh
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

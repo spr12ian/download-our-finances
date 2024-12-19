@@ -20,9 +20,6 @@ class HMRC_People(People):
         refunds_to = self.hmrc_person_details.get_refunds_to()
         return BankAccounts(refunds_to).get_sort_code()
 
-    def get_marriage_date(self):
-        return self.hmrc_person_details.get_marriage_date()
-
     def get_national_insurance_number(self):
         return self.hmrc_person_details.get_national_insurance_number()
 
@@ -31,6 +28,9 @@ class HMRC_People(People):
 
     def get_spouse_code(self):
         return self.hmrc_person_details.get_spouse_code()
+
+    def get_uk_marriage_date(self):
+        return self.hmrc_person_details.get_uk_marriage_date()
 
     def get_unique_tax_reference(self) -> str:
         return self.hmrc_person_details.get_unique_tax_reference()
