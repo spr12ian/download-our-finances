@@ -93,6 +93,63 @@ class HMRC:
         # Join the formatted parts and append the fourth string without formatting
         return "".join(formatted_parts) + string_list[3]
 
+    def get_total_tax_due(self):
+        return "Not applicable"
+
+    def get_total_tax_overpaid(self):
+        return "Not applicable"
+
+    def get_student_loan_repayment_due(self):
+        return "Not applicable"
+
+    def get_postgraduate_loan_repayment_due(self):
+        return "Not applicable"
+
+    def get_class_4_nics_due(self):
+        return "Not applicable"
+
+    def get_class_2_nics_due(self):
+        return "Not applicable"
+
+    def get_capital_gains_tax_due(self):
+        return "Not applicable"
+
+    def get_pension_charges_due(self):
+        return "Not applicable"
+
+    def get_underpaid_tax_for_earlier_years(self):
+        return "Not applicable"
+
+    def get_underpaid_tax(self):
+        return "Not applicable"
+
+    def get_outstanding_debt_in_tax_code(self):
+        return "Not applicable"
+
+    def get_reduce_next_year_payments_on_account__yes_no_(self):
+        return "Not applicable"
+
+    def get_first_payment_on_account_for_next_year(self):
+        return "Not applicable"
+
+    def get_blind_person_s_surplus_allowance_you_can_have(self):
+        return "Not applicable"
+
+    def get_married_people_s_surplus_allowance_you_can_have(self):
+        return "Not applicable"
+
+    def get_increase_in_tax_due_to_adjustments_to_an_earlier_year(self):
+        return "Not applicable"
+
+    def get_decrease_in_tax_due_to_adjustments_to_an_earlier_year(self):
+        return "Not applicable"
+
+    def get_any_repayments_claimed_for_next_year(self):
+        return "Not applicable"
+
+    def get_please_give_any_other_information_in_this_space(self):
+        return "Not applicable"
+
     def get_additional_information__yes_no_(self):
         return "Maybe: Married couples allowance section"
         # return False
@@ -592,19 +649,19 @@ class HMRC:
         return "Not applicable"
 
     def get_your_spouse_s_first_name(self):
-        return "Not applicable"
+        return self.spouse.get_first_name()
 
     def get_your_spouse_s_last_name(self):
-        return "Not applicable"
+        return self.spouse.get_last_name()
 
     def get_your_spouse_s_national_insurance_number(self):
-        return "Not applicable"
+        return self.spouse.get_national_insurance_number()
 
     def get_your_spouse_s_date_of_birth(self):
-        return "Not applicable"
+        return self.spouse.get_uk_date_of_birth()
 
     def get_marriage_date(self):
-        return "Not applicable"
+        return self.spouse.get_uk_marriage_date()
 
     def get_refunded_or_off_set_income_tax(self):
         return "Not applicable"

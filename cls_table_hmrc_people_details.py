@@ -1,3 +1,4 @@
+from cls_helper_date_time import DateTimeHelper
 from cls_sqlite_table import SQLiteTable
 
 
@@ -21,6 +22,9 @@ class HMRC_PeopleDetails(SQLiteTable):
 
     def get_spouse_code(self):
         return self.get_value_by_code_column("Spouse code")
+
+    def get_uk_marriage_date(self):
+        return DateTimeHelper().ISO_to_UK(self.get_marriage_date())
 
     def get_unique_tax_reference(self):
         return self.get_value_by_code_column("UTR")
