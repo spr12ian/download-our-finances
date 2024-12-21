@@ -1,4 +1,4 @@
-from useful_functions import to_valid_method_name
+from utility_functions import to_valid_method_name
 from cls_sqlite_table import SQLiteTable
 
 

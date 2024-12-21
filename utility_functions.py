@@ -1,6 +1,15 @@
 import re
 
 
+# Function to convert currency/percent strings to float
+def string_to_float(string):
+    if string.strip() == "":  # Check if the string is empty or whitespace
+        return 0.0
+
+    # Remove the currency symbol (£), commas, and percent then convert to float
+    return float(re.sub(r"[£,%]", "", string))
+
+
 def to_valid_method_name(s):
     """
     Convert a string to be a valid variable name:

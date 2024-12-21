@@ -85,6 +85,15 @@ class SQLiteHelper:
 
         return value
 
+    def fetch_one_value_float(self, query) -> float:
+        row = self.fetch_one_row(query)
+        if row:
+            value = row[0]  # Accessing the first element of the tuple
+        else:
+            value = 0.0  # In case no results are returned
+
+        return value
+
     def get_column_info(self, table_name, column_name):
         table_info = self.get_table_info(table_name)
         column_info = None

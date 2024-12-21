@@ -11,7 +11,7 @@ class RealColumns:
                     print(real_column)
                     raise
         return df
-    
+
     def get_real_columns(self):
         return [
             "Account maximum",
@@ -51,6 +51,6 @@ class RealColumns:
     def string_to_float(self, string):
         if string.strip() == "":  # Check if the string is empty or whitespace
             return 0.0
-  
+
         # Remove the currency symbol (£), commas, and percent then convert to float
         return float(re.sub(r"[£,%]", "", string))
