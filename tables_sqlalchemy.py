@@ -1835,7 +1835,8 @@ t_hmrc_people_details = Table(
     Column('Student Loan?', Text),
     Column('Spouse code', Text),
     Column('Marriage date', Text),
-    Column('Refunds to', Text)
+    Column('Refunds to', Text),
+    Column('Voluntary Class 2 NICs', Text)
 )
 
 
