@@ -24,7 +24,7 @@ class QueryBuilder:
         return self
 
     def order(self, column, direction="ASC"):
-        self.order_by = f"{column} {direction}"
+        self.order_by = f'"{column}" {direction}'
         return self
 
     def set_limit(self, limit):

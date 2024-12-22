@@ -28,6 +28,9 @@ class HMRC_People(People):
     def get_spouse_code(self):
         return self.hmrc_person_details.get_spouse_code()
 
+    def get_taxpayer_residency_status(self):
+        return self.hmrc_person_details.get_taxpayer_residency_status()
+
     def get_uk_marriage_date(self):
         return self.hmrc_person_details.get_uk_marriage_date()
 

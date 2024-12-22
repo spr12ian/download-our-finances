@@ -23,6 +23,9 @@ class HMRC_PeopleDetails(SQLiteTable):
     def get_spouse_code(self):
         return self.get_value_by_code_column("Spouse code")
 
+    def get_taxpayer_residency_status(self):
+        return self.get_value_by_code_column("Taxpayer residency status")
+
     def get_uk_marriage_date(self):
         return DateTimeHelper().ISO_to_UK(self.get_marriage_date())
 

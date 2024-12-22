@@ -12,9 +12,10 @@ class HMRC_QuestionsByYear(SQLiteTable):
             self.query_builder()
             .select("Question", f"{self.tax_year}")
             .where(f'"{self.tax_year}"<> ""')
+            .order("Order by")
             .build()
         )
-
+        print(query)
         questions = [
             [
                 row[0],  # question

@@ -3,7 +3,7 @@ import re
 
 class RealColumns:
     def convert(self, df):
-        for real_column in RealColumns().get_real_columns():
+        for real_column in self.get_real_columns():
             if real_column in df.columns:
                 try:
                     df[real_column] = df[real_column].apply(self.string_to_float)
@@ -52,5 +52,5 @@ class RealColumns:
         if string.strip() == "":  # Check if the string is empty or whitespace
             return 0.0
 
-        # Remove the currency symbol (£), commas, and percent then convert to float
+        # Remove any currency symbol (£), commas, and percent then convert to float
         return float(re.sub(r"[£,%]", "", string))
