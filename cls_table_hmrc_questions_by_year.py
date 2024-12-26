@@ -15,7 +15,7 @@ class HMRC_QuestionsByYear(SQLiteTable):
             .order("Order by")
             .build()
         )
-        print(query)
+
         questions = [
             [
                 row[0],  # question
