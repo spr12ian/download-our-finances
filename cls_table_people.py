@@ -20,11 +20,8 @@ class People(SQLiteTable):
     def get_first_name(self):
         return self.get_value_by_code_column("First name")
 
-    def get_uk_date_of_birth(self):
-        return DateTimeHelper().ISO_to_UK(self.get_date_of_birth())
-
     def get_last_name(self):
-        return self.get_value_by_code_column("Surname")
+        return self.get_value_by_code_column("Last nname")
 
     def get_middle_name(self):
         return self.get_value_by_code_column("Middle name")
@@ -34,6 +31,9 @@ class People(SQLiteTable):
 
     def get_phone_number(self):
         return self.get_value_by_code_column("Phone number")
+
+    def get_uk_date_of_birth(self):
+        return DateTimeHelper().ISO_to_UK(self.get_date_of_birth())
 
     def get_value_by_code_column(self, column_name):
         if self.code:

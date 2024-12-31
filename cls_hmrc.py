@@ -22,7 +22,7 @@ class HMRC:
 
         # self.list_categories()
 
-    def append_section(self, answers, section):
+    def append_header(self, answers, section):
         section = f"\n{section.upper()}"
         this_return = f"{self.person.get_name()} {self.tax_year}\n"
 
@@ -39,7 +39,7 @@ class HMRC:
         except AttributeError:
             print(f"Method {method_name} not found")
 
-    def format_answer(self, string_list) -> str:
+    def position_answer(self, string_list) -> str:
         if len(string_list[2]) > 0:
             widths = [8, 5, 55]  # Define column widths
 
@@ -58,15 +58,12 @@ class HMRC:
         # Join the formatted parts and append the fourth string without formatting
         return "".join(formatted_parts) + string_list[3]
 
-    def get_answers(self):
+    def get_answers(self, questions):
         answers = []
-        for question, page, section, box, method_name in self.get_questions():
-            if box == "1":
-                answers = self.append_section(answers, section)
-
+        for question, section, header, box, method_name in questions:
             answer = self.call_method(method_name)
 
-            answers.append([page, box, question, answer])
+            answers.append([question, section, header, box, answer])
 
         return answers
 
@@ -523,8 +520,11 @@ class HMRC:
     def get_residence__remittance_basis_etc__yes_no_(self):
         return False
 
-    def get_questions(self):
-        return HMRC_QuestionsByYear(self.tax_year).get_questions()
+    def get_online_questions(self):
+        return HMRC_QuestionsByYear(self.tax_year).get_online_questions()
+
+    def get_printed_form_questions(self):
+        return HMRC_QuestionsByYear(self.tax_year).get_printed_form_questions()
 
     def get_spouse_code(self):
         return self.person.get_spouse_code()
@@ -867,12 +867,18 @@ class HMRC:
     def get_how_much_child_benefit__cb__received(self):
         return 0.0
 
-    def get_title(self):
+    def get_title(self, title_type):
         full_utr = self.get_full_utr()
         person_name = self.person.get_name()
         tax_year = self.tax_year
 
-        return f"HMRC {tax_year} tax return for {person_name} - UTR {full_utr}\n"
+        return f"HMRC {tax_year} {title_type} tax return for {person_name} - UTR {full_utr}\n"
+
+    def get_online_title(self):
+        return self.get_title("Online")
+
+    def get_printed_form_title(self):
+        return self.get_title("Printed Form")
 
     def get_total_amount_of_allowable_expenses(self):
         return 0
@@ -932,8 +938,17 @@ class HMRC:
     def get_your_date_of_birth(self):
         return self.person.get_uk_date_of_birth()
 
+    def get_first_name(self):
+        return self.person.get_first_name()
+
+    def get_middle_name(self):
+        return self.person.get_middle_name()
+
+    def get_last_name(self):
+        return self.person.get_last_name()
+
     def get_your_name_and_address(self):
-        return "Leave blank - not changed"
+        return "Leave blank unless changed from previous year"
 
     def get_your_national_insurance_number(self):
         return self.person.get_national_insurance_number()
@@ -994,7 +1009,7 @@ class HMRC:
         for row in categories:
             print(row[0])
 
-    def print_answer(self, page, box, question, answer):
+    def print_formatted_answer(self, page, box, question, answer):
         if isinstance(answer, bool):
             answer = "Yes" if answer else "No"
         elif isinstance(answer, float):
@@ -1006,18 +1021,58 @@ class HMRC:
         else:
             answer = str(answer)
 
-        formatted_answer = self.format_answer([page, box, question, answer])
+        formatted_answer = self.position_answer([page, box, question, answer])
 
         print(formatted_answer)
 
-    def print_report(self):
-        print(self.get_title())
+    def print_reports(self):
+        self.print_online_report()
+        self.print_printed_form_report()
 
-        answers = self.get_answers()
+    def print_online_report(self):
+        self.print_online_title()
 
-        for page, box, question, answer in answers:
-            self.print_answer(page, box, question, answer)
+        answers = self.get_online_answers()
+
+        # previous_header = ""
+        # for question, section, header, box, method_name in questions:
+        #     if header != previous_header:
+        #         previous_header = header
+        #         answers = self.append_header(answers, header)
+
+        for question, section, header, box, answer in answers:
+            self.print_formatted_answer(section, box, question, answer)
 
         print(
             "\n=========================================================================================\n"
         )
+
+    def get_online_answers(self):
+        questions = self.get_online_questions()
+
+        answers = self.get_answers(questions)
+        return answers
+
+    def print_online_title(self):
+        print(self.get_online_title())
+
+    def print_printed_form_report(self):
+        self.print_printed_form_title()
+
+        answers = self.get_printed_form_answers()
+
+        for page, box, question, answer in answers:
+            self.print_formatted_answer(page, box, question, answer)
+
+        print(
+            "\n=========================================================================================\n"
+        )
+
+    def get_printed_form_answers(self):
+        questions = self.get_printed_form_questions()
+
+        answers = self.get_answers(questions)
+        return answers
+
+    def print_printed_form_title(self):
+        print(self.get_printed_form_title())

@@ -68,7 +68,7 @@ class SpreadsheetToSqliteDb:
 
 
 def main():
-    LogHelper.debug_enabled = True
+    # LogHelper.debug_enabled = True
     log = LogHelper()
     log.debug_date_today()
     log.tdebug(f"Converting Google Sheets spreadsheet to SQLite database\n")

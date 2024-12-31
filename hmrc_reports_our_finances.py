@@ -4,7 +4,7 @@ from cls_hmrc import HMRC
 def print_reports(hmrc_people, tax_year):
     for person in hmrc_people:
         hmrc = HMRC(person, tax_year)
-        hmrc.print_report()
+        hmrc.print_reports()
 
 
 def main():
