@@ -1040,7 +1040,18 @@ class HMRC:
         #         previous_header = header
         #         answers = self.append_header(answers, header)
 
+        previous_section = ""
+        previous_header = ""
         for question, section, header, box, answer in answers:
+            if section != previous_section:
+                previous_section = section
+                print(f"\n{section.upper()}")
+            if header != previous_header:
+                previous_header = header
+                print(f"\n{header.upper()}")
+
+            print(f"\n{box.upper()}")
+            print(f"\n{question.upper()}")
             self.print_formatted_answer(section, box, question, answer)
 
         print(
