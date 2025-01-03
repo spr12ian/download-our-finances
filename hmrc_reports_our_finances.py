@@ -9,7 +9,7 @@ def print_reports(hmrc_people, tax_year):
 
 def main():
     # List of people to generate reports for
-    hmrc_people = ["B", "S"]
+    hmrc_people = ["S", "B", "C"]
 
     # Tax year to generate reports for
     tax_year = "2023 to 2024"

@@ -1,5 +1,5 @@
-from utility_functions import to_valid_method_name
 from cls_sqlite_table import SQLiteTable
+from utility_functions import to_valid_method_name
 
 
 class HMRC_QuestionsByYear(SQLiteTable):
@@ -11,7 +11,7 @@ class HMRC_QuestionsByYear(SQLiteTable):
         query = (
             self.query_builder()
             .select(*columns)
-            .where(f'"{order_column}"<> ""')
+            .where(f'"{order_column}" > 0')
             .order(order_column)
             .build()
         )

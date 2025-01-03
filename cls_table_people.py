@@ -17,11 +17,14 @@ class People(SQLiteTable):
     def get_date_of_birth(self):
         return self.get_value_by_code_column("Date of birth")
 
+    def get_email_address(self):
+        return self.get_value_by_code_column("Email address")
+
     def get_first_name(self):
         return self.get_value_by_code_column("First name")
 
     def get_last_name(self):
-        return self.get_value_by_code_column("Last nname")
+        return self.get_value_by_code_column("Last name")
 
     def get_middle_name(self):
         return self.get_value_by_code_column("Middle name")

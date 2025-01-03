@@ -1,9 +1,17 @@
+from cls_helper_log import LogHelper
 from cls_helper_sql import SQL_Helper
 from cls_hmrc_people import HMRC_People
 from tables import *
 
+l = LogHelper()
+LogHelper.debug_enabled = True
+
 
 class HMRC:
+    ONLINE_REPORT = "Online"
+    PRINTED_REPORT = "Printed Form"
+    REPORTS = [ONLINE_REPORT, PRINTED_REPORT]
+
     def __init__(self, person_code, tax_year):
         self.person_code = person_code
         self.tax_year = tax_year
@@ -40,25 +48,25 @@ class HMRC:
             print(f"Method {method_name} not found")
 
     def position_answer(self, string_list) -> str:
-        if len(string_list[2]) > 0:
-            widths = [8, 5, 55]  # Define column widths
-
-            # Use zip to pair strings with widths and format them in one step
-            formatted_parts = [
-                f"{string:<{width}}" for string, width in zip(string_list[:3], widths)
-            ]
+        if self.report_type == HMRC.ONLINE_REPORT:
+            widths = [55]  # Define column widths
         else:
-            widths = [69]  # Define column widths
+            widths = [55, 69]
 
-            # Use zip to pair strings with widths and format them in one step
-            formatted_parts = [
-                f"{string:<{width}}" for string, width in zip(string_list[:1], widths)
-            ]
+        how_many = len(widths)  # How many columns to format
+
+        # Use zip to pair strings with widths and format them in one step
+        formatted_parts = [
+            f"{string:<{width}}"
+            for string, width in zip(string_list[:how_many], widths)
+        ]
 
         # Join the formatted parts and append the fourth string without formatting
-        return "".join(formatted_parts) + string_list[3]
+        return "".join(formatted_parts) + string_list[how_many]
 
-    def get_answers(self, questions):
+    def get_answers(self):
+        questions = self.get_questions()
+
         answers = []
         for question, section, header, box, method_name in questions:
             answer = self.call_method(method_name)
@@ -265,6 +273,27 @@ class HMRC:
         utr: str = self.person.get_unique_tax_reference()
         utr_check_digit: str = self.person.get_utr_check_digit()
         return utr + utr_check_digit
+
+    def get_unique_taxpayer_reference__utr_(self):
+        return self.person.get_unique_tax_reference()
+
+    def get_email_address(self):
+        return self.person.get_email_address()
+
+    def get_is_this_address_correct__yes_no_(self):
+        return True
+
+    def get_marital_status(self):
+        return self.person.get_marital_status()
+
+    def get_registered_blind__yes_no_(self):
+        return False
+
+    def get_student_loan_repayment_due__yes_no_(self):
+        return False
+
+    def get_postgraduate_loan_repayment_due__yes_no_(self):
+        return False
 
     def get_how_many_businesses(self):
         # search the transactions table for any records in this tax year
@@ -520,11 +549,13 @@ class HMRC:
     def get_residence__remittance_basis_etc__yes_no_(self):
         return False
 
-    def get_online_questions(self):
-        return HMRC_QuestionsByYear(self.tax_year).get_online_questions()
-
-    def get_printed_form_questions(self):
-        return HMRC_QuestionsByYear(self.tax_year).get_printed_form_questions()
+    def get_questions(self):
+        l.debug("Getting questions")
+        l.debug(self.report_type)
+        if self.report_type == HMRC.ONLINE_REPORT:
+            return HMRC_QuestionsByYear(self.tax_year).get_online_questions()
+        else:
+            return HMRC_QuestionsByYear(self.tax_year).get_printed_form_questions()
 
     def get_spouse_code(self):
         return self.person.get_spouse_code()
@@ -867,18 +898,13 @@ class HMRC:
     def get_how_much_child_benefit__cb__received(self):
         return 0.0
 
-    def get_title(self, title_type):
+    def get_title(self):
         full_utr = self.get_full_utr()
         person_name = self.person.get_name()
+        report_type = self.report_type
         tax_year = self.tax_year
 
-        return f"HMRC {tax_year} {title_type} tax return for {person_name} - UTR {full_utr}\n"
-
-    def get_online_title(self):
-        return self.get_title("Online")
-
-    def get_printed_form_title(self):
-        return self.get_title("Printed Form")
+        return f"HMRC {tax_year} {report_type} tax return for {person_name} - UTR {full_utr}\n"
 
     def get_total_amount_of_allowable_expenses(self):
         return 0
@@ -1009,7 +1035,17 @@ class HMRC:
         for row in categories:
             print(row[0])
 
-    def print_formatted_answer(self, page, box, question, answer):
+    def print_formatted_answer(self, question, section, header, box, answer):
+        if section != self.previous_section:
+            self.previous_section = section
+            print(f"\n{section.upper()}")
+        if header != self.previous_header:
+            self.previous_header = header
+            print(f"\n{header.upper()}")
+
+            print(f"\n{box.upper()}")
+            print(f"\n{question.upper()}")
+
         if isinstance(answer, bool):
             answer = "Yes" if answer else "No"
         elif isinstance(answer, float):
@@ -1021,69 +1057,37 @@ class HMRC:
         else:
             answer = str(answer)
 
-        formatted_answer = self.position_answer([page, box, question, answer])
+        if self.report_type == HMRC.ONLINE_REPORT:
+            formatted_answer = self.position_answer([box, answer])
+        else:
+            formatted_answer = self.position_answer([box, question, answer])
 
         print(formatted_answer)
 
     def print_reports(self):
-        self.print_online_report()
-        self.print_printed_form_report()
+        for report in HMRC.REPORTS:
+            self.print_report(report)
 
-    def print_online_report(self):
-        self.print_online_title()
+    def print_report(self, report_type):
+        self.report_type = report_type
 
-        answers = self.get_online_answers()
+        answers = self.get_answers()
 
-        # previous_header = ""
-        # for question, section, header, box, method_name in questions:
-        #     if header != previous_header:
-        #         previous_header = header
-        #         answers = self.append_header(answers, header)
+        self.print_title()
 
-        previous_section = ""
-        previous_header = ""
         for question, section, header, box, answer in answers:
-            if section != previous_section:
-                previous_section = section
-                print(f"\n{section.upper()}")
-            if header != previous_header:
-                previous_header = header
-                print(f"\n{header.upper()}")
+            self.print_formatted_answer(question, section, header, box, answer)
 
-            print(f"\n{box.upper()}")
-            print(f"\n{question.upper()}")
-            self.print_formatted_answer(section, box, question, answer)
+        self.print_end_of_report()
 
+    def print_end_of_report(self):
+        print(f"\nEnd of {self.report_type} report\n")
         print(
-            "\n=========================================================================================\n"
+            "============================================================================\n"
         )
 
-    def get_online_answers(self):
-        questions = self.get_online_questions()
+    def print_title(self):
+        print(self.get_title())
 
-        answers = self.get_answers(questions)
-        return answers
-
-    def print_online_title(self):
-        print(self.get_online_title())
-
-    def print_printed_form_report(self):
-        self.print_printed_form_title()
-
-        answers = self.get_printed_form_answers()
-
-        for page, box, question, answer in answers:
-            self.print_formatted_answer(page, box, question, answer)
-
-        print(
-            "\n=========================================================================================\n"
-        )
-
-    def get_printed_form_answers(self):
-        questions = self.get_printed_form_questions()
-
-        answers = self.get_answers(questions)
-        return answers
-
-    def print_printed_form_title(self):
-        print(self.get_printed_form_title())
+        self.previous_section = ""
+        self.previous_header = ""
