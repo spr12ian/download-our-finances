@@ -123,6 +123,27 @@ class HMRC:
     def get_married_people_s_surplus_allowance_you_can_have(self):
         return "Not applicable"
 
+    def get_total_turnover___trading_allowance__yes_no_(self):
+        return "Not applicable"
+
+    def get_were_you_self_employed_in_this_tax_year__yes_no_(self):
+        return True
+
+    def get_business_1_name(self):
+        return "Not applicable"
+
+    def get_were_you_in_partnership_s__this_tax_year__yes_no_(self):
+        return False
+
+    def get_any_uk_interest__yes_no_(self):
+        return True
+
+    def get_any_child_benefit__yes_no_(self):
+        return False
+
+    def get_any_income_tax_losses__yes_no_(self):
+        return False
+
     def get_increase_in_tax_due_to_adjustments_to_an_earlier_year(self):
         return "Not applicable"
 
@@ -982,7 +1003,8 @@ class HMRC:
     def get_your_phone_number(self):
         return self.person.get_phone_number()
 
-    def get_were_you_employed_in_this_tax_year(self):
+    def get_were_you_employed_in_this_tax_year__yes_no_(self):
+        print("get_were_you_employed_in_this_tax_year__yes_no_")
         # search the transactions table for any records in this tax year
         # which have an employment income category for the current person
         person_code = self.person.code
@@ -995,7 +1017,7 @@ class HMRC:
             )
             .build()
         )
-
+        print(query)
         how_many = self.sql.fetch_one_value(query)
 
         return how_many > 0
@@ -1039,12 +1061,13 @@ class HMRC:
         if section != self.previous_section:
             self.previous_section = section
             print(f"\n{section.upper()}")
+
         if header != self.previous_header:
             self.previous_header = header
             print(f"\n{header.upper()}")
 
-            print(f"\n{box.upper()}")
-            print(f"\n{question.upper()}")
+            # print(f"\n{box.upper()}")
+            # print(f"\n{question.upper()}")
 
         if isinstance(answer, bool):
             answer = "Yes" if answer else "No"
@@ -1076,6 +1099,11 @@ class HMRC:
         self.print_title()
 
         for question, section, header, box, answer in answers:
+            # print(f"Question: {question}")
+            # print(f"Section: {section}")
+            # print(f"Header: {header}")
+            # print(f"Box: {box}")
+            # print(f"Answer: {answer}")
             self.print_formatted_answer(question, section, header, box, answer)
 
         self.print_end_of_report()

@@ -20,6 +20,9 @@ class HMRC_PeopleDetails(SQLiteTable):
     def get_national_insurance_number(self):
         return self.get_value_by_code_column("NINO")
 
+    def get_receive_child_benefit(self):
+        return self.get_value_by_code_column("Receive child benefit")
+
     def get_refunds_to(self):
         return self.get_value_by_code_column("Refunds to")
 
