@@ -1036,6 +1036,38 @@ class HMRC:
             tax_year, f"HMRC {person_code} INC Untaxed foreign interest"
         )
 
+    def get_did_you_give_to_charity__yes_no_(self):
+        return False
+
+    def get_claim_married_couple_s_allowance__yes_no_(self):
+        return False
+
+    def get_claim_marriage_allowance__yes_no_(self):
+        print("Claim marriage allowance")
+        total_income = self.get_total_income()
+        print(f"Total income: {total_income}")
+        spouse_income = self.get_spouse_income()
+        print(f"Spouse income: {spouse_income}")
+        return "Who knows?"
+
+    def get_income____12_570___spouse_income____50_270__yes_no_(self):
+        return "Calculate response"
+
+    def get_claim_other_tax_reliefs__yes_no_(self):
+        return False
+
+    def get_have_you_had_any_2023_24_income_tax_refunded__yes_no_(self):
+        return False
+
+    def get_did_you_have_a_tax_advisor__yes_no_(self):
+        return False
+
+    def get_have_you_used_tax_avoidance_schemes__yes_no_(self):
+        return False
+
+    def get_are_you_acting_on_behalf_of_someone_else__yes_no_(self):
+        return False
+
     def get_untaxed_uk_interest(self):
         person_code = self.person_code
         tax_year = self.tax_year
@@ -1166,6 +1198,10 @@ class HMRC:
         )
 
     def print_formatted_answer(self, question, section, header, box, answer):
+        # print("print_formatted_answer")
+        # print(f"\n{question}\n")
+        # print(f"{section} - {header} - Box {box}")
+        # print(f"Answer: {answer}")
         if section != self.previous_section:
             self.previous_section = section
             print(f"\n\n{section.upper()}\n")
