@@ -2,6 +2,7 @@ from cls_helper_log import LogHelper
 from cls_helper_sql import SQL_Helper
 from cls_hmrc_people import HMRC_People
 from tables import *
+from utility_functions import format_as_gbp
 
 l = LogHelper()
 LogHelper.debug_enabled = True
@@ -123,14 +124,76 @@ class HMRC:
     def get_married_people_s_surplus_allowance_you_can_have(self):
         return "Not applicable"
 
+    def get_total_property_income___property_allowance__yes_no_(self):
+        property_income_allowance = self.get_property_income_allowance()
+        property_income = self.get_property_income()
+        return property_income > property_income_allowance
+
     def get_total_turnover___trading_allowance__yes_no_(self):
-        return "Not applicable"
+        trading_income_allowance = self.get_trading_income_allowance()
+        turnover = self.get_turnover()
+
+        gbp_turnover = format_as_gbp(turnover)
+        gbp_allowance = format_as_gbp(trading_income_allowance)
+
+        if turnover > trading_income_allowance:
+            return f"Yes: Turnover: {gbp_turnover} > Trading allowance: {gbp_allowance}"
+        else:
+            return f"No: Turnover: {gbp_turnover} <= Allowance: {gbp_allowance}"
 
     def get_were_you_self_employed_in_this_tax_year__yes_no_(self):
         return True
 
+    def get_any_dividends(self):
+        person_code = self.person_code
+        tax_year = self.tax_year
+
+        return self.get_year_category_total(
+            tax_year, f"HMRC {person_code} INC Dividends from UK companies"
+        )
+
+    def get_any_pensions__annuities__or_state_benefits(self):
+        person_code = self.person_code
+        tax_year = self.tax_year
+
+        return self.get_year_category_total(
+            tax_year, f"HMRC {person_code} INC Pensions"
+        )
+
     def get_business_1_name(self):
-        return "Not applicable"
+
+        businesses = self.get_businesses()
+
+        if len(businesses) > 0:
+            return businesses[0]
+        else:
+            return "Not applicable"
+
+    def get_businesses(self):
+        businesses = []
+        # search the transactions table for any records in this tax year
+        # which have a self-employment income category for the current person
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("DISTINCT Category")
+            .where(
+                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} SES%income"'
+            )
+            .build()
+        )
+
+        rows = self.sql.fetch_all(query)
+
+        start_position = len(f"HMRC {person_code} SES ")
+
+        for row in rows:
+            end_position = len(row[0]) - len(" income")
+            business = row[0][start_position:end_position]
+            businesses.append(business)
+
+        return businesses
 
     def get_were_you_in_partnership_s__this_tax_year__yes_no_(self):
         return False
@@ -176,7 +239,15 @@ class HMRC:
         return "Not applicable"
 
     def get_property_income_allowance(self):
-        return "Not applicable"
+        property_income_allowance = self.constants.get_property_income_allowance()
+        total_property_expenses = self.get_total_property_expenses()
+
+        if property_income_allowance > total_property_expenses:
+            return property_income_allowance
+        else:
+            return (
+                "Not claimed: Total property expenses exceed property income allowance"
+            )
 
     def get_ukp_cash_basis__yes_no_(self):
         return "Not applicable"
@@ -302,7 +373,8 @@ class HMRC:
         return self.person.get_email_address()
 
     def get_is_this_address_correct__yes_no_(self):
-        return True
+        address = f"Yes: {self.person.get_address()}"
+        return address
 
     def get_marital_status(self):
         return self.person.get_marital_status()
@@ -316,9 +388,9 @@ class HMRC:
     def get_postgraduate_loan_repayment_due__yes_no_(self):
         return False
 
-    def get_how_many_businesses(self):
+    def get_how_many_self_employed_businesses_did_you_have(self):
         # search the transactions table for any records in this tax year
-        # which have an employment income category for the current person
+        # which have a self-employment income category for the current person
         person_code = self.person.code
         tax_year = self.tax_year
         query = (
@@ -424,8 +496,19 @@ class HMRC:
     def get_cash_basis__yes_no_(self):
         return "Not applicable"
 
+    def get_property_income(self) -> float:
+        person_code = self.person_code
+        tax_year = self.tax_year
+        category_like = f"HMRC {person_code} UKP income%"
+
+        property_income = self.transactions.fetch_total_by_tax_year_category_like(
+            tax_year, category_like
+        )
+
+        return property_income
+
     def get_turnover(self) -> float:
-        if self.get_how_many_businesses() > 1:
+        if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
 
         person_code = self.person_code
@@ -457,7 +540,7 @@ class HMRC:
         return "See box 20"
 
     def get_total_allowable_expenses(self):
-        if self.get_how_many_businesses() > 1:
+        if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
 
         person_code = self.person_code
@@ -471,6 +554,19 @@ class HMRC:
         )
 
         return total_allowable_expenses
+
+    def get_total_property_expenses(self):
+        person_code = self.person_code
+        tax_year = self.tax_year
+        category_like = f"HMRC {person_code} UKP expense%"
+
+        total_property_expenses = (
+            self.transactions.fetch_total_by_tax_year_category_like(
+                tax_year, category_like
+            )
+        )
+
+        return total_property_expenses
 
     def get_net_profit(self):
         return "Not applicable"
@@ -571,8 +667,6 @@ class HMRC:
         return False
 
     def get_questions(self):
-        l.debug("Getting questions")
-        l.debug(self.report_type)
         if self.report_type == HMRC.ONLINE_REPORT:
             return HMRC_QuestionsByYear(self.tax_year).get_online_questions()
         else:
@@ -1004,7 +1098,6 @@ class HMRC:
         return self.person.get_phone_number()
 
     def get_were_you_employed_in_this_tax_year__yes_no_(self):
-        print("get_were_you_employed_in_this_tax_year__yes_no_")
         # search the transactions table for any records in this tax year
         # which have an employment income category for the current person
         person_code = self.person.code
@@ -1017,7 +1110,7 @@ class HMRC:
             )
             .build()
         )
-        print(query)
+
         how_many = self.sql.fetch_one_value(query)
 
         return how_many > 0
@@ -1060,14 +1153,11 @@ class HMRC:
     def print_formatted_answer(self, question, section, header, box, answer):
         if section != self.previous_section:
             self.previous_section = section
-            print(f"\n{section.upper()}")
+            print(f"\n\n{section.upper()}\n")
 
         if header != self.previous_header:
             self.previous_header = header
-            print(f"\n{header.upper()}")
-
-            # print(f"\n{box.upper()}")
-            # print(f"\n{question.upper()}")
+            print(f"\n{header.upper()}\n")
 
         if isinstance(answer, bool):
             answer = "Yes" if answer else "No"
@@ -1106,10 +1196,13 @@ class HMRC:
             # print(f"Answer: {answer}")
             self.print_formatted_answer(question, section, header, box, answer)
 
-        self.print_end_of_report()
+        self.print_end_of_tax_return()
 
-    def print_end_of_report(self):
-        print(f"\nEnd of {self.report_type} report\n")
+    def print_end_of_tax_return(self):
+        person_name = self.person.get_name()
+        report_type = self.report_type
+        tax_year = self.tax_year
+        print(f"\nEnd of {tax_year} {report_type} tax return for {person_name}\n")
         print(
             "============================================================================\n"
         )

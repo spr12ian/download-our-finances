@@ -1,4 +1,16 @@
+import locale
 import re
+
+
+def format_as_gbp(amount):
+    """
+    Format a float as GBP.
+    """
+    # Set the locale to GBP
+    locale.setlocale(locale.LC_ALL, "en_GB.UTF-8")
+
+    # Format the float as currency
+    return locale.currency(amount, grouping=True)
 
 
 # Function to convert currency/percent strings to float
