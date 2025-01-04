@@ -29,41 +29,12 @@ class HMRC:
 
         self.sql = SQL_Helper().select_sql_helper("SQLite")
 
-        # self.list_categories()
-
-    def append_header(self, answers, section):
-        section = f"\n{section.upper()}"
-        this_return = f"{self.person.get_name()} {self.tax_year}\n"
-
-        answers.append([section, "", "", this_return])
-
-        answers.append(["Page", "Box", "Question", "Answer"])
-
-        return answers
-
     def call_method(self, method_name):
         try:
             method = getattr(self, method_name)
             return method()
         except AttributeError:
             print(f"Method {method_name} not found")
-
-    def position_answer(self, string_list) -> str:
-        if self.report_type == HMRC.ONLINE_REPORT:
-            widths = [55]  # Define column widths
-        else:
-            widths = [55, 69]
-
-        how_many = len(widths)  # How many columns to format
-
-        # Use zip to pair strings with widths and format them in one step
-        formatted_parts = [
-            f"{string:<{width}}"
-            for string, width in zip(string_list[:how_many], widths)
-        ]
-
-        # Join the formatted parts and append the fourth string without formatting
-        return "".join(formatted_parts) + string_list[how_many]
 
     def get_answers(self):
         questions = self.get_questions()
@@ -77,6 +48,9 @@ class HMRC:
         return answers
 
     def get_any_other_information(self):
+        return False
+
+    def get_are_you_liable_to_pension_savings_tax_charges__yes_no_(self):
         return False
 
     def get_total_tax_due(self):
@@ -127,7 +101,14 @@ class HMRC:
     def get_total_property_income___property_allowance__yes_no_(self):
         property_income_allowance = self.get_property_income_allowance()
         property_income = self.get_property_income()
-        return property_income > property_income_allowance
+
+        gbp_income = format_as_gbp(property_income)
+        gbp_allowance = format_as_gbp(property_income_allowance)
+
+        if property_income > property_income_allowance:
+            return f"Yes: Income {gbp_income} > {gbp_allowance} Property allowance"
+        else:
+            return f"No: Income {gbp_income} <= {gbp_allowance} Allowance"
 
     def get_total_turnover___trading_allowance__yes_no_(self):
         trading_income_allowance = self.get_trading_income_allowance()
@@ -137,9 +118,9 @@ class HMRC:
         gbp_allowance = format_as_gbp(trading_income_allowance)
 
         if turnover > trading_income_allowance:
-            return f"Yes: Turnover: {gbp_turnover} > Trading allowance: {gbp_allowance}"
+            return f"Yes: Turnover {gbp_turnover} > {gbp_allowance} Trading allowance"
         else:
-            return f"No: Turnover: {gbp_turnover} <= Allowance: {gbp_allowance}"
+            return f"No: Turnover {gbp_turnover} <= {gbp_allowance} Allowance"
 
     def get_were_you_self_employed_in_this_tax_year__yes_no_(self):
         return True
@@ -199,7 +180,15 @@ class HMRC:
         return False
 
     def get_any_uk_interest__yes_no_(self):
-        return True
+        taxed_uk_interest = self.get_taxed_uk_interest()
+        untaxed_uk_interest = self.get_untaxed_uk_interest()
+
+        total_interest = taxed_uk_interest + untaxed_uk_interest
+
+        if total_interest > 0:
+            return f"Yes: {format_as_gbp(total_interest)} UK interest"
+        else:
+            return "No"
 
     def get_any_child_benefit__yes_no_(self):
         return False
@@ -1150,6 +1139,32 @@ class HMRC:
         for row in categories:
             print(row[0])
 
+    def position_answer(self, string_list) -> str:
+        if self.report_type == HMRC.ONLINE_REPORT:
+            widths = [55]  # Define column widths
+        else:
+            widths = [5, 60]
+
+        how_many = len(widths)  # How many columns to format
+
+        # Use zip to pair strings with widths and format them in one step
+        formatted_parts = [
+            f"{string:<{width}}"
+            for string, width in zip(string_list[:how_many], widths)
+        ]
+
+        # Join the formatted parts and append the fourth string without formatting
+        return "".join(formatted_parts) + string_list[how_many]
+
+    def print_end_of_tax_return(self):
+        person_name = self.person.get_name()
+        report_type = self.report_type
+        tax_year = self.tax_year
+        print(f"\nEnd of {tax_year} {report_type} tax return for {person_name}\n")
+        print(
+            "============================================================================\n"
+        )
+
     def print_formatted_answer(self, question, section, header, box, answer):
         if section != self.previous_section:
             self.previous_section = section
@@ -1177,10 +1192,6 @@ class HMRC:
 
         print(formatted_answer)
 
-    def print_reports(self):
-        for report in HMRC.REPORTS:
-            self.print_report(report)
-
     def print_report(self, report_type):
         self.report_type = report_type
 
@@ -1189,23 +1200,13 @@ class HMRC:
         self.print_title()
 
         for question, section, header, box, answer in answers:
-            # print(f"Question: {question}")
-            # print(f"Section: {section}")
-            # print(f"Header: {header}")
-            # print(f"Box: {box}")
-            # print(f"Answer: {answer}")
             self.print_formatted_answer(question, section, header, box, answer)
 
         self.print_end_of_tax_return()
 
-    def print_end_of_tax_return(self):
-        person_name = self.person.get_name()
-        report_type = self.report_type
-        tax_year = self.tax_year
-        print(f"\nEnd of {tax_year} {report_type} tax return for {person_name}\n")
-        print(
-            "============================================================================\n"
-        )
+    def print_reports(self):
+        for report in HMRC.REPORTS:
+            self.print_report(report)
 
     def print_title(self):
         print(self.get_title())
