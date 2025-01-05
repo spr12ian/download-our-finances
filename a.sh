@@ -18,7 +18,7 @@ for db in "${databases[@]}"; do
     fi
 done
 
-rm -v ./*.log
+rm -fv ./*.log
 
 ./do_it_all.sh >do_it_all.log 2>do_it_all_error.log
 
