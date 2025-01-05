@@ -1,4 +1,4 @@
-import re
+from utility_functions import string_to_float
 
 
 class RealColumns:
@@ -6,7 +6,7 @@ class RealColumns:
         for real_column in self.get_real_columns():
             if real_column in df.columns:
                 try:
-                    df[real_column] = df[real_column].apply(self.string_to_float)
+                    df[real_column] = df[real_column].apply(string_to_float)
                 except:
                     print(real_column)
                     raise
@@ -46,11 +46,3 @@ class RealColumns:
             "Total debit",
             "Weekly",
         ]
-
-    # Function to convert currency strings to float
-    def string_to_float(self, string):
-        if string.strip() == "":  # Check if the string is empty or whitespace
-            return 0.0
-
-        # Remove any currency symbol (£), commas, and percent then convert to float
-        return float(re.sub(r"[£,%]", "", string))

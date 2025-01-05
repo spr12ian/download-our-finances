@@ -7,31 +7,39 @@ class HMRC_ConstantsByYear(SQLiteTable):
         super().__init__("hmrc_constants_by_year")
         self.tax_year = tax_year
 
+    def get_higher_rate_band(self):
+        higher_rate_band = string_to_float(
+            self.__get_value_by_hmrc_constant("Higher rate band")
+        )
+
+        return higher_rate_band
+
     def get_marriage_allowance(self):
         marriage_allowance = string_to_float(
-            self.get_value_by_hmrc_constant("Marriage allowance")
+            self.__get_value_by_hmrc_constant("Marriage allowance")
         )
+
         return marriage_allowance
 
     def get_personal_allowance(self):
         personal_allowance = string_to_float(
-            self.get_value_by_hmrc_constant("Personal allowance")
+            self.__get_value_by_hmrc_constant("Personal allowance")
         )
         return personal_allowance
 
     def get_property_income_allowance(self):
         property_income_allowance = string_to_float(
-            self.get_value_by_hmrc_constant("Property income allowance")
+            self.__get_value_by_hmrc_constant("Property income allowance")
         )
         return property_income_allowance
 
     def get_trading_income_allowance(self):
         trading_income_allowance = string_to_float(
-            self.get_value_by_hmrc_constant("Trading income allowance")
+            self.__get_value_by_hmrc_constant("Trading income allowance")
         )
         return trading_income_allowance
 
-    def get_value_by_hmrc_constant(self, hmrc_constant):
+    def __get_value_by_hmrc_constant(self, hmrc_constant):
         tax_year = self.tax_year
         query = (
             self.query_builder()
@@ -39,8 +47,14 @@ class HMRC_ConstantsByYear(SQLiteTable):
             .where(f'"HMRC constant" = "{hmrc_constant}"')
             .build()
         )
+
         result = self.sql.fetch_one_value(
             query
         )  # Could be formatted as a float, a ccy, etc.
+
+        if result is None:
+            raise ValueError(
+                f"Could not find the HMRC constant '{hmrc_constant}' for tax year {tax_year}"
+            )
 
         return result

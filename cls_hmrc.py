@@ -53,6 +53,35 @@ class HMRC:
     def get_are_you_liable_to_pension_savings_tax_charges__yes_no_(self):
         return False
 
+    def get_claim_marriage_allowance__yes_no_(self):
+        if self.get_marital_status() != "Married":
+            return False
+
+        total_income = self.get_total_income()
+
+        spouse_total_income = self.get_spouse_total_income()
+
+        if total_income > spouse_total_income:
+            return False
+
+        marriage_allowance = self.constants.get_marriage_allowance()
+
+        personal_allowance = self.constants.get_personal_allowance()
+
+        if total_income + marriage_allowance > personal_allowance:
+            return False
+
+        return True
+
+    def get_first_name(self):
+        return self.person.get_first_name()
+
+    def get_last_name(self):
+        return self.person.get_last_name()
+
+    def get_middle_name(self):
+        return self.person.get_middle_name()
+
     def get_total_tax_due(self):
         return "Not applicable"
 
@@ -189,6 +218,7 @@ class HMRC:
 
     def get_any_uk_interest__yes_no_(self):
         taxed_uk_interest = self.get_taxed_uk_interest()
+
         untaxed_uk_interest = self.get_untaxed_uk_interest()
 
         total_interest = taxed_uk_interest + untaxed_uk_interest
@@ -511,7 +541,7 @@ class HMRC:
         person_code = self.spouse.code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} % income"
-        print(f"Category like: {category_like}")
+
         total_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
@@ -522,7 +552,7 @@ class HMRC:
         person_code = self.person_code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} % income"
-        print(f"Category like: {category_like}")
+
         total_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
@@ -670,8 +700,8 @@ class HMRC:
             tax_year, f"HMRC {person_code} INC Other dividends"
         )
 
-    def get_other_taxable_income(self):
-        return 0
+    def get_other_taxable_income__yes_no_(self):
+        return False
 
     def get_payments_to_pension_schemes__relief_at_source_(self):
         my_payments = self.transactions.fetch_total_by_tax_year_category(
@@ -723,7 +753,7 @@ class HMRC:
         tax_year = self.tax_year
 
         return self.get_year_category_total(
-            tax_year, f"HMRC {person_code} INC Taxed UK interest"
+            tax_year, f"HMRC {person_code} INC income: Taxed UK interest"
         )
 
     def get_payments_to_annuity_tax_relief_not_claimed(self):
@@ -1066,7 +1096,7 @@ class HMRC:
         tax_year = self.tax_year
 
         return self.get_year_category_total(
-            tax_year, f"HMRC {person_code} INC Untaxed foreign interest"
+            tax_year, f"HMRC {person_code} INC income: Untaxed foreign interest"
         )
 
     def get_did_you_give_to_charity__yes_no_(self):
@@ -1074,28 +1104,6 @@ class HMRC:
 
     def get_claim_married_couple_s_allowance__yes_no_(self):
         return False
-
-    def get_claim_marriage_allowance__yes_no_(self):
-        if self.get_marital_status() != "Married":
-            return False
-
-        print("Claim marriage allowance")
-        total_income = self.get_total_income()
-        print(f"Total income: {total_income}")
-
-        spouse_total_income = self.get_spouse_total_income()
-        print(f"Spouse total income: {spouse_total_income}")
-
-        if total_income > spouse_total_income:
-            return False
-
-        marriage_allowance = self.constants.get_marriage_allowance()
-        print(f"Marriage allowance: {marriage_allowance}")
-
-        personal_allowance = self.constants.get_personal_allowance()
-        print(f"Personal allowance: {personal_allowance}")
-
-        return "Who knows?"
 
     def get_annual_turnover____85_000__yes_no_(self):
         return "Check it"
@@ -1162,7 +1170,7 @@ class HMRC:
         tax_year = self.tax_year
 
         return self.get_year_category_total(
-            tax_year, f"HMRC {person_code} INC Untaxed UK interest"
+            tax_year, f"HMRC {person_code} INC income: Untaxed UK interest"
         )
 
     def get_uk_property__yes_no_(self):
@@ -1188,15 +1196,6 @@ class HMRC:
 
     def get_your_date_of_birth(self):
         return self.person.get_uk_date_of_birth()
-
-    def get_first_name(self):
-        return self.person.get_first_name()
-
-    def get_middle_name(self):
-        return self.person.get_middle_name()
-
-    def get_last_name(self):
-        return self.person.get_last_name()
 
     def get_your_name_and_address(self):
         return "Leave blank unless changed from previous year"
