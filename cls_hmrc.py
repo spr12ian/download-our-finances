@@ -125,24 +125,31 @@ class HMRC:
     def get_were_you_self_employed_in_this_tax_year__yes_no_(self):
         return True
 
-    def get_any_dividends(self):
+    def get_any_dividends__yes_no_(self):
         person_code = self.person_code
         tax_year = self.tax_year
 
-        return self.get_year_category_total(
-            tax_year, f"HMRC {person_code} INC Dividends from UK companies"
+        category_like = f"HMRC {person_code} DIV income: "
+
+        total = self.transactions.fetch_total_by_tax_year_category_like(
+            tax_year, category_like
         )
 
-    def get_any_pensions__annuities__or_state_benefits(self):
+        return total > 0
+
+    def get_any_pensions__annuities__or_state_benefits__yes_no_(self):
         person_code = self.person_code
         tax_year = self.tax_year
 
-        return self.get_year_category_total(
-            tax_year, f"HMRC {person_code} INC Pensions"
+        category_like = f"HMRC {person_code} BEN income: "
+
+        total = self.transactions.fetch_total_by_tax_year_category_like(
+            tax_year, category_like
         )
+
+        return total > 0
 
     def get_business_1_name(self):
-
         businesses = self.get_businesses()
 
         if len(businesses) > 0:
@@ -156,22 +163,23 @@ class HMRC:
         # which have a self-employment income category for the current person
         person_code = self.person.code
         tax_year = self.tax_year
+
+        category_like = f"HMRC {person_code} SES income: "
+        where = f'"Tax year"="{tax_year}" AND "Category" LIKE "{category_like}%"'
+
         query = (
             self.transactions.query_builder()
             .select_raw("DISTINCT Category")
-            .where(
-                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} SES%income"'
-            )
+            .where(where)
             .build()
         )
 
         rows = self.sql.fetch_all(query)
 
-        start_position = len(f"HMRC {person_code} SES ")
+        start_position = len(category_like)
 
         for row in rows:
-            end_position = len(row[0]) - len(" income")
-            business = row[0][start_position:end_position]
+            business = row[0][start_position:]
             businesses.append(business)
 
         return businesses
@@ -186,7 +194,7 @@ class HMRC:
         total_interest = taxed_uk_interest + untaxed_uk_interest
 
         if total_interest > 0:
-            return f"Yes: {format_as_gbp(total_interest)} UK interest"
+            return f"Yes: {format_as_gbp(total_interest)} total {format_as_gbp(taxed_uk_interest)} taxed {format_as_gbp(untaxed_uk_interest)} untaxed"
         else:
             return "No"
 
@@ -226,6 +234,9 @@ class HMRC:
 
     def get_total_rents_and_other_income_from_property(self):
         return "Not applicable"
+
+    def get_personal_allowance(self):
+        return self.constants.get_personal_allowance()
 
     def get_property_income_allowance(self):
         property_income_allowance = self.constants.get_property_income_allowance()
@@ -386,7 +397,7 @@ class HMRC:
             self.transactions.query_builder()
             .select_raw("COUNT(DISTINCT Category)")
             .where(
-                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} SES%income"'
+                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} SES income%"'
             )
             .build()
         )
@@ -488,7 +499,7 @@ class HMRC:
     def get_property_income(self) -> float:
         person_code = self.person_code
         tax_year = self.tax_year
-        category_like = f"HMRC {person_code} UKP income%"
+        category_like = f"HMRC {person_code} UKP income"
 
         property_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
@@ -496,13 +507,35 @@ class HMRC:
 
         return property_income
 
+    def get_spouse_total_income(self) -> float:
+        person_code = self.spouse.code
+        tax_year = self.tax_year
+        category_like = f"HMRC {person_code} % income"
+        print(f"Category like: {category_like}")
+        total_income = self.transactions.fetch_total_by_tax_year_category_like(
+            tax_year, category_like
+        )
+
+        return total_income
+
+    def get_total_income(self) -> float:
+        person_code = self.person_code
+        tax_year = self.tax_year
+        category_like = f"HMRC {person_code} % income"
+        print(f"Category like: {category_like}")
+        total_income = self.transactions.fetch_total_by_tax_year_category_like(
+            tax_year, category_like
+        )
+
+        return total_income
+
     def get_turnover(self) -> float:
         if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
 
         person_code = self.person_code
         tax_year = self.tax_year
-        category_like = f"HMRC {person_code} SES%income"
+        category_like = f"HMRC {person_code} SES income"
 
         turnover = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
@@ -534,7 +567,7 @@ class HMRC:
 
         person_code = self.person_code
         tax_year = self.tax_year
-        category_like = f"HMRC {person_code} SES%expense"
+        category_like = f"HMRC {person_code} SES expense"
 
         total_allowable_expenses = (
             self.transactions.fetch_total_by_tax_year_category_like(
@@ -547,7 +580,7 @@ class HMRC:
     def get_total_property_expenses(self):
         person_code = self.person_code
         tax_year = self.tax_year
-        category_like = f"HMRC {person_code} UKP expense%"
+        category_like = f"HMRC {person_code} UKP expense"
 
         total_property_expenses = (
             self.transactions.fetch_total_by_tax_year_category_like(
@@ -1043,12 +1076,68 @@ class HMRC:
         return False
 
     def get_claim_marriage_allowance__yes_no_(self):
+        if self.get_marital_status() != "Married":
+            return False
+
         print("Claim marriage allowance")
         total_income = self.get_total_income()
         print(f"Total income: {total_income}")
-        spouse_income = self.get_spouse_income()
-        print(f"Spouse income: {spouse_income}")
+
+        spouse_total_income = self.get_spouse_total_income()
+        print(f"Spouse total income: {spouse_total_income}")
+
+        if total_income > spouse_total_income:
+            return False
+
+        marriage_allowance = self.constants.get_marriage_allowance()
+        print(f"Marriage allowance: {marriage_allowance}")
+
+        personal_allowance = self.constants.get_personal_allowance()
+        print(f"Personal allowance: {personal_allowance}")
+
         return "Who knows?"
+
+    def get_annual_turnover____85_000__yes_no_(self):
+        return "Check it"
+
+    def get_affected_by_basis_period_reform__yes_no_(self):
+        return "Check it"
+
+    def get_i_am_a_foster_carer__yes_no_(self):
+        return "Check it"
+
+    def get_i_wish_to_make_an_adjustment_to_my_profits__yes_no_(self):
+        return "Check it"
+
+    def get_i_am_a_farmer__yes_no_(self):
+        return "Check it"
+
+    def get_results_already_declared_on_a_previous_return__yes_no_(self):
+        return "Check it"
+
+    def get_basis_period_different_to_accounting_period__yes_no_(self):
+        return "Check it"
+
+    def get_my_business_is_carried_on_abroad__yes_no_(self):
+        return "Check it"
+
+    def get_i_need_to_claim__overlap_relief___yes_no_(self):
+        return "Check it"
+
+    def get_total_income___1_000_voluntarily_class_2_nics__yes_no_(self):
+        return "Check it"
+
+    def get_total_income___1_000_made_a_loss__yes_no_(self):
+        return "Check it"
+
+    def get_none_of_these_apply__yes_no_(self):
+        return "Check it"
+
+    def get_if_new_business__enter_start_date(self):
+        return "Check it"
+
+    def get_if_business_gone__enter_end_date(self):
+        return "Check it"
 
     def get_income____12_570___spouse_income____50_270__yes_no_(self):
         return "Calculate response"

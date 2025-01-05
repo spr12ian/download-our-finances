@@ -22,7 +22,7 @@ class HMRC_QuestionsByYear(SQLiteTable):
                 row[1],  # section
                 row[2],  # header
                 row[3],  # box
-                "get_" + to_valid_method_name(row[0]),  # method
+                "q_" + to_valid_method_name(row[0]),  # method
             ]
             for row in self.sql.fetch_all(query)
         ]

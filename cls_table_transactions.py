@@ -15,6 +15,6 @@ class Transactions(SQLiteTable):
 
     def fetch_total_by_tax_year_category_like(self, tax_year, category_like):
         where_clause = (
-            f'"Tax year" = "{tax_year}" AND "Category" LIKE "{category_like}"'
+            f'"Tax year" = "{tax_year}" AND "Category" LIKE "{category_like}%"'
         )
         return self.fetch_total_where(where_clause)

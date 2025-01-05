@@ -7,6 +7,18 @@ class HMRC_ConstantsByYear(SQLiteTable):
         super().__init__("hmrc_constants_by_year")
         self.tax_year = tax_year
 
+    def get_marriage_allowance(self):
+        marriage_allowance = string_to_float(
+            self.get_value_by_hmrc_constant("Marriage allowance")
+        )
+        return marriage_allowance
+
+    def get_personal_allowance(self):
+        personal_allowance = string_to_float(
+            self.get_value_by_hmrc_constant("Personal allowance")
+        )
+        return personal_allowance
+
     def get_property_income_allowance(self):
         property_income_allowance = string_to_float(
             self.get_value_by_hmrc_constant("Property income allowance")
