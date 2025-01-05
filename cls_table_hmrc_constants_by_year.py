@@ -7,6 +7,12 @@ class HMRC_ConstantsByYear(SQLiteTable):
         super().__init__("hmrc_constants_by_year")
         self.tax_year = tax_year
 
+    def get_property_income_allowance(self):
+        property_income_allowance = string_to_float(
+            self.get_value_by_hmrc_constant("Property income allowance")
+        )
+        return property_income_allowance
+
     def get_trading_income_allowance(self):
         trading_income_allowance = string_to_float(
             self.get_value_by_hmrc_constant("Trading income allowance")

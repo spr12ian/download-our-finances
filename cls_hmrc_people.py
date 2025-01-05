@@ -25,6 +25,9 @@ class HMRC_People(People):
     def get_national_insurance_number(self):
         return self.hmrc_person_details.get_national_insurance_number()
 
+    def get_receive_child_benefit(self):
+        return self.hmrc_person_details.get_receive_child_benefit()
+
     def get_refunds_to(self):
         return self.hmrc_person_details.get_refunds_to()
 

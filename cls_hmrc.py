@@ -2,6 +2,7 @@ from cls_helper_log import LogHelper
 from cls_helper_sql import SQL_Helper
 from cls_hmrc_people import HMRC_People
 from tables import *
+from utility_functions import format_as_gbp
 
 l = LogHelper()
 LogHelper.debug_enabled = True
@@ -28,41 +29,12 @@ class HMRC:
 
         self.sql = SQL_Helper().select_sql_helper("SQLite")
 
-        # self.list_categories()
-
-    def append_header(self, answers, section):
-        section = f"\n{section.upper()}"
-        this_return = f"{self.person.get_name()} {self.tax_year}\n"
-
-        answers.append([section, "", "", this_return])
-
-        answers.append(["Page", "Box", "Question", "Answer"])
-
-        return answers
-
     def call_method(self, method_name):
         try:
             method = getattr(self, method_name)
             return method()
         except AttributeError:
             print(f"Method {method_name} not found")
-
-    def position_answer(self, string_list) -> str:
-        if self.report_type == HMRC.ONLINE_REPORT:
-            widths = [55]  # Define column widths
-        else:
-            widths = [55, 69]
-
-        how_many = len(widths)  # How many columns to format
-
-        # Use zip to pair strings with widths and format them in one step
-        formatted_parts = [
-            f"{string:<{width}}"
-            for string, width in zip(string_list[:how_many], widths)
-        ]
-
-        # Join the formatted parts and append the fourth string without formatting
-        return "".join(formatted_parts) + string_list[how_many]
 
     def get_answers(self):
         questions = self.get_questions()
@@ -76,6 +48,9 @@ class HMRC:
         return answers
 
     def get_any_other_information(self):
+        return False
+
+    def get_are_you_liable_to_pension_savings_tax_charges__yes_no_(self):
         return False
 
     def get_total_tax_due(self):
@@ -123,6 +98,104 @@ class HMRC:
     def get_married_people_s_surplus_allowance_you_can_have(self):
         return "Not applicable"
 
+    def get_total_property_income___property_allowance__yes_no_(self):
+        property_income_allowance = self.get_property_income_allowance()
+        property_income = self.get_property_income()
+
+        gbp_income = format_as_gbp(property_income)
+        gbp_allowance = format_as_gbp(property_income_allowance)
+
+        if property_income > property_income_allowance:
+            return f"Yes: Income {gbp_income} > {gbp_allowance} Property allowance"
+        else:
+            return f"No: Income {gbp_income} <= {gbp_allowance} Allowance"
+
+    def get_total_turnover___trading_allowance__yes_no_(self):
+        trading_income_allowance = self.get_trading_income_allowance()
+        turnover = self.get_turnover()
+
+        gbp_turnover = format_as_gbp(turnover)
+        gbp_allowance = format_as_gbp(trading_income_allowance)
+
+        if turnover > trading_income_allowance:
+            return f"Yes: Turnover {gbp_turnover} > {gbp_allowance} Trading allowance"
+        else:
+            return f"No: Turnover {gbp_turnover} <= {gbp_allowance} Allowance"
+
+    def get_were_you_self_employed_in_this_tax_year__yes_no_(self):
+        return True
+
+    def get_any_dividends(self):
+        person_code = self.person_code
+        tax_year = self.tax_year
+
+        return self.get_year_category_total(
+            tax_year, f"HMRC {person_code} INC Dividends from UK companies"
+        )
+
+    def get_any_pensions__annuities__or_state_benefits(self):
+        person_code = self.person_code
+        tax_year = self.tax_year
+
+        return self.get_year_category_total(
+            tax_year, f"HMRC {person_code} INC Pensions"
+        )
+
+    def get_business_1_name(self):
+
+        businesses = self.get_businesses()
+
+        if len(businesses) > 0:
+            return businesses[0]
+        else:
+            return "Not applicable"
+
+    def get_businesses(self):
+        businesses = []
+        # search the transactions table for any records in this tax year
+        # which have a self-employment income category for the current person
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("DISTINCT Category")
+            .where(
+                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} SES%income"'
+            )
+            .build()
+        )
+
+        rows = self.sql.fetch_all(query)
+
+        start_position = len(f"HMRC {person_code} SES ")
+
+        for row in rows:
+            end_position = len(row[0]) - len(" income")
+            business = row[0][start_position:end_position]
+            businesses.append(business)
+
+        return businesses
+
+    def get_were_you_in_partnership_s__this_tax_year__yes_no_(self):
+        return False
+
+    def get_any_uk_interest__yes_no_(self):
+        taxed_uk_interest = self.get_taxed_uk_interest()
+        untaxed_uk_interest = self.get_untaxed_uk_interest()
+
+        total_interest = taxed_uk_interest + untaxed_uk_interest
+
+        if total_interest > 0:
+            return f"Yes: {format_as_gbp(total_interest)} UK interest"
+        else:
+            return "No"
+
+    def get_any_child_benefit__yes_no_(self):
+        return False
+
+    def get_any_income_tax_losses__yes_no_(self):
+        return False
+
     def get_increase_in_tax_due_to_adjustments_to_an_earlier_year(self):
         return "Not applicable"
 
@@ -155,7 +228,15 @@ class HMRC:
         return "Not applicable"
 
     def get_property_income_allowance(self):
-        return "Not applicable"
+        property_income_allowance = self.constants.get_property_income_allowance()
+        total_property_expenses = self.get_total_property_expenses()
+
+        if property_income_allowance > total_property_expenses:
+            return property_income_allowance
+        else:
+            return (
+                "Not claimed: Total property expenses exceed property income allowance"
+            )
 
     def get_ukp_cash_basis__yes_no_(self):
         return "Not applicable"
@@ -281,7 +362,8 @@ class HMRC:
         return self.person.get_email_address()
 
     def get_is_this_address_correct__yes_no_(self):
-        return True
+        address = f"Yes: {self.person.get_address()}"
+        return address
 
     def get_marital_status(self):
         return self.person.get_marital_status()
@@ -295,9 +377,9 @@ class HMRC:
     def get_postgraduate_loan_repayment_due__yes_no_(self):
         return False
 
-    def get_how_many_businesses(self):
+    def get_how_many_self_employed_businesses_did_you_have(self):
         # search the transactions table for any records in this tax year
-        # which have an employment income category for the current person
+        # which have a self-employment income category for the current person
         person_code = self.person.code
         tax_year = self.tax_year
         query = (
@@ -403,8 +485,19 @@ class HMRC:
     def get_cash_basis__yes_no_(self):
         return "Not applicable"
 
+    def get_property_income(self) -> float:
+        person_code = self.person_code
+        tax_year = self.tax_year
+        category_like = f"HMRC {person_code} UKP income%"
+
+        property_income = self.transactions.fetch_total_by_tax_year_category_like(
+            tax_year, category_like
+        )
+
+        return property_income
+
     def get_turnover(self) -> float:
-        if self.get_how_many_businesses() > 1:
+        if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
 
         person_code = self.person_code
@@ -436,7 +529,7 @@ class HMRC:
         return "See box 20"
 
     def get_total_allowable_expenses(self):
-        if self.get_how_many_businesses() > 1:
+        if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
 
         person_code = self.person_code
@@ -450,6 +543,19 @@ class HMRC:
         )
 
         return total_allowable_expenses
+
+    def get_total_property_expenses(self):
+        person_code = self.person_code
+        tax_year = self.tax_year
+        category_like = f"HMRC {person_code} UKP expense%"
+
+        total_property_expenses = (
+            self.transactions.fetch_total_by_tax_year_category_like(
+                tax_year, category_like
+            )
+        )
+
+        return total_property_expenses
 
     def get_net_profit(self):
         return "Not applicable"
@@ -550,8 +656,6 @@ class HMRC:
         return False
 
     def get_questions(self):
-        l.debug("Getting questions")
-        l.debug(self.report_type)
         if self.report_type == HMRC.ONLINE_REPORT:
             return HMRC_QuestionsByYear(self.tax_year).get_online_questions()
         else:
@@ -932,6 +1036,38 @@ class HMRC:
             tax_year, f"HMRC {person_code} INC Untaxed foreign interest"
         )
 
+    def get_did_you_give_to_charity__yes_no_(self):
+        return False
+
+    def get_claim_married_couple_s_allowance__yes_no_(self):
+        return False
+
+    def get_claim_marriage_allowance__yes_no_(self):
+        print("Claim marriage allowance")
+        total_income = self.get_total_income()
+        print(f"Total income: {total_income}")
+        spouse_income = self.get_spouse_income()
+        print(f"Spouse income: {spouse_income}")
+        return "Who knows?"
+
+    def get_income____12_570___spouse_income____50_270__yes_no_(self):
+        return "Calculate response"
+
+    def get_claim_other_tax_reliefs__yes_no_(self):
+        return False
+
+    def get_have_you_had_any_2023_24_income_tax_refunded__yes_no_(self):
+        return False
+
+    def get_did_you_have_a_tax_advisor__yes_no_(self):
+        return False
+
+    def get_have_you_used_tax_avoidance_schemes__yes_no_(self):
+        return False
+
+    def get_are_you_acting_on_behalf_of_someone_else__yes_no_(self):
+        return False
+
     def get_untaxed_uk_interest(self):
         person_code = self.person_code
         tax_year = self.tax_year
@@ -982,7 +1118,7 @@ class HMRC:
     def get_your_phone_number(self):
         return self.person.get_phone_number()
 
-    def get_were_you_employed_in_this_tax_year(self):
+    def get_were_you_employed_in_this_tax_year__yes_no_(self):
         # search the transactions table for any records in this tax year
         # which have an employment income category for the current person
         person_code = self.person.code
@@ -1035,16 +1171,44 @@ class HMRC:
         for row in categories:
             print(row[0])
 
+    def position_answer(self, string_list) -> str:
+        if self.report_type == HMRC.ONLINE_REPORT:
+            widths = [55]  # Define column widths
+        else:
+            widths = [5, 60]
+
+        how_many = len(widths)  # How many columns to format
+
+        # Use zip to pair strings with widths and format them in one step
+        formatted_parts = [
+            f"{string:<{width}}"
+            for string, width in zip(string_list[:how_many], widths)
+        ]
+
+        # Join the formatted parts and append the fourth string without formatting
+        return "".join(formatted_parts) + string_list[how_many]
+
+    def print_end_of_tax_return(self):
+        person_name = self.person.get_name()
+        report_type = self.report_type
+        tax_year = self.tax_year
+        print(f"\nEnd of {tax_year} {report_type} tax return for {person_name}\n")
+        print(
+            "============================================================================\n"
+        )
+
     def print_formatted_answer(self, question, section, header, box, answer):
+        # print("print_formatted_answer")
+        # print(f"\n{question}\n")
+        # print(f"{section} - {header} - Box {box}")
+        # print(f"Answer: {answer}")
         if section != self.previous_section:
             self.previous_section = section
-            print(f"\n{section.upper()}")
+            print(f"\n\n{section.upper()}\n")
+
         if header != self.previous_header:
             self.previous_header = header
-            print(f"\n{header.upper()}")
-
-            print(f"\n{box.upper()}")
-            print(f"\n{question.upper()}")
+            print(f"\n{header.upper()}\n")
 
         if isinstance(answer, bool):
             answer = "Yes" if answer else "No"
@@ -1064,10 +1228,6 @@ class HMRC:
 
         print(formatted_answer)
 
-    def print_reports(self):
-        for report in HMRC.REPORTS:
-            self.print_report(report)
-
     def print_report(self, report_type):
         self.report_type = report_type
 
@@ -1078,13 +1238,11 @@ class HMRC:
         for question, section, header, box, answer in answers:
             self.print_formatted_answer(question, section, header, box, answer)
 
-        self.print_end_of_report()
+        self.print_end_of_tax_return()
 
-    def print_end_of_report(self):
-        print(f"\nEnd of {self.report_type} report\n")
-        print(
-            "============================================================================\n"
-        )
+    def print_reports(self):
+        for report in HMRC.REPORTS:
+            self.print_report(report)
 
     def print_title(self):
         print(self.get_title())
