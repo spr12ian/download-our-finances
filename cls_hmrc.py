@@ -189,15 +189,15 @@ class HMRC:
         return total > 0
 
     def get_business_1_name(self):
-        businesses = self.get_businesses()
+        hmrc_businesses = self.get_hmrc_businesses()
 
-        if len(businesses) > 0:
-            return businesses[0]
+        if len(hmrc_businesses) > 0:
+            return hmrc_businesses[0].get_business_name()
         else:
             return "Not applicable"
 
-    def get_businesses(self):
-        businesses = []
+    def get_hmrc_businesses(self):
+        hmrc_businesses = []
         # search the transactions table for any records in this tax year
         # which have a self-employment income category for the current person
         person_code = self.person.code
@@ -218,10 +218,11 @@ class HMRC:
         start_position = len(category_like)
 
         for row in rows:
-            business = row[0][start_position:]
-            businesses.append(business)
+            business_name = row[0][start_position:]
+            hmrc_business = HMRC_Businesses(business_name)
+            hmrc_businesses.append(hmrc_business)
 
-        return businesses
+        return hmrc_businesses
 
     def get_were_you_in_partnership_s__this_tax_year__yes_no_(self):
         return False
@@ -515,18 +516,23 @@ class HMRC:
 
     def get_description_of_business(self):
         business_name = self.get_business_1_name()
-        businesses = self.get_businesses()
-        description_of_business = f"Self-employed business: {business_name}"
-        return description_of_business
+        hmrc_business = HMRC_Businesses(business_name)
+        business_description = hmrc_business.get_business_description()
+
+        return business_description
 
     def get_postcode_of_your_business_address(self):
-        return "Not applicable"
+        business_name = self.get_business_1_name()
+        hmrc_business = HMRC_Businesses(business_name)
+        business_postcode = hmrc_business.get_business_postcode()
+
+        return business_postcode
 
     def get_have_business_details_changed__yes_no_(self):
-        return "Not applicable"
+        return False
 
     def get_are_you_a_foster_carer(self):
-        return "Not applicable"
+        return False
 
     def get_business_start_date__in_this_tax_year_(self):
         return "Not applicable"
@@ -1119,10 +1125,7 @@ class HMRC:
     def get_claim_married_couple_s_allowance__yes_no_(self):
         return False
 
-    def get_vat_registration_threshold(self):
-        return self.constants.get_vat_registration_threshold()
-
-    def get_annual_turnover____vat_registraion_cusp__yes_no_(self):
+    def get_annual_turnover___vat_registration_cusp__yes_no_(self):
         tutnover = self.get_turnover()
         vat_registration_cusp = self.get_vat_registration_threshold()
 
@@ -1152,15 +1155,15 @@ class HMRC:
     def get_i_need_to_claim__overlap_relief___yes_no_(self):
         return False
 
-    def get_total_income___1_000_voluntarily_class_2_nics__yes_no_(self):
+    def get_income__trading_allowance__volunteer_c2_nics__yes_no_(self):
         turnover = self.get_turnover()
         trading_income_allowance = self.get_trading_income_allowance()
 
-        if turnover > trading_income_allowance:
-            return False
-
         gbp_turnover = format_as_gbp(turnover)
         gbp_trading_income_allowance = format_as_gbp(trading_income_allowance)
+
+        if turnover > trading_income_allowance:
+            return f"No: Turnover {gbp_turnover} exceeds trading income allowance {gbp_trading_income_allowance}"
 
         return (
             "Check: Turnover "
@@ -1169,21 +1172,38 @@ class HMRC:
             + gbp_trading_income_allowance
         )
 
-    def get_total_income___1_000_made_a_loss__yes_no_(self):
+    def get_income__trading_allowance__claim_back_cis__yes_no_(self):
+        return False
+
+    def get_profit(self):
+        return self.get_turnover() - self.get_total_allowable_expenses()
+
+    def get_income__trading_allowance__made_a_loss__yes_no_(self):
         turnover = self.get_turnover()
-        if turnover < 0:
-            return "Yes"
+        trading_income_allowance = self.get_trading_income_allowance()
+
+        gbp_turnover = format_as_gbp(turnover)
+        gbp_trading_income_allowance = format_as_gbp(trading_income_allowance)
+
+        if turnover > trading_income_allowance:
+            return f"No: Turnover {gbp_turnover} exceeds trading income allowance {gbp_trading_income_allowance}"
+
+        profit = self.get_profit()
+        if profit < 0:
+            gbp_loss = format_as_gbp(profit * -1)
+            return f"Yes: Loss {gbp_loss}"
         else:
-            return "Check it"
+            gbp_profit = format_as_gbp(profit)
+            return f"No: Profit {gbp_profit}"
 
     def get_none_of_these_apply__yes_no_(self):
         return "Yes (but check it)"
 
     def get_if_new_business__enter_start_date(self):
-        return "Check it"
+        return ""
 
     def get_if_business_gone__enter_end_date(self):
-        return "Check it"
+        return ""
 
     def get_income___pa__spouse_income___higher_rate_cusp__yes_no_(self):
         total_income = self.get_total_income()
@@ -1294,6 +1314,9 @@ class HMRC:
         how_many = self.sql.fetch_one_value(query)
 
         return how_many > 0
+
+    def get_vat_registration_threshold(self):
+        return self.constants.get_vat_registration_threshold()
 
     def get_year_category_total(self, tax_year, category):
         return self.transactions.fetch_total_by_tax_year_category(tax_year, category)

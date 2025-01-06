@@ -1,4 +1,7 @@
 from cls_sqlite_table import SQLiteTable
+from cls_helper_log import LogHelper
+
+l = LogHelper()
 
 
 class HMRC_Businesses(SQLiteTable):
@@ -11,6 +14,14 @@ class HMRC_Businesses(SQLiteTable):
 
         return business_description
 
+    def get_business_name(self):
+        return self.business_name
+
+    def get_business_postcode(self):
+        business_description = self.__get_value_by_business_name("Business postcode")
+
+        return business_description
+
     def __get_value_by_business_name(self, column_name):
         business_name = self.business_name
         query = (
@@ -19,7 +30,7 @@ class HMRC_Businesses(SQLiteTable):
             .where(f'"Business name" = "{business_name}"')
             .build()
         )
-
+        l.debug(f"Query: {query}")
         result = self.sql.fetch_one_value(query)
 
         if result is None:
