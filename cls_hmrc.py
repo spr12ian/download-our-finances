@@ -55,23 +55,32 @@ class HMRC:
 
     def get_claim_marriage_allowance__yes_no_(self):
         if self.get_marital_status() != "Married":
-            return False
+            return "No: not married"
 
         total_income = self.get_total_income()
 
         spouse_total_income = self.get_spouse_total_income()
 
         if total_income > spouse_total_income:
-            return False
+            gbp_total_income = format_as_gbp(total_income)
+            gbp_spouse_total_income = format_as_gbp(spouse_total_income)
+            return f"No: Total income {gbp_total_income} > spouse total income {gbp_spouse_total_income}"
 
         marriage_allowance = self.constants.get_marriage_allowance()
 
         personal_allowance = self.constants.get_personal_allowance()
 
-        if total_income + marriage_allowance > personal_allowance:
-            return False
+        if total_income > personal_allowance:
+            gbp_total_income = format_as_gbp(total_income)
+            gbp_personal_allowance = format_as_gbp(personal_allowance)
+            return f"No: Total income {gbp_total_income} > personal allowance {gbp_personal_allowance}"
 
-        return True
+        claimed_marriage_allowance = min(
+            marriage_allowance, personal_allowance - total_income
+        )
+        gbp_claimed_marriage_allowance = format_as_gbp(claimed_marriage_allowance)
+
+        return f"Yes: expect to claim {gbp_claimed_marriage_allowance}"
 
     def get_first_name(self):
         return self.person.get_first_name()
@@ -129,6 +138,7 @@ class HMRC:
 
     def get_total_property_income___property_allowance__yes_no_(self):
         property_income_allowance = self.get_property_income_allowance()
+
         property_income = self.get_property_income()
 
         gbp_income = format_as_gbp(property_income)
@@ -269,15 +279,16 @@ class HMRC:
         return self.constants.get_personal_allowance()
 
     def get_property_income_allowance(self):
-        property_income_allowance = self.constants.get_property_income_allowance()
+        return self.constants.get_property_income_allowance()
+
+    def get_claimed_property_income_allowance(self):
+        property_income_allowance = self.get_property_income_allowance()
         total_property_expenses = self.get_total_property_expenses()
 
         if property_income_allowance > total_property_expenses:
             return property_income_allowance
         else:
-            return (
-                "Not claimed: Total property expenses exceed property income allowance"
-            )
+            return f"Not claimed: Total property expenses {total_property_expenses} exceed property income allowance {property_income_allowance}"
 
     def get_ukp_cash_basis__yes_no_(self):
         return "Not applicable"
@@ -503,7 +514,10 @@ class HMRC:
         return "Not applicable"
 
     def get_description_of_business(self):
-        return "Not applicable"
+        business_name = self.get_business_1_name()
+        businesses = self.get_businesses()
+        description_of_business = f"Self-employed business: {business_name}"
+        return description_of_business
 
     def get_postcode_of_your_business_address(self):
         return "Not applicable"
@@ -1105,41 +1119,65 @@ class HMRC:
     def get_claim_married_couple_s_allowance__yes_no_(self):
         return False
 
-    def get_annual_turnover____85_000__yes_no_(self):
-        return "Check it"
+    def get_vat_registration_threshold(self):
+        return self.constants.get_vat_registration_threshold()
+
+    def get_annual_turnover____vat_registraion_cusp__yes_no_(self):
+        tutnover = self.get_turnover()
+        vat_registration_cusp = self.get_vat_registration_threshold()
+
+        return tutnover > vat_registration_cusp
 
     def get_affected_by_basis_period_reform__yes_no_(self):
-        return "Check it"
+        return False
 
     def get_i_am_a_foster_carer__yes_no_(self):
-        return "Check it"
+        return False
 
     def get_i_wish_to_make_an_adjustment_to_my_profits__yes_no_(self):
-        return "Check it"
+        return False
 
     def get_i_am_a_farmer__yes_no_(self):
-        return "Check it"
+        return False
 
     def get_results_already_declared_on_a_previous_return__yes_no_(self):
-        return "Check it"
+        return False
 
     def get_basis_period_different_to_accounting_period__yes_no_(self):
-        return "Check it"
+        return False
 
     def get_my_business_is_carried_on_abroad__yes_no_(self):
-        return "Check it"
+        return False
 
     def get_i_need_to_claim__overlap_relief___yes_no_(self):
-        return "Check it"
+        return False
 
     def get_total_income___1_000_voluntarily_class_2_nics__yes_no_(self):
-        return "Check it"
+        turnover = self.get_turnover()
+        trading_income_allowance = self.get_trading_income_allowance()
+
+        if turnover > trading_income_allowance:
+            return False
+
+        gbp_turnover = format_as_gbp(turnover)
+        gbp_trading_income_allowance = format_as_gbp(trading_income_allowance)
+
+        return (
+            "Check: Turnover "
+            + gbp_turnover
+            + " Trading income allowance "
+            + gbp_trading_income_allowance
+        )
 
     def get_total_income___1_000_made_a_loss__yes_no_(self):
-        return "Check it"
+        turnover = self.get_turnover()
+        if turnover < 0:
+            return "Yes"
+        else:
+            return "Check it"
 
     def get_none_of_these_apply__yes_no_(self):
-        return "Check it"
+        return "Yes (but check it)"
 
     def get_if_new_business__enter_start_date(self):
         return "Check it"
@@ -1147,8 +1185,19 @@ class HMRC:
     def get_if_business_gone__enter_end_date(self):
         return "Check it"
 
-    def get_income____12_570___spouse_income____50_270__yes_no_(self):
-        return "Calculate response"
+    def get_income___pa__spouse_income___higher_rate_cusp__yes_no_(self):
+        total_income = self.get_total_income()
+        spouse_total_income = self.get_spouse_total_income()
+        personal_allowance = self.get_personal_allowance()
+        higher_rate_threshold = self.constants.get_higher_rate_threshold()
+
+        if (
+            total_income < personal_allowance
+            and spouse_total_income < higher_rate_threshold
+        ):
+            return "Yes"
+        else:
+            return "No"
 
     def get_claim_other_tax_reliefs__yes_no_(self):
         return False
@@ -1164,6 +1213,61 @@ class HMRC:
 
     def get_are_you_acting_on_behalf_of_someone_else__yes_no_(self):
         return False
+
+    def get_personal_savings_allowance(self):
+        return self.constants.get_personal_savings_allowance()
+
+    def get_starting_rate_limit_for_savings(self):
+        return self.constants.get_starting_rate_limit_for_savings()
+
+    def get_savings_basic_rate(self):
+        return self.constants.get_savings_basic_rate()
+
+    def get_tax_due_on_untaxed_uk_interest(self):
+        l.debug("get_tax_due_on_untaxed_uk_interest")
+
+        # 2023-24 personal allowance is £12,570
+        personal_allowance = self.get_personal_allowance()
+        l.debug(f"Personal allowance: {personal_allowance}")
+
+        # 2023-24 personal savings allowance is £1,000
+        personal_savings_allowance = self.get_personal_savings_allowance()
+        l.debug(f"Personal savings allowance: {personal_savings_allowance}")
+
+        # 2023-24 limit is £5,000
+        starting_rate_limit_for_savings = self.get_starting_rate_limit_for_savings()
+        l.debug(f"Starting rate limit for savings: {starting_rate_limit_for_savings}")
+
+        # 2023-24 total allowances is £18,570
+        total_allowances = (
+            personal_allowance
+            + personal_savings_allowance
+            + starting_rate_limit_for_savings
+        )
+        l.debug(f"Total allowances: {total_allowances}")
+
+        total_income = self.get_total_income()
+        l.debug(f"Total income: {total_income}")
+
+        untaxed_uk_interest = self.get_untaxed_uk_interest()
+        l.debug(f"Untaxed UK interest: {untaxed_uk_interest}")
+
+        non_interest_income = total_income - untaxed_uk_interest
+        l.debug(f"Non-interest income: {non_interest_income}")
+
+        interest_free_allowance = max(0, total_allowances - non_interest_income)
+        l.debug(f"Interest free allowance: {interest_free_allowance}")
+
+        taxable_savings = max(0, untaxed_uk_interest - interest_free_allowance)
+        l.debug(f"Taxable savings: {taxable_savings}")
+
+        savings_basic_rate = self.get_savings_basic_rate()
+        l.debug(f"Savings basic rate: {savings_basic_rate}")
+
+        tax_due_on_untaxed_uk_interest = taxable_savings * savings_basic_rate
+        l.debug(f"Tax due on untaxed UK interest: {tax_due_on_untaxed_uk_interest}")
+
+        return tax_due_on_untaxed_uk_interest
 
     def get_untaxed_uk_interest(self):
         person_code = self.person_code

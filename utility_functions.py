@@ -18,8 +18,16 @@ def string_to_float(string):
     if string.strip() == "":  # Check if the string is empty or whitespace
         return 0.0
 
-    # Remove the currency symbol (£), commas, and percent then convert to float
-    return float(re.sub(r"[£,%]", "", string))
+    # Remove any currency symbols and thousand separators
+    string = re.sub(r"[^\d.,%]", "", string)
+    string = string.replace(",", "")
+
+    # Check if the string has a percentage symbol
+    if "%" in string:
+        string = string.replace("%", "")
+        return float(string) / 100
+
+    return float(string)
 
 
 def to_valid_method_name(s):

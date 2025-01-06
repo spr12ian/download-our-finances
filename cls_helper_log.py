@@ -7,18 +7,30 @@ import time
 
 
 class LogHelper:
+    LOG_FILE = "debug.log"
     debug_enabled = False
 
     def __init__(self):
         self.dt = DateTimeHelper()
+        self.clear_debug_log()
+
+    def clear_debug_log(self):
+        with open(self.LOG_FILE, "w") as file:
+            pass
 
     def debug(self, string):
         if self.debug_enabled:
-            print(string)
+            with open(self.LOG_FILE, "a") as file:
+                file.write(f"{string}\n")
 
     def debug_date_today(self):
         if self.debug_enabled:
-            self.print_date_today()
+            with open(self.LOG_FILE, "a") as file:
+                file.write(f"{self.get_date_today()}\n")
+
+    def get_date_today(self):
+        dt = self.dt
+        return dt.get_date_today()
 
     @staticmethod
     def log_execution_time(func):
@@ -42,8 +54,7 @@ class LogHelper:
         return wrapper
 
     def print_date_today(self):
-        dt = self.dt
-        print(dt.get_date_today())
+        print(self.get_date_today())
 
     def print_time(self):
         dt = self.dt
