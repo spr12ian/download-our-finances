@@ -2,7 +2,13 @@ from cls_helper_date_time import DateTimeHelper
 from functools import wraps
 import time
 
+# Use this snippet:
+# from cls_helper_log import LogHelper
+# l = LogHelper()
 # LogHelper.debug_enabled = True
+# l.clear_debug_log()
+
+# To time functions wrap them like this:
 # @LogHelper.log_execution_time
 
 
@@ -12,7 +18,6 @@ class LogHelper:
 
     def __init__(self):
         self.dt = DateTimeHelper()
-        self.clear_debug_log()
 
     def clear_debug_log(self):
         with open(self.LOG_FILE, "w") as file:

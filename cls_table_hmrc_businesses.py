@@ -1,7 +1,4 @@
 from cls_sqlite_table import SQLiteTable
-from cls_helper_log import LogHelper
-
-l = LogHelper()
 
 
 class HMRC_Businesses(SQLiteTable):
@@ -30,7 +27,7 @@ class HMRC_Businesses(SQLiteTable):
             .where(f'"Business name" = "{business_name}"')
             .build()
         )
-        l.debug(f"Query: {query}")
+
         result = self.sql.fetch_one_value(query)
 
         if result is None:

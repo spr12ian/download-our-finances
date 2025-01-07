@@ -514,14 +514,14 @@ class HMRC:
     def get_tax_year_expected_advantage_arises(self):
         return "Not applicable"
 
-    def get_description_of_business(self):
+    def get_business_description(self):
         business_name = self.get_business_1_name()
         hmrc_business = HMRC_Businesses(business_name)
         business_description = hmrc_business.get_business_description()
 
         return business_description
 
-    def get_postcode_of_your_business_address(self):
+    def get_business_postcode(self):
         business_name = self.get_business_1_name()
         hmrc_business = HMRC_Businesses(business_name)
         business_postcode = hmrc_business.get_business_postcode()
@@ -541,10 +541,11 @@ class HMRC:
         return "Not applicable"
 
     def get_date_the_books_are_made_up_to(self):
-        return "Not applicable"
+        end_year = self.tax_year[-4:]
+        return f"05/04/{end_year}"
 
     def get_cash_basis__yes_no_(self):
-        return "Not applicable"
+        return True
 
     def get_property_income(self) -> float:
         person_code = self.person_code
@@ -579,6 +580,9 @@ class HMRC:
 
         return total_income
 
+    def get_turnover__gbp_(self) -> str:
+        return format_as_gbp(self.get_turnover())
+
     def get_turnover(self) -> float:
         if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
@@ -593,20 +597,48 @@ class HMRC:
 
         return turnover
 
-    def get_any_other_business_income_not_included_in_box_9(self):
-        return "Not applicable"
+    def get_any_other_business_income_not_included_as_turnover(self):
+        return 0
+
+    def get_any_other_business_income_not_turnover__gbp_(self):
+        return format_as_gbp(
+            self.get_any_other_business_income_not_included_as_turnover()
+        )
+
+    def get_total_business_income(self):
+        return (
+            self.get_turnover()
+            + self.get_any_other_business_income_not_included_as_turnover()
+        )
+
+    def get_total_business_income__gbp_(self):
+        return format_as_gbp(self.get_total_business_income())
+
+    def get_how_would_you_like_to_record_your_expenses(self):
+        return "As a single total value"
 
     def get_taxpayer_residency_status(self):
         return self.person.get_taxpayer_residency_status()
 
+    def get_total_allowable_expenses_gbp(self):
+        return format_as_gbp(self.get_total_allowable_expenses())
+
+    def get_trading_income_allowance__gbp_(self):
+        if self.use_trading_income_allowance():
+            trading_income_allowance = self.get_trading_income_allowance()
+            return format_as_gbp(trading_income_allowance)
+        else:
+            total_allowable_expenses_gbp = self.get_total_allowable_expenses_gbp()
+            return f"Not claimed: Total expenses {total_allowable_expenses_gbp} exceed allowance"
+
     def get_trading_income_allowance(self):
-        trading_income_allowance = self.constants.get_trading_income_allowance()
+        return self.constants.get_trading_income_allowance()
+
+    def use_trading_income_allowance(self):
+        trading_income_allowance = self.get_trading_income_allowance()
         total_allowable_expenses = self.get_total_allowable_expenses()
 
-        if trading_income_allowance > total_allowable_expenses:
-            return trading_income_allowance
-        else:
-            return "Not claimed: Total expenses exceed allowance"
+        return trading_income_allowance > total_allowable_expenses
 
     def get_turnover_was_below__85k__total_expenses_in_box_20(self):
         return "See box 20"
@@ -627,6 +659,9 @@ class HMRC:
 
         return total_allowable_expenses
 
+    def get_total_allowable_expenses__gbp_(self):
+        return format_as_gbp(self.get_total_allowable_expenses())
+
     def get_total_property_expenses(self):
         person_code = self.person_code
         tax_year = self.tax_year
@@ -640,59 +675,92 @@ class HMRC:
 
         return total_property_expenses
 
-    def get_net_profit(self):
-        return "Not applicable"
+    def get_bottom_line(self):
+        return self.get_total_business_income() - self.get_total_allowable_expenses()
+
+    def get_bottom_line_gbp(self):
+        return format_as_gbp(self.bottom_line())
 
     def get_net_loss(self):
+        return min(0, self.get_bottom_line()) * -1
+
+    def get_net_loss__gbp_(self):
+        return format_as_gbp(self.get_net_loss())
+
+    def get_net_profit(self):
+        return max(0, self.get_bottom_line())
+
+    def get_net_profit__gbp_(self):
+        return format_as_gbp(self.get_net_profit())
+
+    def get_annual_investment_allowance__gbp_(self):
+        return ""
+
+    def get_small_balance_unrelieved_expenditure_allowance__gbp_(self):
+        return ""
+
+    def get_zero_emission_car_allowance__gbp_(self):
+        return ""
+
+    def get_other_capital_allowances__gbp_(self):
+        return ""
+
+    def get_structures_and_buildings_allowance__gbp_(self):
+        return ""
+
+    def get_freeport_and_investment_zones_allowance__gbp_(self):
+        return ""
+
+    def get_total_balancing_charges__gbp_(self):
+        return ""
+
+    def get_goods_or_services_for_your_own_use__gbp_(self):
+        return ""
+
+    def get_net_business_profit_for_tax_purposes__gbp_(self):
         return "Not applicable"
 
-    def get_annual_investment_allowance(self):
+    def get_loss_brought_forward_set_off_against_profits__gbp_(self):
         return "Not applicable"
 
-    def get_allowance_for_small_balance_of_unrelieved_expenditure(self):
+    def get_any_other_business_income_not_already_included__gbp_(self):
         return "Not applicable"
 
-    def get_zero_emission_car_allowance(self):
+    def get_total_taxable_profits_from_this_business__gbp_(self):
         return "Not applicable"
 
-    def get_other_capital_allowances(self):
+    def get_net_business_loss_for_tax_purposes__gbp_(self):
         return "Not applicable"
 
-    def get_the_structures_and_buildings_allowance(self):
+    def get_loss_set_off_against_other_income_this_tax_year__gbp_(self):
         return "Not applicable"
 
-    def get_freeport___investment_zones_allowance(self):
+    def get_loss_carried_back_prior_years_set_off_income_cg__gbp_(self):
         return "Not applicable"
 
-    def get_total_balancing_charges(self):
+    def get_loss_to_take_forward_post_set_offs_unused_losses__gbp_(self):
         return "Not applicable"
 
-    def get_goods_services_for_your_own_use(self):
-        return "Not applicable"
+    def get_construction_industry_deductions__gbp_(self):
+        return False
 
-    def get_net_business_profit_for_tax_purposes(self):
-        return "Not applicable"
+    def get_you_were____sp_age_at_tax_year_start__yes_no_(self):
+        return False
 
-    def get_loss_brought_forward(self):
-        return "Not applicable"
+    def get_you_were_under_16_at_tax_year_start__yes_no_(self):
+        return False
 
-    def get_other_business_income_not_included_in_boxes_9_or_10(self):
-        return "Not applicable"
+    def get_not_resident_in_uk_during_the_tax_year__yes_no_(self):
+        return False
 
-    def get_total_taxable_profits_from_this_business(self):
-        return "Not applicable"
+    def get_you_are_a_trustee__executor_or_administrator__yes_no_(self):
+        return False
 
-    def get_net_business_loss_for_tax_purposes(self):
-        return "Not applicable"
+    def get_you_are_a_diver__yes_no_(self):
+        return False
 
-    def get_loss_from_this_tax_year_set_off_against_other_income(self):
-        return "Not applicable"
-
-    def get_loss_to_be_carried_back_to_previous_years(self):
-        return "Not applicable"
-
-    def get_total_loss_to_carry_forward(self):
-        return "Not applicable"
+    def get_please_give_any_other_information_about_this_business(self):
+        return False
 
     def get_total_profits____6_725_voluntary_class_2_nics__yes_no_(self):
         return "Not applicable"
@@ -723,14 +791,14 @@ class HMRC:
     def get_other_taxable_income__yes_no_(self):
         return False
 
-    def get_payments_to_pension_schemes__relief_at_source_(self):
+    def get_payments_to_pension_schemes__relief_at_source___gbp_(self):
         my_payments = self.transactions.fetch_total_by_tax_year_category(
             self.tax_year, "HMRC S pension contribution"
         )
         hmrc_contribution = self.transactions.fetch_total_by_tax_year_category(
             self.tax_year, "HMRC S pension tax relief"
         )
-        return my_payments + hmrc_contribution
+        return format_as_gbp(my_payments + hmrc_contribution)
 
     def get_pensions__other_than_state_pension_(self):
         return 0
@@ -1244,19 +1312,15 @@ class HMRC:
         return self.constants.get_savings_basic_rate()
 
     def get_tax_due_on_untaxed_uk_interest(self):
-        l.debug("get_tax_due_on_untaxed_uk_interest")
 
         # 2023-24 personal allowance is £12,570
         personal_allowance = self.get_personal_allowance()
-        l.debug(f"Personal allowance: {personal_allowance}")
 
         # 2023-24 personal savings allowance is £1,000
         personal_savings_allowance = self.get_personal_savings_allowance()
-        l.debug(f"Personal savings allowance: {personal_savings_allowance}")
 
         # 2023-24 limit is £5,000
         starting_rate_limit_for_savings = self.get_starting_rate_limit_for_savings()
-        l.debug(f"Starting rate limit for savings: {starting_rate_limit_for_savings}")
 
         # 2023-24 total allowances is £18,570
         total_allowances = (
@@ -1264,28 +1328,20 @@ class HMRC:
             + personal_savings_allowance
             + starting_rate_limit_for_savings
         )
-        l.debug(f"Total allowances: {total_allowances}")
 
         total_income = self.get_total_income()
-        l.debug(f"Total income: {total_income}")
 
         untaxed_uk_interest = self.get_untaxed_uk_interest()
-        l.debug(f"Untaxed UK interest: {untaxed_uk_interest}")
 
         non_interest_income = total_income - untaxed_uk_interest
-        l.debug(f"Non-interest income: {non_interest_income}")
 
         interest_free_allowance = max(0, total_allowances - non_interest_income)
-        l.debug(f"Interest free allowance: {interest_free_allowance}")
 
         taxable_savings = max(0, untaxed_uk_interest - interest_free_allowance)
-        l.debug(f"Taxable savings: {taxable_savings}")
 
         savings_basic_rate = self.get_savings_basic_rate()
-        l.debug(f"Savings basic rate: {savings_basic_rate}")
 
         tax_due_on_untaxed_uk_interest = taxable_savings * savings_basic_rate
-        l.debug(f"Tax due on untaxed UK interest: {tax_due_on_untaxed_uk_interest}")
 
         return tax_due_on_untaxed_uk_interest
 
@@ -1388,9 +1444,9 @@ class HMRC:
 
     def position_answer(self, string_list) -> str:
         if self.report_type == HMRC.ONLINE_REPORT:
-            widths = [55]  # Define column widths
+            widths = [50]  # Define column widths
         else:
-            widths = [5, 60]
+            widths = [5, 55]
 
         how_many = len(widths)  # How many columns to format
 
@@ -1413,10 +1469,10 @@ class HMRC:
         )
 
     def print_formatted_answer(self, question, section, header, box, answer):
-        # print("print_formatted_answer")
-        # print(f"\n{question}\n")
-        # print(f"{section} - {header} - Box {box}")
-        # print(f"Answer: {answer}")
+        #     l.debug("print_formatted_answer")
+        #     l.debug(f"\n{question}\n")
+        #     l.debug(f"{section} - {header} - Box {box}")
+        #     l.debug(f"Answer: {answer}")
         if section != self.previous_section:
             self.previous_section = section
             print(f"\n\n{section.upper()}\n")
@@ -1436,12 +1492,21 @@ class HMRC:
         else:
             answer = str(answer)
 
+        box = self.crop(box, " (GBP)")
+        box = self.crop(box, " (Yes/No)")
+
         if self.report_type == HMRC.ONLINE_REPORT:
             formatted_answer = self.position_answer([box, answer])
         else:
             formatted_answer = self.position_answer([box, question, answer])
 
         print(formatted_answer)
+
+    def crop(self, string, excess):
+        excess_length = len(excess)
+        if string[-excess_length:] == excess:
+            string = string[:-excess_length]
+        return string
 
     def print_report(self, report_type):
         self.report_type = report_type

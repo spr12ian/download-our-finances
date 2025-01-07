@@ -1,11 +1,15 @@
 from cls_date_columns import DateColumns
 from cls_helper_google import GoogleHelper
-from cls_helper_log import LogHelper
 from cls_helper_pandas import PandasHelper
 from cls_helper_sql import SQL_Helper
 from cls_int_columns import IntColumns
 from cls_real_columns import RealColumns
 import time
+
+from cls_helper_log import LogHelper
+
+l = LogHelper()
+LogHelper.debug_enabled = True
 
 
 class SpreadsheetToSqliteDb:
@@ -38,10 +42,9 @@ class SpreadsheetToSqliteDb:
 
         # Iterate through all worksheets
         for worksheet in self.spreadsheet.worksheets():
-
             self.convert_worksheet(worksheet)
 
-            time.sleep(1)
+            time.sleep(1.1)  # Prevent Google API rate limiting
 
         self.sql.close_connection()
 
@@ -68,17 +71,16 @@ class SpreadsheetToSqliteDb:
 
 
 def main():
-    # LogHelper.debug_enabled = True
-    log = LogHelper()
-    log.debug_date_today()
-    log.tdebug(f"Converting Google Sheets spreadsheet to SQLite database\n")
+    l.clear_debug_log()
+    l.debug_date_today()
+    l.tdebug(f"Converting Google Sheets spreadsheet to SQLite database\n")
 
     converter = SpreadsheetToSqliteDb()
 
     # Convert spreadsheet to SQLite
     converter.convert_to_sqlite()
 
-    log.tdebug(f"Converted Google Sheets spreadsheet to SQLite database")
+    l.tdebug(f"Converted Google Sheets spreadsheet to SQLite database")
 
 
 if __name__ == "__main__":
