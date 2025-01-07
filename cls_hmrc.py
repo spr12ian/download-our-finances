@@ -660,7 +660,10 @@ class HMRC:
         return total_allowable_expenses
 
     def get_total_allowable_expenses__gbp_(self):
-        return format_as_gbp(self.get_total_allowable_expenses())
+        if self.use_trading_income_allowance:
+            return format_as_gbp(0)
+        else:
+            return format_as_gbp(self.get_total_allowable_expenses())
 
     def get_total_property_expenses(self):
         person_code = self.person_code
@@ -717,29 +720,88 @@ class HMRC:
     def get_goods_or_services_for_your_own_use__gbp_(self):
         return ""
 
+    def get_net_business_profit_for_tax_purposes(self):
+        income = self.get_total_business_income()
+        if self.use_trading_income_allowance():
+            net_business_profit_for_tax_purposes = max(
+                0, income - self.get_trading_income_allowance()
+            )
+        else:
+            net_business_profit_for_tax_purposes = max(
+                0, income - self.get_total_allowable_expenses()
+            )
+
+        return net_business_profit_for_tax_purposes
+
     def get_net_business_profit_for_tax_purposes__gbp_(self):
-        return "Not applicable"
+        return format_as_gbp(self.get_net_business_profit_for_tax_purposes())
+
+    def get_loss_brought_forward_set_off_against_profits(self):
+        return 0
 
     def get_loss_brought_forward_set_off_against_profits__gbp_(self):
-        return "Not applicable"
+        return format_as_gbp(self.get_loss_brought_forward_set_off_against_profits())
+
+    def get_any_other_business_income_not_already_included(self):
+        return 0
 
     def get_any_other_business_income_not_already_included__gbp_(self):
-        return "Not applicable"
+        return format_as_gbp(self.get_any_other_business_income_not_already_included())
+
+    def get_total_taxable_profits_from_this_business(self):
+        net_business_profit_for_tax_purposes = (
+            self.get_net_business_profit_for_tax_purposes()
+        )
+
+        any_other_business_income_not_already_included = (
+            self.get_any_other_business_income_not_already_included()
+        )
+
+        loss_brought_forward_set_off_against_profits = (
+            self.get_loss_brought_forward_set_off_against_profits()
+        )
+
+        total_taxable_profits_from_this_business = (
+            net_business_profit_for_tax_purposes
+            + any_other_business_income_not_already_included
+            - loss_brought_forward_set_off_against_profits
+        )
+
+        return total_taxable_profits_from_this_business
 
     def get_total_taxable_profits_from_this_business__gbp_(self):
-        return "Not applicable"
+        return format_as_gbp(self.get_total_taxable_profits_from_this_business())
+
+    def get_net_business_loss_for_tax_purposes(self):
+        income = self.get_total_business_income()
+        net_business_loss_for_tax_purposes = (
+            min(0, income - self.get_total_allowable_expenses()) * -1
+        )
+
+        return net_business_loss_for_tax_purposes
 
     def get_net_business_loss_for_tax_purposes__gbp_(self):
-        return "Not applicable"
+        return format_as_gbp(self.get_net_business_loss_for_tax_purposes())
+
+    def get_loss_set_off_against_other_income_this_tax_year(self):
+        return 0
 
     def get_loss_set_off_against_other_income_this_tax_year__gbp_(self):
-        return "Not applicable"
+        return format_as_gbp(self.get_loss_set_off_against_other_income_this_tax_year())
+
+    def get_loss_carried_back_prior_years_set_off_income_cg(self):
+        return 0
 
     def get_loss_carried_back_prior_years_set_off_income_cg__gbp_(self):
-        return "Not applicable"
+        return format_as_gbp(self.get_loss_carried_back_prior_years_set_off_income_cg())
+
+    def get_loss_to_take_forward_post_set_offs_unused_losses(self):
+        return 0
 
     def get_loss_to_take_forward_post_set_offs_unused_losses__gbp_(self):
-        return "Not applicable"
+        return format_as_gbp(
+            self.get_loss_to_take_forward_post_set_offs_unused_losses()
+        )
 
     def get_construction_industry_deductions__gbp_(self):
         return False
@@ -760,7 +822,7 @@ class HMRC:
         return False
 
     def get_please_give_any_other_information_about_this_business(self):
-        return False
+        return ""
 
     def get_total_profits____6_725_voluntary_class_2_nics__yes_no_(self):
         return "Not applicable"
@@ -1444,9 +1506,9 @@ class HMRC:
 
     def position_answer(self, string_list) -> str:
         if self.report_type == HMRC.ONLINE_REPORT:
-            widths = [50]  # Define column widths
+            widths = [54]  # Define column widths
         else:
-            widths = [5, 55]
+            widths = [5, 59]
 
         how_many = len(widths)  # How many columns to format
 
