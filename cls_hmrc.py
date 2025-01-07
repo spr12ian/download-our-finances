@@ -82,6 +82,12 @@ class HMRC:
 
         return f"Yes: expect to claim {gbp_claimed_marriage_allowance}"
 
+    def get_class_2_nics_due(self):
+        return "Not applicable"
+
+    def get_class_4_nics_due(self):
+        return "Not applicable"
+
     def get_first_name(self):
         return self.person.get_first_name()
 
@@ -91,22 +97,16 @@ class HMRC:
     def get_middle_name(self):
         return self.person.get_middle_name()
 
-    def get_total_tax_due(self):
-        return "Not applicable"
-
-    def get_total_tax_overpaid(self):
+    def get_postgraduate_loan_repayment_due(self):
         return "Not applicable"
 
     def get_student_loan_repayment_due(self):
         return "Not applicable"
 
-    def get_postgraduate_loan_repayment_due(self):
+    def get_total_tax_due(self):
         return "Not applicable"
 
-    def get_class_4_nics_due(self):
-        return "Not applicable"
-
-    def get_class_2_nics_due(self):
+    def get_total_tax_overpaid(self):
         return "Not applicable"
 
     def get_capital_gains_tax_due(self):
@@ -597,22 +597,20 @@ class HMRC:
 
         return turnover
 
-    def get_any_other_business_income_not_included_as_turnover(self):
+    def get_other_business_income_not_included_as_turnover(self):
         return 0
 
-    def get_any_other_business_income_not_turnover__gbp_(self):
-        return format_as_gbp(
-            self.get_any_other_business_income_not_included_as_turnover()
-        )
+    def get_other_business_income_not_turnover__gbp_(self):
+        return format_as_gbp(self.get_other_business_income_not_included_as_turnover())
 
-    def get_total_business_income(self):
+    def get_business_income(self):
         return (
             self.get_turnover()
-            + self.get_any_other_business_income_not_included_as_turnover()
+            + self.get_other_business_income_not_included_as_turnover()
         )
 
-    def get_total_business_income__gbp_(self):
-        return format_as_gbp(self.get_total_business_income())
+    def get_business_income__gbp_(self):
+        return format_as_gbp(self.get_business_income())
 
     def get_how_would_you_like_to_record_your_expenses(self):
         return "As a single total value"
@@ -679,7 +677,7 @@ class HMRC:
         return total_property_expenses
 
     def get_bottom_line(self):
-        return self.get_total_business_income() - self.get_total_allowable_expenses()
+        return self.get_business_income() - self.get_total_allowable_expenses()
 
     def get_bottom_line_gbp(self):
         return format_as_gbp(self.bottom_line())
@@ -711,6 +709,25 @@ class HMRC:
     def get_structures_and_buildings_allowance__gbp_(self):
         return ""
 
+    def get_profit_or_loss__gbp_(self):
+        profit = self.get_profit()
+        if profit > 0:
+            return self.get_profit_gbp()
+        else:
+            return self.get_loss_gbp()
+
+    def get_capital_allowances__gbp_(self):
+        return format_as_gbp(0)
+
+    def get_balancing_charges__gbp_(self):
+        return format_as_gbp(0)
+
+    def get_tax_adjustments__gbp_(self):
+        return format_as_gbp(0)
+
+    def get_taxable_profits_or_net_loss__before_set_offs___gbp_(self):
+        return format_as_gbp(self.get_net_business_profit_for_tax_purposes())
+
     def get_freeport_and_investment_zones_allowance__gbp_(self):
         return ""
 
@@ -721,7 +738,7 @@ class HMRC:
         return ""
 
     def get_net_business_profit_for_tax_purposes(self):
-        income = self.get_total_business_income()
+        income = self.get_business_income()
         if self.use_trading_income_allowance():
             net_business_profit_for_tax_purposes = max(
                 0, income - self.get_trading_income_allowance()
@@ -742,19 +759,19 @@ class HMRC:
     def get_loss_brought_forward_set_off_against_profits__gbp_(self):
         return format_as_gbp(self.get_loss_brought_forward_set_off_against_profits())
 
-    def get_any_other_business_income_not_already_included(self):
+    def get_other_business_income_not_already_included(self):
         return 0
 
-    def get_any_other_business_income_not_already_included__gbp_(self):
-        return format_as_gbp(self.get_any_other_business_income_not_already_included())
+    def get_other_business_income_not_already_included__gbp_(self):
+        return format_as_gbp(self.get_other_business_income_not_already_included())
 
     def get_total_taxable_profits_from_this_business(self):
         net_business_profit_for_tax_purposes = (
             self.get_net_business_profit_for_tax_purposes()
         )
 
-        any_other_business_income_not_already_included = (
-            self.get_any_other_business_income_not_already_included()
+        other_business_income_not_already_included = (
+            self.get_other_business_income_not_already_included()
         )
 
         loss_brought_forward_set_off_against_profits = (
@@ -763,7 +780,7 @@ class HMRC:
 
         total_taxable_profits_from_this_business = (
             net_business_profit_for_tax_purposes
-            + any_other_business_income_not_already_included
+            + other_business_income_not_already_included
             - loss_brought_forward_set_off_against_profits
         )
 
@@ -773,7 +790,7 @@ class HMRC:
         return format_as_gbp(self.get_total_taxable_profits_from_this_business())
 
     def get_net_business_loss_for_tax_purposes(self):
-        income = self.get_total_business_income()
+        income = self.get_business_income()
         net_business_loss_for_tax_purposes = (
             min(0, income - self.get_total_allowable_expenses()) * -1
         )
@@ -1305,8 +1322,17 @@ class HMRC:
     def get_income__trading_allowance__claim_back_cis__yes_no_(self):
         return False
 
+    def get_loss(self):
+        return self.get_total_allowable_expenses() - self.get_turnover()
+
+    def get_loss_gbp(self):
+        return format_as_gbp(self.get_loss())
+
     def get_profit(self):
         return self.get_turnover() - self.get_total_allowable_expenses()
+
+    def get_profit_gbp(self):
+        return format_as_gbp(self.get_profit())
 
     def get_income__trading_allowance__made_a_loss__yes_no_(self):
         turnover = self.get_turnover()
