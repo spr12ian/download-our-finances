@@ -53,6 +53,12 @@ class HMRC:
     def get_are_you_liable_to_pension_savings_tax_charges__yes_no_(self):
         return False
 
+    def get_balancing_charges__gbp_(self):
+        return format_as_gbp(0)
+
+    def get_blind_person_s_surplus_allowance_you_can_have(self):
+        return "Not applicable"
+
     def get_claim_marriage_allowance__yes_no_(self):
         if self.get_marital_status() != "Married":
             return "No: not married"
@@ -82,8 +88,66 @@ class HMRC:
 
         return f"Yes: expect to claim {gbp_claimed_marriage_allowance}"
 
+    def get_class_2_nics_weekly_rate(self):
+        return self.constants.get_class_2_nics_weekly_rate()
+
+    def get_small_profits_threshold(self):
+        return self.constants.get_small_profits_threshold()
+
+    def get_class_2_nics_amount__gbp_(self):
+        how_many_weeks_in_an_hmrc_year = 52
+        class_2_nics_weekly_rate = self.get_class_2_nics_weekly_rate()
+        return how_many_weeks_in_an_hmrc_year * class_2_nics_weekly_rate
+
+    def get_do_you_want_to_pay_class_2_nics_voluntarily__yes_no_(self):
+        taxable_profits = self.get_total_taxable_profits_from_this_business()
+        small_profits_threshold = self.get_small_profits_threshold()
+
+        if taxable_profits < small_profits_threshold:
+            return True
+
+        personal_allowance = self.get_personal_allowance()
+
+        if taxable_profits <= personal_allowance:
+            return "No need to pay Class 2 NICs"
+
+        return "You must pay Class 2 NICs"
+
     def get_class_2_nics_due(self):
         return "Not applicable"
+
+    def get_do_you_want_to_claim_rent_a_room_relief__yes_no_(self):
+        return False
+
+    def get_how_many_properties_do_you_rent_out(self):
+        # search the transactions table for any records in this tax year
+        # which have a property income category for the current person
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("COUNT(DISTINCT Category)")
+            .where(
+                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} UKP income%"'
+            )
+            .build()
+        )
+
+        how_many = self.sql.fetch_one_value(query)
+
+        return how_many
+
+    def get_do_you_have_any_income_from_property_let_jointly__yes_no_(self):
+        return False
+
+    def get_did_all_property_income_cease__yes_no_(self):
+        return False
+
+    def get_uk_furnished_holiday_lettings_income__yes_no_(self):
+        return False
+
+    def get_eea_furnished_holiday_lettings_income__yes_no_(self):
+        return False
 
     def get_class_4_nics_due(self):
         return "Not applicable"
@@ -112,25 +176,22 @@ class HMRC:
     def get_capital_gains_tax_due(self):
         return "Not applicable"
 
-    def get_pension_charges_due(self):
-        return "Not applicable"
-
-    def get_underpaid_tax_for_earlier_years(self):
-        return "Not applicable"
-
-    def get_underpaid_tax(self):
+    def get_first_payment_on_account_for_next_year(self):
         return "Not applicable"
 
     def get_outstanding_debt_in_tax_code(self):
         return "Not applicable"
 
+    def get_pension_charges_due(self):
+        return "Not applicable"
+
     def get_reduce_next_year_payments_on_account__yes_no_(self):
         return "Not applicable"
 
-    def get_first_payment_on_account_for_next_year(self):
+    def get_underpaid_tax(self):
         return "Not applicable"
 
-    def get_blind_person_s_surplus_allowance_you_can_have(self):
+    def get_underpaid_tax_for_earlier_years(self):
         return "Not applicable"
 
     def get_married_people_s_surplus_allowance_you_can_have(self):
@@ -245,10 +306,10 @@ class HMRC:
     def get_any_income_tax_losses__yes_no_(self):
         return False
 
-    def get_increase_in_tax_due_to_adjustments_to_an_earlier_year(self):
+    def get_decrease_in_tax_due_to_adjustments_to_an_earlier_year(self):
         return "Not applicable"
 
-    def get_decrease_in_tax_due_to_adjustments_to_an_earlier_year(self):
+    def get_increase_in_tax_due_to_adjustments_to_an_earlier_year(self):
         return "Not applicable"
 
     def get_any_repayments_claimed_for_next_year(self):
@@ -273,8 +334,26 @@ class HMRC:
     def get_rent_a_room_relief__yes_no_(self):
         return "Not applicable"
 
+    def get_total_rents_and_other_income_from_property__gbp_(self):
+        return self.get_property_income()
+
     def get_total_rents_and_other_income_from_property(self):
-        return "Not applicable"
+        return None
+
+    def get_did_you_use_traditional_accounting__yes_no_(self):
+        return False
+
+    def get_uk_tax_taken_off_total_rents__gbp_(self):
+        return format_as_gbp(0)
+
+    def get_premiums_for_the_grant_of_a_lease__gbp_(self):
+        return format_as_gbp(0)
+
+    def get_reverse_premiums_and_inducements__gbp_(self):
+        return format_as_gbp(0)
+
+    def get_total_uk_property_income__gbp_(self):
+        return self.get_property_income()
 
     def get_personal_allowance(self):
         return self.constants.get_personal_allowance()
@@ -282,9 +361,18 @@ class HMRC:
     def get_property_income_allowance(self):
         return self.constants.get_property_income_allowance()
 
+    def get_property_income_allowance__gbp_(self):
+        l.debug("get_property_income_allowance__gbp_")
+        if self.use_property_income_allowance():
+            property_income_allowance = self.get_property_income_allowance()
+            return format_as_gbp(property_income_allowance)
+        else:
+            allowable_property_expenses_gbp = self.get_allowable_property_expenses_gbp()
+            return f"Not claimed: Property expenses {allowable_property_expenses_gbp} exceed allowance"
+
     def get_claimed_property_income_allowance(self):
         property_income_allowance = self.get_property_income_allowance()
-        total_property_expenses = self.get_total_property_expenses()
+        total_property_expenses = self.get_allowable_property_expenses()
 
         if property_income_allowance > total_property_expenses:
             return property_income_allowance
@@ -292,7 +380,7 @@ class HMRC:
             return f"Not claimed: Total property expenses {total_property_expenses} exceed property income allowance {property_income_allowance}"
 
     def get_ukp_cash_basis__yes_no_(self):
-        return "Not applicable"
+        return True
 
     def get_tax_taken_off_any_income_in_box_20(self):
         return "Not applicable"
@@ -632,6 +720,15 @@ class HMRC:
     def get_trading_income_allowance(self):
         return self.constants.get_trading_income_allowance()
 
+    def use_property_income_allowance(self):
+        l.debug("use_property_income_allowance")
+        property_income_allowance = self.get_property_income_allowance()
+        l.debug(property_income_allowance)
+        allowable_property_expenses = self.get_allowable_property_expenses()
+        l.debug(allowable_property_expenses)
+
+        return property_income_allowance > allowable_property_expenses
+
     def use_trading_income_allowance(self):
         trading_income_allowance = self.get_trading_income_allowance()
         total_allowable_expenses = self.get_total_allowable_expenses()
@@ -663,18 +760,26 @@ class HMRC:
         else:
             return format_as_gbp(self.get_total_allowable_expenses())
 
-    def get_total_property_expenses(self):
+    def get_allowable_property_expenses__gbp_(self):
+        if self.use_property_income_allowance:
+            return format_as_gbp(0)
+        else:
+            return format_as_gbp(self.get_allowable_property_expenses())
+
+    def get_allowable_property_expenses(self):
+        l.debug("get_allowable_property_expenses")
         person_code = self.person_code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} UKP expense"
 
-        total_property_expenses = (
+        allowable_property_expenses = (
             self.transactions.fetch_total_by_tax_year_category_like(
                 tax_year, category_like
             )
         )
+        l.debug(allowable_property_expenses)
 
-        return total_property_expenses
+        return allowable_property_expenses
 
     def get_bottom_line(self):
         return self.get_business_income() - self.get_total_allowable_expenses()
@@ -717,9 +822,6 @@ class HMRC:
             return self.get_loss_gbp()
 
     def get_capital_allowances__gbp_(self):
-        return format_as_gbp(0)
-
-    def get_balancing_charges__gbp_(self):
         return format_as_gbp(0)
 
     def get_tax_adjustments__gbp_(self):
@@ -1608,7 +1710,13 @@ class HMRC:
 
         self.print_end_of_tax_return()
 
+    def check_questions(self):
+        questions = HMRC_QuestionsByYear(self.tax_year)
+        questions.check_questions()
+
     def print_reports(self):
+        self.check_questions()
+
         for report in HMRC.REPORTS:
             self.print_report(report)
 

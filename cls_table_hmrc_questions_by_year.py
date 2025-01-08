@@ -29,6 +29,20 @@ class HMRC_QuestionsByYear(SQLiteTable):
 
         return questions
 
+    def check_questions(self):
+        query = (
+            'SELECT q1.Question, q1."Online order", q2."Printed order"'
+            + f" FROM {self.table_name} q1 JOIN {self.table_name} q2"
+            + " WHERE q1.Question=q2.Question"
+            + ' AND q1."Online order" > 0'
+            + ' AND q2."Online order" = 0'
+        )
+        rows = self.sql.fetch_all(query)
+        if len(rows) > 0:
+            print(query)
+            for row in rows:
+                print(row)
+
     def get_online_questions(self):
         columns = [
             "Question",

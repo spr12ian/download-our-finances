@@ -7,6 +7,13 @@ class HMRC_ConstantsByYear(SQLiteTable):
         super().__init__("hmrc_constants_by_year")
         self.tax_year = tax_year
 
+    def get_class_2_nics_weekly_rate(self):
+        class_2_nics_weekly_rate = string_to_float(
+            self.__get_value_by_hmrc_constant("Class 2 NIC weekly rate")
+        )
+
+        return class_2_nics_weekly_rate
+
     def get_higher_rate_threshold(self):
         higher_rate_threshold = string_to_float(
             self.__get_value_by_hmrc_constant("Higher rate threshold")
@@ -48,6 +55,13 @@ class HMRC_ConstantsByYear(SQLiteTable):
         )
 
         return savings_basic_rate
+
+    def get_small_profits_threshold(self):
+        small_profits_threshold = string_to_float(
+            self.__get_value_by_hmrc_constant("Small profits threshold")
+        )
+
+        return small_profits_threshold
 
     def get_starting_rate_limit_for_savings(self):
         starting_rate_limit_for_savings = string_to_float(
