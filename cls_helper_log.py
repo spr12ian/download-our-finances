@@ -1,6 +1,9 @@
 from cls_helper_date_time import DateTimeHelper
 from functools import wraps
+import logging
 import time
+
+# https://docs.python.org/3/library/logging.html?form=MG0AV3
 
 # Use this snippet:
 # from cls_helper_log import LogHelper
@@ -16,17 +19,18 @@ class LogHelper:
     LOG_FILE = "debug.log"
     debug_enabled = False
 
-    def __init__(self):
+    def __init__(self, name):
+        logging.basicConfig(filename=self.LOG_FILE, level=logging.INFO)
+        self.logger = logging.getLogger(name)
+
         self.dt = DateTimeHelper()
 
     def clear_debug_log(self):
         with open(self.LOG_FILE, "w") as file:
             pass
 
-    def debug(self, string):
-        if self.debug_enabled:
-            with open(self.LOG_FILE, "a") as file:
-                file.write(f"{string}\n")
+    def debug(self, msg):
+        self.logger.debug(msg)
 
     def debug_date_today(self):
         if self.debug_enabled:
@@ -37,22 +41,23 @@ class LogHelper:
         dt = self.dt
         return dt.get_date_today()
 
+    def info(self, msg):
+        self.logger.info(msg)
+
     @staticmethod
     def log_execution_time(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            if LogHelper.debug_enabled:
-                start_time = time.time()
-                print(f"Starting '{func.__name__}' at {time.ctime(start_time)}")
+            start_time = time.time()
+            print(f"Starting '{func.__name__}' at {time.ctime(start_time)}")
 
             result = func(*args, **kwargs)
 
-            if LogHelper.debug_enabled:
-                end_time = time.time()
-                print(f"Finished '{func.__name__}' at {time.ctime(end_time)}")
+            end_time = time.time()
+            print(f"Finished '{func.__name__}' at {time.ctime(end_time)}")
 
-                execution_time = end_time - start_time
-                print(f"Execution time: {execution_time:.2f} seconds")
+            execution_time = end_time - start_time
+            print(f"Execution time: {execution_time:.2f} seconds")
 
             return result
 
@@ -84,3 +89,6 @@ class LogHelper:
 
         message = f"{time_now}: {msg}"
         print(message)
+
+    def warning(self, msg):
+        self.logger.warning(msg)

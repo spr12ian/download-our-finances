@@ -4,8 +4,7 @@ from cls_hmrc_people import HMRC_People
 from tables import *
 from utility_functions import format_as_gbp
 
-l = LogHelper()
-LogHelper.debug_enabled = True
+l = LogHelper(__file__)
 
 
 class HMRC:
@@ -34,7 +33,7 @@ class HMRC:
             method = getattr(self, method_name)
             return method()
         except AttributeError:
-            print(f"Method {method_name} not found")
+            l.warning(f'\tdef {method_name}(self): return "Undefined"')
 
     def get_answers(self):
         questions = self.get_questions()
@@ -55,6 +54,30 @@ class HMRC:
 
     def get_balancing_charges__gbp_(self):
         return format_as_gbp(0)
+
+    def get_property_income_allowance__gbp_(self):
+        return "Undefined"
+
+    def get_rent__rates__insurance_and_ground_rents__gbp_(self):
+        return format_as_gbp(self.get_rent__rates__insurance_and_ground_rents())
+
+    def get_property_repairs_and_maintenance__gbp_(self):
+        return format_as_gbp(self.get_property_repairs_and_maintenance())
+
+    def get_non_residential_finance_property_costs__gbp_(self):
+        return format_as_gbp(0)
+
+    def get_legal__management_and_other_professional_fees__gbp_(self):
+        return format_as_gbp(self.get_legal__management_and_other_professional_fees())
+
+    def get_costs_of_services_provided__including_wages__gbp_(self):
+        return format_as_gbp(self.get_costs_of_services_provided__including_wages())
+
+    def get_other_allowable_property_expenses__gbp_(self):
+        return format_as_gbp(self.get_other_allowable_property_expenses())
+
+    def get_total_property_expenses__gbp_(self):
+        return format_as_gbp(self.get_total_property_expenses())
 
     def get_blind_person_s_surplus_allowance_you_can_have(self):
         return "Not applicable"
@@ -391,23 +414,59 @@ class HMRC:
     def get_reverse_premiums(self):
         return "Not applicable"
 
-    def get_rent__rates__insurance_and_ground_rents(self):
-        return "Not applicable"
+    def get_rent__rates__insurance_and_ground_rents(self) -> float:
+        category_like = "UKP expense: rent, rates"
 
-    def get_property_repairs_and_maintenance(self):
-        return "Not applicable"
+        rent_rates_etc = self.get_total_transactions_by_category_like(category_like)
+
+        return rent_rates_etc
+
+    def get_property_repairs_and_maintenance(self) -> float:
+        category_like = "UKP expense: repairs and maintenance"
+
+        repairs_and_maintenance = self.get_total_transactions_by_category_like(
+            category_like
+        )
+
+        return repairs_and_maintenance
+
+    def get_total_transactions_by_category_like(self, category_like) -> float:
+        person_code = self.person_code
+        tax_year = self.tax_year
+        category_like = f"HMRC {person_code} {category_like}"
+
+        total = self.transactions.fetch_total_by_tax_year_category_like(
+            tax_year, category_like
+        )
+
+        return total
 
     def get_non_residential_finance_property_costs(self):
         return "Not applicable"
 
-    def get_legal__management_and_other_professional_fees(self):
-        return "Not applicable"
+    def get_legal__management_and_other_professional_fees(self) -> float:
+        category_like = "UKP expense: legal"
+
+        legal__management_and_other_professional_fees = (
+            self.get_total_transactions_by_category_like(category_like)
+        )
+
+        return legal__management_and_other_professional_fees
+
+    def get_total_property_expenses(self) -> float:
+        category_like = "UKP expense: "
+
+        total_property_expenses = self.get_total_transactions_by_category_like(
+            category_like
+        )
+
+        return total_property_expenses
 
     def get_costs_of_services_provided__including_wages(self):
-        return "Not applicable"
+        return 0
 
     def get_other_allowable_property_expenses(self):
-        return "Not applicable"
+        return 0
 
     def get_private_use_adjustment(self):
         return "Not applicable"
@@ -1710,13 +1769,7 @@ class HMRC:
 
         self.print_end_of_tax_return()
 
-    def check_questions(self):
-        questions = HMRC_QuestionsByYear(self.tax_year)
-        questions.check_questions()
-
     def print_reports(self):
-        self.check_questions()
-
         for report in HMRC.REPORTS:
             self.print_report(report)
 

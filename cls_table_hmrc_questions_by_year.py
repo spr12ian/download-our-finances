@@ -1,6 +1,10 @@
 from cls_sqlite_table import SQLiteTable
 from utility_functions import to_valid_method_name
 
+from cls_helper_log import LogHelper
+
+l = LogHelper(__name__)
+
 
 class HMRC_QuestionsByYear(SQLiteTable):
     def __init__(self, tax_year):
@@ -39,9 +43,9 @@ class HMRC_QuestionsByYear(SQLiteTable):
         )
         rows = self.sql.fetch_all(query)
         if len(rows) > 0:
-            print(query)
+            l.info(query)
             for row in rows:
-                print(row)
+                l.info(row)
 
     def get_online_questions(self):
         columns = [

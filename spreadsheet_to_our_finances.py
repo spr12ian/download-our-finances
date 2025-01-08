@@ -8,9 +8,6 @@ import time
 
 from cls_helper_log import LogHelper
 
-l = LogHelper()
-LogHelper.debug_enabled = True
-
 
 class SpreadsheetToSqliteDb:
     def __init__(self):
@@ -22,7 +19,7 @@ class SpreadsheetToSqliteDb:
             spreadsheet_name (str): Name of the Google Spreadsheet
         """
 
-        self.log = LogHelper()
+        self.log = LogHelper(__name__)
 
         # Define the required scopes
         scopes = [
@@ -50,7 +47,7 @@ class SpreadsheetToSqliteDb:
 
     @LogHelper.log_execution_time
     def convert_worksheet(self, worksheet):
-        self.log.debug(f"Converting {worksheet.title}")
+        self.log.info(f"Converting {worksheet.title}")
 
         table_name = worksheet.title.replace(" ", "_").lower()
 
@@ -70,17 +67,18 @@ class SpreadsheetToSqliteDb:
         df.to_sql(table_name, self.sql.db_connection, if_exists="replace", index=False)
 
 
+@LogHelper.log_execution_time
 def main():
-    l.clear_debug_log()
-    l.debug_date_today()
-    l.tdebug(f"Converting Google Sheets spreadsheet to SQLite database\n")
+    l = LogHelper(__name__)
+    l.info(__file__)
+    l.info(f"Converting Google Sheets spreadsheet to SQLite database\n")
 
     converter = SpreadsheetToSqliteDb()
 
     # Convert spreadsheet to SQLite
     converter.convert_to_sqlite()
 
-    l.tdebug(f"Converted Google Sheets spreadsheet to SQLite database")
+    l.info(f"Converted Google Sheets spreadsheet to SQLite database")
 
 
 if __name__ == "__main__":

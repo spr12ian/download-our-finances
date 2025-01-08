@@ -8,7 +8,7 @@ from cls_helper_os import OsHelper
 class GoogleHelper:
     def __init__(self):
         # LogHelper.debug_enabled = True
-        self.l = LogHelper()
+        self.l = LogHelper(__name__)
         config = ConfigHelper()
 
         # Google Cloud Service credentials
