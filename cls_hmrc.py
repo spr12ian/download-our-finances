@@ -4,7 +4,8 @@ from cls_hmrc_people import HMRC_People
 from tables import *
 from utility_functions import format_as_gbp
 
-l = LogHelper(__file__)
+l = LogHelper(__name__)
+l.debug(__file__)
 
 
 class HMRC:
@@ -55,8 +56,16 @@ class HMRC:
     def get_balancing_charges__gbp_(self):
         return format_as_gbp(0)
 
+    def get_allowable_property_expenses_gbp(self):
+        return "£5million"
+
     def get_property_income_allowance__gbp_(self):
-        return "Undefined"
+        if self.use_property_income_allowance():
+            property_income_allowance = self.get_property_income_allowance()
+            return format_as_gbp(property_income_allowance)
+        else:
+            allowable_property_expenses_gbp = self.get_allowable_property_expenses_gbp()
+            return f"Not claimed: Property expenses {allowable_property_expenses_gbp} exceed allowance"
 
     def get_rent__rates__insurance_and_ground_rents__gbp_(self):
         return format_as_gbp(self.get_rent__rates__insurance_and_ground_rents())
@@ -126,15 +135,7 @@ class HMRC:
         taxable_profits = self.get_total_taxable_profits_from_this_business()
         small_profits_threshold = self.get_small_profits_threshold()
 
-        if taxable_profits < small_profits_threshold:
-            return True
-
-        personal_allowance = self.get_personal_allowance()
-
-        if taxable_profits <= personal_allowance:
-            return "No need to pay Class 2 NICs"
-
-        return "You must pay Class 2 NICs"
+        return taxable_profits < small_profits_threshold
 
     def get_class_2_nics_due(self):
         return "Not applicable"
@@ -272,10 +273,15 @@ class HMRC:
 
         return total > 0
 
-    def get_business_1_name(self):
+    def get_how_many_businesses(self):
         hmrc_businesses = self.get_hmrc_businesses()
 
-        if len(hmrc_businesses) > 0:
+        return len(hmrc_businesses)
+
+    def get_business_1_name(self):
+        if self.get_how_many_businesses() > 0:
+            hmrc_businesses = self.get_hmrc_businesses()
+
             return hmrc_businesses[0].get_business_name()
         else:
             return "Not applicable"
@@ -384,15 +390,6 @@ class HMRC:
     def get_property_income_allowance(self):
         return self.constants.get_property_income_allowance()
 
-    def get_property_income_allowance__gbp_(self):
-        l.debug("get_property_income_allowance__gbp_")
-        if self.use_property_income_allowance():
-            property_income_allowance = self.get_property_income_allowance()
-            return format_as_gbp(property_income_allowance)
-        else:
-            allowable_property_expenses_gbp = self.get_allowable_property_expenses_gbp()
-            return f"Not claimed: Property expenses {allowable_property_expenses_gbp} exceed allowance"
-
     def get_claimed_property_income_allowance(self):
         property_income_allowance = self.get_property_income_allowance()
         total_property_expenses = self.get_allowable_property_expenses()
@@ -467,6 +464,123 @@ class HMRC:
 
     def get_other_allowable_property_expenses(self):
         return 0
+
+    def get_private_use_adjustment__gbp_(self):
+        return format_as_gbp(0)
+
+    def get_electric_charge_point_allowance__gbp_(self):
+        return format_as_gbp(0)
+
+    def get_freeport_allowance__gbp_(self):
+        return format_as_gbp(0)
+
+    def get_zero_emission_goods_vehicle_allowance__gbp_(self):
+        return format_as_gbp(0)
+
+    def get_all_other_capital_allowances__gbp_(self):
+        return format_as_gbp(0)
+
+    def get_adjusted_profit_for_the_year__gbp_(self):
+        return "Undefined"
+
+    def get_loss_brought_forward_against_this_year_s_profits__gbp_(self):
+        return "Undefined"
+
+    def get_taxable_profit_for_the_year__gbp_(self):
+        return "Undefined"
+
+    def get_adjusted_loss_for_the_year__gbp_(self):
+        return "Undefined"
+
+    def get_loss_to_carry_forward__inc_unused_losses__gbp_(self):
+        return "Undefined"
+
+    def get_residential_property_finance_costs__gbp_(self):
+        return "Undefined"
+
+    def get_unused_residential_finance_costs_brought_forward__gbp_(self):
+        return "Undefined"
+
+    def get_any_other_information_about_your_uk_property_income(self):
+        return "Undefined"
+
+    def get_rental_income__gbp_(self):
+        return "Undefined"
+
+    def get_total_expenses__gbp_(self):
+        return "Undefined"
+
+    def get_adjustments__gbp_(self):
+        return "Undefined"
+
+    def get_adjusted_profit_or_loss_for_the_year__gbp_(self):
+        return "Undefined"
+
+    def get_losses_brought_forward_and_set_off__gbp_(self):
+        return "Undefined"
+
+    def get_taxable_profit_for_the_year__gbp_(self):
+        return "Undefined"
+
+    def get_adjusted_loss_for_the_year__gbp_(self):
+        return "Undefined"
+
+    def get_taxed_uk_interest_after_tax_has_been_taken_off__gbp_(self):
+        return "Undefined"
+
+    def get_untaxed_uk_interest__gbp_(self):
+        return "Undefined"
+
+    def get_untaxed_foreign_interest__up_to__2_000___gbp_(self):
+        return "Undefined"
+
+    def get_relief_at_source_pension_payments_to_ppr__gbp_(self):
+        return "Undefined"
+
+    def get_total_of_one_off_payments__gbp_(self):
+        return "Undefined"
+
+    def get_payments_to_a_retirement_annuity_contract__gbp_(self):
+        return "Undefined"
+
+    def get_payments_to_your_employer_s_scheme__gbp_(self):
+        return "Undefined"
+
+    def get_payments_to_an_overseas_pension_scheme__gbp_(self):
+        return "Undefined"
+
+    def get_amount_of_underpaid_tax_for_earlier_years__paye___gbp_(self):
+        return "Undefined"
+
+    def get__q164__is_this_figure_correct__yes_no_(self):
+        return "Undefined"
+
+    def get_estimated_underpaid_tax_for_this_tax_year_paye__gbp_(self):
+        return "Undefined"
+
+    def get__q166__is_this_figure_correct__yes_no_(self):
+        return "Undefined"
+
+    def get_outstanding_debt_inc_in_tax_code_for_2023_24__gbp_(self):
+        return "Undefined"
+
+    def get_increase_in_tax_due_to_earlier_years_adjustments__gbp_(self):
+        return "Undefined"
+
+    def get_decrease_in_tax_due_to_earlier_years_adjustments__gbp_(self):
+        return "Undefined"
+
+    def get_any_next_year_repayment_you_are_claiming_now__gbp_(self):
+        return "Undefined"
+
+    def get_does_this_return_contain_provisional_figures__yes_no_(self):
+        return "Undefined"
+
+    def get_add_an_attachment_to_the_return__yes_no_(self):
+        return "Undefined"
+
+    def get_cost_to_replace_residential_domestic_items__gbp_(self):
+        return "Undefined"
 
     def get_private_use_adjustment(self):
         return "Not applicable"
@@ -662,18 +776,24 @@ class HMRC:
         return "Not applicable"
 
     def get_business_description(self):
-        business_name = self.get_business_1_name()
-        hmrc_business = HMRC_Businesses(business_name)
-        business_description = hmrc_business.get_business_description()
+        if self.get_how_many_businesses() > 0:
+            business_name = self.get_business_1_name()
+            hmrc_business = HMRC_Businesses(business_name)
+            business_description = hmrc_business.get_business_description()
 
-        return business_description
+            return business_description
+        else:
+            return ""
 
     def get_business_postcode(self):
-        business_name = self.get_business_1_name()
-        hmrc_business = HMRC_Businesses(business_name)
-        business_postcode = hmrc_business.get_business_postcode()
+        if self.get_how_many_businesses() > 0:
+            business_name = self.get_business_1_name()
+            hmrc_business = HMRC_Businesses(business_name)
+            business_postcode = hmrc_business.get_business_postcode()
 
-        return business_postcode
+            return business_postcode
+        else:
+            return ""
 
     def get_have_business_details_changed__yes_no_(self):
         return False
@@ -1434,10 +1554,10 @@ class HMRC:
         return False
 
     def get_annual_turnover___vat_registration_cusp__yes_no_(self):
-        tutnover = self.get_turnover()
+        turnover = self.get_turnover()
         vat_registration_cusp = self.get_vat_registration_threshold()
 
-        return tutnover > vat_registration_cusp
+        return turnover > vat_registration_cusp
 
     def get_affected_by_basis_period_reform__yes_no_(self):
         return False
@@ -1466,19 +1586,11 @@ class HMRC:
     def get_income__trading_allowance__volunteer_c2_nics__yes_no_(self):
         turnover = self.get_turnover()
         trading_income_allowance = self.get_trading_income_allowance()
-
-        gbp_turnover = format_as_gbp(turnover)
-        gbp_trading_income_allowance = format_as_gbp(trading_income_allowance)
-
-        if turnover > trading_income_allowance:
-            return f"No: Turnover {gbp_turnover} exceeds trading income allowance {gbp_trading_income_allowance}"
-
-        return (
-            "Check: Turnover "
-            + gbp_turnover
-            + " Trading income allowance "
-            + gbp_trading_income_allowance
+        pay_voluntarily_nics = (
+            self.get_do_you_want_to_pay_class_2_nics_voluntarily__yes_no_()
         )
+
+        return turnover <= trading_income_allowance and pay_voluntarily_nics
 
     def get_income__trading_allowance__claim_back_cis__yes_no_(self):
         return False
@@ -1497,24 +1609,47 @@ class HMRC:
 
     def get_income__trading_allowance__made_a_loss__yes_no_(self):
         turnover = self.get_turnover()
-        trading_income_allowance = self.get_trading_income_allowance()
+        trading_allowance = self.get_trading_income_allowance()
+        loss = self.get_loss()
+        return turnover <= trading_allowance and loss > 0
 
-        gbp_turnover = format_as_gbp(turnover)
-        gbp_trading_income_allowance = format_as_gbp(trading_income_allowance)
+    def get__business_1_page_1__none_of_these_apply__yes_no_(self):
+        conditions = [
+            self.get_annual_turnover___vat_registration_cusp__yes_no_(),
+            self.get_affected_by_basis_period_reform__yes_no_(),
+            self.get_i_am_a_foster_carer__yes_no_(),
+            self.get_i_wish_to_make_an_adjustment_to_my_profits__yes_no_(),
+            self.get_i_am_a_farmer__yes_no_(),
+            self.get_results_already_declared_on_a_previous_return__yes_no_(),
+            self.get_basis_period_different_to_accounting_period__yes_no_(),
+            self.get_my_business_is_carried_on_abroad__yes_no_(),
+            self.get_i_need_to_claim__overlap_relief___yes_no_(),
+            self.get_income__trading_allowance__volunteer_c2_nics__yes_no_(),
+            self.get_income__trading_allowance__claim_back_cis__yes_no_(),
+            self.get_income__trading_allowance__made_a_loss__yes_no_(),
+        ]
 
-        if turnover > trading_income_allowance:
-            return f"No: Turnover {gbp_turnover} exceeds trading income allowance {gbp_trading_income_allowance}"
+        return self.all_conditions_are_false(conditions)
 
-        profit = self.get_profit()
-        if profit < 0:
-            gbp_loss = format_as_gbp(profit * -1)
-            return f"Yes: Loss {gbp_loss}"
-        else:
-            gbp_profit = format_as_gbp(profit)
-            return f"No: Profit {gbp_profit}"
+    def all_conditions_are_false(self, conditions):
+        if not self.all_items_are_boolean(conditions):
+            raise ValueError("Not all conditions are boolean")
 
-    def get_none_of_these_apply__yes_no_(self):
-        return "Yes (but check it)"
+        return not any(conditions)
+
+    def all_items_are_boolean(self, lst):
+        return all(isinstance(item, bool) for item in lst)
+
+    def get__class_4_nics__none_of_these_apply__yes_no_(self):
+        conditions = [
+            self.get_you_were____sp_age_at_tax_year_start__yes_no_(),
+            self.get_you_were_under_16_at_tax_year_start__yes_no_(),
+            self.get_not_resident_in_uk_during_the_tax_year__yes_no_(),
+            self.get_you_are_a_trustee__executor_or_administrator__yes_no_(),
+            self.get_you_are_a_diver__yes_no_(),
+        ]
+
+        return self.all_conditions_are_false(conditions)
 
     def get_if_new_business__enter_start_date(self):
         return ""

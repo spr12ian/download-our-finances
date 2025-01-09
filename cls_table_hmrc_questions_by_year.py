@@ -43,9 +43,9 @@ class HMRC_QuestionsByYear(SQLiteTable):
         )
         rows = self.sql.fetch_all(query)
         if len(rows) > 0:
-            l.info(query)
+            l.debug(query)
             for row in rows:
-                l.info(row)
+                l.debug(row)
 
     def get_online_questions(self):
         columns = [

@@ -5,6 +5,12 @@ import time
 
 # https://docs.python.org/3/library/logging.html?form=MG0AV3
 
+DEBUG_FILE = "debug.log"
+logging.basicConfig(filename=DEBUG_FILE, level=logging.INFO)
+
+logger = logging.getLogger(__name__)
+logger.debug(__file__)
+
 # Use this snippet:
 # from cls_helper_log import LogHelper
 # l = LogHelper()
@@ -16,11 +22,9 @@ import time
 
 
 class LogHelper:
-    LOG_FILE = "debug.log"
     debug_enabled = False
 
     def __init__(self, name):
-        logging.basicConfig(filename=self.LOG_FILE, level=logging.INFO)
         self.logger = logging.getLogger(name)
 
         self.dt = DateTimeHelper()
@@ -34,7 +38,7 @@ class LogHelper:
 
     def debug_date_today(self):
         if self.debug_enabled:
-            with open(self.LOG_FILE, "a") as file:
+            with open(DEBUG_FILE, "a") as file:
                 file.write(f"{self.get_date_today()}\n")
 
     def get_date_today(self):
@@ -49,29 +53,31 @@ class LogHelper:
         @wraps(func)
         def wrapper(*args, **kwargs):
             start_time = time.time()
-            print(f"Starting '{func.__name__}' at {time.ctime(start_time)}")
+            # print(f"Starting '{func.__name__}' at {time.ctime(start_time)}")
 
             result = func(*args, **kwargs)
 
             end_time = time.time()
-            print(f"Finished '{func.__name__}' at {time.ctime(end_time)}")
+            # print(f"Finished '{func.__name__}' at {time.ctime(end_time)}")
 
             execution_time = end_time - start_time
-            print(f"Execution time: {execution_time:.2f} seconds")
+            logger.info(
+                f"Function '{func.__name__}' executed in {execution_time:.2f} seconds"
+            )
 
             return result
 
         return wrapper
 
     def print_date_today(self):
-        print(self.get_date_today())
+        logger.info(self.get_date_today())
 
     def print_time(self):
         dt = self.dt
 
         time_now = dt.get_time_now()
 
-        print("Current Time:", time_now)
+        logger.info("Current Time:", time_now)
 
     def tdebug(self, msg):
         if self.debug_enabled:
@@ -80,7 +86,7 @@ class LogHelper:
             time_now = dt.get_time_now()
 
             message = f"{time_now}: {msg}"
-            print(message)
+            logger.info(message)
 
     def tprint(self, msg):
         dt = self.dt
@@ -88,7 +94,7 @@ class LogHelper:
         time_now = dt.get_time_now()
 
         message = f"{time_now}: {msg}"
-        print(message)
+        logger.info(message)
 
     def warning(self, msg):
         self.logger.warning(msg)
