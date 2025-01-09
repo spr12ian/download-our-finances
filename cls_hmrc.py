@@ -2,7 +2,7 @@ from cls_helper_log import LogHelper
 from cls_helper_sql import SQL_Helper
 from cls_hmrc_people import HMRC_People
 from tables import *
-from utility_functions import format_as_gbp
+import utility_functions as uf
 
 l = LogHelper(__name__)
 l.debug(__file__)
@@ -54,7 +54,7 @@ class HMRC:
         return False
 
     def get_balancing_charges__gbp_(self):
-        return format_as_gbp(0)
+        return uf.format_as_gbp(0)
 
     def get_allowable_property_expenses_gbp(self):
         return "£5million"
@@ -62,31 +62,33 @@ class HMRC:
     def get_property_income_allowance__gbp_(self):
         if self.use_property_income_allowance():
             property_income_allowance = self.get_property_income_allowance()
-            return format_as_gbp(property_income_allowance)
+            return uf.format_as_gbp(property_income_allowance)
         else:
             allowable_property_expenses_gbp = self.get_allowable_property_expenses_gbp()
             return f"Not claimed: Property expenses {allowable_property_expenses_gbp} exceed allowance"
 
     def get_rent__rates__insurance_and_ground_rents__gbp_(self):
-        return format_as_gbp(self.get_rent__rates__insurance_and_ground_rents())
+        return uf.format_as_gbp(self.get_rent__rates__insurance_and_ground_rents())
 
     def get_property_repairs_and_maintenance__gbp_(self):
-        return format_as_gbp(self.get_property_repairs_and_maintenance())
+        return uf.format_as_gbp(self.get_property_repairs_and_maintenance())
 
     def get_non_residential_finance_property_costs__gbp_(self):
-        return format_as_gbp(0)
+        return uf.format_as_gbp(0)
 
     def get_legal__management_and_other_professional_fees__gbp_(self):
-        return format_as_gbp(self.get_legal__management_and_other_professional_fees())
+        return uf.format_as_gbp(
+            self.get_legal__management_and_other_professional_fees()
+        )
 
     def get_costs_of_services_provided__including_wages__gbp_(self):
-        return format_as_gbp(self.get_costs_of_services_provided__including_wages())
+        return uf.format_as_gbp(self.get_costs_of_services_provided__including_wages())
 
     def get_other_allowable_property_expenses__gbp_(self):
-        return format_as_gbp(self.get_other_allowable_property_expenses())
+        return uf.format_as_gbp(self.get_other_allowable_property_expenses())
 
     def get_total_property_expenses__gbp_(self):
-        return format_as_gbp(self.get_total_property_expenses())
+        return uf.format_as_gbp(self.get_total_property_expenses())
 
     def get_blind_person_s_surplus_allowance_you_can_have(self):
         return "Not applicable"
@@ -100,8 +102,8 @@ class HMRC:
         spouse_total_income = self.get_spouse_total_income()
 
         if total_income > spouse_total_income:
-            gbp_total_income = format_as_gbp(total_income)
-            gbp_spouse_total_income = format_as_gbp(spouse_total_income)
+            gbp_total_income = uf.format_as_gbp(total_income)
+            gbp_spouse_total_income = uf.format_as_gbp(spouse_total_income)
             return f"No: Total income {gbp_total_income} > spouse total income {gbp_spouse_total_income}"
 
         marriage_allowance = self.constants.get_marriage_allowance()
@@ -109,14 +111,14 @@ class HMRC:
         personal_allowance = self.constants.get_personal_allowance()
 
         if total_income > personal_allowance:
-            gbp_total_income = format_as_gbp(total_income)
-            gbp_personal_allowance = format_as_gbp(personal_allowance)
+            gbp_total_income = uf.format_as_gbp(total_income)
+            gbp_personal_allowance = uf.format_as_gbp(personal_allowance)
             return f"No: Total income {gbp_total_income} > personal allowance {gbp_personal_allowance}"
 
         claimed_marriage_allowance = min(
             marriage_allowance, personal_allowance - total_income
         )
-        gbp_claimed_marriage_allowance = format_as_gbp(claimed_marriage_allowance)
+        gbp_claimed_marriage_allowance = uf.format_as_gbp(claimed_marriage_allowance)
 
         return f"Yes: expect to claim {gbp_claimed_marriage_allowance}"
 
@@ -203,9 +205,6 @@ class HMRC:
     def get_first_payment_on_account_for_next_year(self):
         return "Not applicable"
 
-    def get_outstanding_debt_in_tax_code(self):
-        return "Not applicable"
-
     def get_pension_charges_due(self):
         return "Not applicable"
 
@@ -226,8 +225,8 @@ class HMRC:
 
         property_income = self.get_property_income()
 
-        gbp_income = format_as_gbp(property_income)
-        gbp_allowance = format_as_gbp(property_income_allowance)
+        gbp_income = uf.format_as_gbp(property_income)
+        gbp_allowance = uf.format_as_gbp(property_income_allowance)
 
         if property_income > property_income_allowance:
             return f"Yes: Income {gbp_income} > {gbp_allowance} Property allowance"
@@ -238,8 +237,8 @@ class HMRC:
         trading_income_allowance = self.get_trading_income_allowance()
         turnover = self.get_turnover()
 
-        gbp_turnover = format_as_gbp(turnover)
-        gbp_allowance = format_as_gbp(trading_income_allowance)
+        gbp_turnover = uf.format_as_gbp(turnover)
+        gbp_allowance = uf.format_as_gbp(trading_income_allowance)
 
         if turnover > trading_income_allowance:
             return f"Yes: Turnover {gbp_turnover} > {gbp_allowance} Trading allowance"
@@ -325,7 +324,7 @@ class HMRC:
         total_interest = taxed_uk_interest + untaxed_uk_interest
 
         if total_interest > 0:
-            return f"Yes: {format_as_gbp(total_interest)} total {format_as_gbp(taxed_uk_interest)} taxed {format_as_gbp(untaxed_uk_interest)} untaxed"
+            return f"Yes: {uf.format_as_gbp(total_interest)} total {uf.format_as_gbp(taxed_uk_interest)} taxed {uf.format_as_gbp(untaxed_uk_interest)} untaxed"
         else:
             return "No"
 
@@ -344,8 +343,11 @@ class HMRC:
     def get_any_repayments_claimed_for_next_year(self):
         return "Not applicable"
 
-    def get_please_give_any_other_information_in_this_space(self):
-        return "Not applicable"
+    def get_tc_please_give_any_other_information_in_this_space(self):
+        return ""
+
+    def get_tr_please_give_any_other_information_in_this_space(self):
+        return ""
 
     def get_additional_information__yes_no_(self):
         return "Maybe: Married couples allowance section"
@@ -373,13 +375,13 @@ class HMRC:
         return False
 
     def get_uk_tax_taken_off_total_rents__gbp_(self):
-        return format_as_gbp(0)
+        return uf.format_as_gbp(0)
 
     def get_premiums_for_the_grant_of_a_lease__gbp_(self):
-        return format_as_gbp(0)
+        return uf.format_as_gbp(0)
 
     def get_reverse_premiums_and_inducements__gbp_(self):
-        return format_as_gbp(0)
+        return uf.format_as_gbp(0)
 
     def get_total_uk_property_income__gbp_(self):
         return self.get_property_income()
@@ -466,19 +468,19 @@ class HMRC:
         return 0
 
     def get_private_use_adjustment__gbp_(self):
-        return format_as_gbp(0)
+        return uf.format_as_gbp(0)
 
     def get_electric_charge_point_allowance__gbp_(self):
-        return format_as_gbp(0)
+        return uf.format_as_gbp(0)
 
     def get_freeport_allowance__gbp_(self):
-        return format_as_gbp(0)
+        return uf.format_as_gbp(0)
 
     def get_zero_emission_goods_vehicle_allowance__gbp_(self):
-        return format_as_gbp(0)
+        return uf.format_as_gbp(0)
 
     def get_all_other_capital_allowances__gbp_(self):
-        return format_as_gbp(0)
+        return uf.format_as_gbp(0)
 
     def get_adjusted_profit_for_the_year__gbp_(self):
         return "Undefined"
@@ -535,49 +537,84 @@ class HMRC:
         return "Undefined"
 
     def get_relief_at_source_pension_payments_to_ppr__gbp_(self):
-        return "Undefined"
+        return uf.format_as_gbp_or_blank(
+            self.get_payments_to_pension_schemes__relief_at_source()
+        )
 
     def get_total_of_one_off_payments__gbp_(self):
-        return "Undefined"
+        return self.get_relief_at_source_pension_payments_to_ppr__gbp_()
+
+    def get_payments_to_a_retirement_annuity_contract(self):
+        return 0
 
     def get_payments_to_a_retirement_annuity_contract__gbp_(self):
-        return "Undefined"
+        return uf.format_as_gbp_or_blank(
+            self.get_payments_to_a_retirement_annuity_contract()
+        )
+
+    def get_payments_to_your_employer_s_scheme(self):
+        return 0
 
     def get_payments_to_your_employer_s_scheme__gbp_(self):
-        return "Undefined"
+        return uf.format_as_gbp_or_blank(self.get_payments_to_your_employer_s_scheme())
+
+    def get_payments_to_an_overseas_pension_scheme(self):
+        return 0
 
     def get_payments_to_an_overseas_pension_scheme__gbp_(self):
-        return "Undefined"
+        return uf.format_as_gbp_or_blank(
+            self.get_payments_to_an_overseas_pension_scheme()
+        )
 
     def get_amount_of_underpaid_tax_for_earlier_years__paye___gbp_(self):
-        return "Undefined"
+        return uf.format_as_gbp(0)
 
     def get__q164__is_this_figure_correct__yes_no_(self):
-        return "Undefined"
+        return True
 
     def get_estimated_underpaid_tax_for_this_tax_year_paye__gbp_(self):
-        return "Undefined"
+        return uf.format_as_gbp(0)
 
     def get__q166__is_this_figure_correct__yes_no_(self):
-        return "Undefined"
+        return True
 
-    def get_outstanding_debt_inc_in_tax_code_for_2023_24__gbp_(self):
-        return "Undefined"
+    def get_outstanding_debt_included_in_tax_code(self):
+        return 0
+
+    def get_outstanding_debt_included_in_tax_code__gbp_(self):
+        return uf.format_as_gbp_or_blank(
+            self.get_outstanding_debt_included_in_tax_code()
+        )
+
+    def get_increase_in_tax_due_to_earlier_years_adjustments(self):
+        return 0
 
     def get_increase_in_tax_due_to_earlier_years_adjustments__gbp_(self):
-        return "Undefined"
+        return uf.format_as_gbp_or_blank(
+            self.get_increase_in_tax_due_to_earlier_years_adjustments()
+        )
+
+    def get_decrease_in_tax_due_to_earlier_years_adjustments(self):
+        return 0
 
     def get_decrease_in_tax_due_to_earlier_years_adjustments__gbp_(self):
-        return "Undefined"
+        return uf.format_as_gbp_or_blank(
+            self.get_decrease_in_tax_due_to_earlier_years_adjustments()
+        )
+
+    def get_any_next_year_repayment_you_are_claiming_now(self):
+        return 0
 
     def get_any_next_year_repayment_you_are_claiming_now__gbp_(self):
-        return "Undefined"
+        return uf.format_as_gbp_or_blank(
+            self.get_any_next_year_repayment_you_are_claiming_now()
+        )
 
     def get_does_this_return_contain_provisional_figures__yes_no_(self):
-        return "Undefined"
+        return False
 
     def get_add_an_attachment_to_the_return__yes_no_(self):
-        return "Undefined"
+        return False
 
     def get_cost_to_replace_residential_domestic_items__gbp_(self):
         return "Undefined"
@@ -848,7 +885,7 @@ class HMRC:
         return total_income
 
     def get_turnover__gbp_(self) -> str:
-        return format_as_gbp(self.get_turnover())
+        return uf.format_as_gbp(self.get_turnover())
 
     def get_turnover(self) -> float:
         if self.get_how_many_self_employed_businesses_did_you_have() > 1:
@@ -868,7 +905,9 @@ class HMRC:
         return 0
 
     def get_other_business_income_not_turnover__gbp_(self):
-        return format_as_gbp(self.get_other_business_income_not_included_as_turnover())
+        return uf.format_as_gbp(
+            self.get_other_business_income_not_included_as_turnover()
+        )
 
     def get_business_income(self):
         return (
@@ -877,7 +916,7 @@ class HMRC:
         )
 
     def get_business_income__gbp_(self):
-        return format_as_gbp(self.get_business_income())
+        return uf.format_as_gbp(self.get_business_income())
 
     def get_how_would_you_like_to_record_your_expenses(self):
         return "As a single total value"
@@ -886,12 +925,12 @@ class HMRC:
         return self.person.get_taxpayer_residency_status()
 
     def get_total_allowable_expenses_gbp(self):
-        return format_as_gbp(self.get_total_allowable_expenses())
+        return uf.format_as_gbp(self.get_total_allowable_expenses())
 
     def get_trading_income_allowance__gbp_(self):
         if self.use_trading_income_allowance():
             trading_income_allowance = self.get_trading_income_allowance()
-            return format_as_gbp(trading_income_allowance)
+            return uf.format_as_gbp(trading_income_allowance)
         else:
             total_allowable_expenses_gbp = self.get_total_allowable_expenses_gbp()
             return f"Not claimed: Total expenses {total_allowable_expenses_gbp} exceed allowance"
@@ -935,15 +974,15 @@ class HMRC:
 
     def get_total_allowable_expenses__gbp_(self):
         if self.use_trading_income_allowance:
-            return format_as_gbp(0)
+            return uf.format_as_gbp(0)
         else:
-            return format_as_gbp(self.get_total_allowable_expenses())
+            return uf.format_as_gbp(self.get_total_allowable_expenses())
 
     def get_allowable_property_expenses__gbp_(self):
         if self.use_property_income_allowance:
-            return format_as_gbp(0)
+            return uf.format_as_gbp(0)
         else:
-            return format_as_gbp(self.get_allowable_property_expenses())
+            return uf.format_as_gbp(self.get_allowable_property_expenses())
 
     def get_allowable_property_expenses(self):
         l.debug("get_allowable_property_expenses")
@@ -964,19 +1003,19 @@ class HMRC:
         return self.get_business_income() - self.get_total_allowable_expenses()
 
     def get_bottom_line_gbp(self):
-        return format_as_gbp(self.bottom_line())
+        return uf.format_as_gbp(self.bottom_line())
 
     def get_net_loss(self):
         return min(0, self.get_bottom_line()) * -1
 
     def get_net_loss__gbp_(self):
-        return format_as_gbp(self.get_net_loss())
+        return uf.format_as_gbp(self.get_net_loss())
 
     def get_net_profit(self):
         return max(0, self.get_bottom_line())
 
     def get_net_profit__gbp_(self):
-        return format_as_gbp(self.get_net_profit())
+        return uf.format_as_gbp(self.get_net_profit())
 
     def get_annual_investment_allowance__gbp_(self):
         return ""
@@ -1001,13 +1040,13 @@ class HMRC:
             return self.get_loss_gbp()
 
     def get_capital_allowances__gbp_(self):
-        return format_as_gbp(0)
+        return uf.format_as_gbp(0)
 
     def get_tax_adjustments__gbp_(self):
-        return format_as_gbp(0)
+        return uf.format_as_gbp(0)
 
     def get_taxable_profits_or_net_loss__before_set_offs___gbp_(self):
-        return format_as_gbp(self.get_net_business_profit_for_tax_purposes())
+        return uf.format_as_gbp(self.get_net_business_profit_for_tax_purposes())
 
     def get_freeport_and_investment_zones_allowance__gbp_(self):
         return ""
@@ -1032,19 +1071,19 @@ class HMRC:
         return net_business_profit_for_tax_purposes
 
     def get_net_business_profit_for_tax_purposes__gbp_(self):
-        return format_as_gbp(self.get_net_business_profit_for_tax_purposes())
+        return uf.format_as_gbp(self.get_net_business_profit_for_tax_purposes())
 
     def get_loss_brought_forward_set_off_against_profits(self):
         return 0
 
     def get_loss_brought_forward_set_off_against_profits__gbp_(self):
-        return format_as_gbp(self.get_loss_brought_forward_set_off_against_profits())
+        return uf.format_as_gbp(self.get_loss_brought_forward_set_off_against_profits())
 
     def get_other_business_income_not_already_included(self):
         return 0
 
     def get_other_business_income_not_already_included__gbp_(self):
-        return format_as_gbp(self.get_other_business_income_not_already_included())
+        return uf.format_as_gbp(self.get_other_business_income_not_already_included())
 
     def get_total_taxable_profits_from_this_business(self):
         net_business_profit_for_tax_purposes = (
@@ -1068,7 +1107,7 @@ class HMRC:
         return total_taxable_profits_from_this_business
 
     def get_total_taxable_profits_from_this_business__gbp_(self):
-        return format_as_gbp(self.get_total_taxable_profits_from_this_business())
+        return uf.format_as_gbp(self.get_total_taxable_profits_from_this_business())
 
     def get_net_business_loss_for_tax_purposes(self):
         income = self.get_business_income()
@@ -1079,25 +1118,29 @@ class HMRC:
         return net_business_loss_for_tax_purposes
 
     def get_net_business_loss_for_tax_purposes__gbp_(self):
-        return format_as_gbp(self.get_net_business_loss_for_tax_purposes())
+        return uf.format_as_gbp(self.get_net_business_loss_for_tax_purposes())
 
     def get_loss_set_off_against_other_income_this_tax_year(self):
         return 0
 
     def get_loss_set_off_against_other_income_this_tax_year__gbp_(self):
-        return format_as_gbp(self.get_loss_set_off_against_other_income_this_tax_year())
+        return uf.format_as_gbp(
+            self.get_loss_set_off_against_other_income_this_tax_year()
+        )
 
     def get_loss_carried_back_prior_years_set_off_income_cg(self):
         return 0
 
     def get_loss_carried_back_prior_years_set_off_income_cg__gbp_(self):
-        return format_as_gbp(self.get_loss_carried_back_prior_years_set_off_income_cg())
+        return uf.format_as_gbp(
+            self.get_loss_carried_back_prior_years_set_off_income_cg()
+        )
 
     def get_loss_to_take_forward_post_set_offs_unused_losses(self):
         return 0
 
     def get_loss_to_take_forward_post_set_offs_unused_losses__gbp_(self):
-        return format_as_gbp(
+        return uf.format_as_gbp(
             self.get_loss_to_take_forward_post_set_offs_unused_losses()
         )
 
@@ -1151,14 +1194,19 @@ class HMRC:
     def get_other_taxable_income__yes_no_(self):
         return False
 
-    def get_payments_to_pension_schemes__relief_at_source___gbp_(self):
+    def get_payments_to_pension_schemes__relief_at_source(self):
         my_payments = self.transactions.fetch_total_by_tax_year_category(
             self.tax_year, "HMRC S pension contribution"
         )
         hmrc_contribution = self.transactions.fetch_total_by_tax_year_category(
             self.tax_year, "HMRC S pension tax relief"
         )
-        return format_as_gbp(my_payments + hmrc_contribution)
+        return my_payments + hmrc_contribution
+
+    def get_payments_to_pension_schemes__relief_at_source___gbp_(self):
+        return uf.format_as_gbp_or_blank(
+            self.get_payments_to_pension_schemes__relief_at_source()
+        )
 
     def get_pensions__other_than_state_pension_(self):
         return 0
@@ -1205,13 +1253,13 @@ class HMRC:
         )
 
     def get_payments_to_annuity_tax_relief_not_claimed(self):
-        return "Not applicable"
+        return 0
 
     def get_payments_to_employers_scheme_where_no_tax_deducted(self):
-        return "Not applicable"
+        return 0
 
     def get_payments_to_overseas_pension_scheme(self):
-        return "Not applicable"
+        return 0
 
     def get_gift_aid_payments(self):
         return "Not applicable"
@@ -1599,13 +1647,13 @@ class HMRC:
         return self.get_total_allowable_expenses() - self.get_turnover()
 
     def get_loss_gbp(self):
-        return format_as_gbp(self.get_loss())
+        return uf.format_as_gbp(self.get_loss())
 
     def get_profit(self):
         return self.get_turnover() - self.get_total_allowable_expenses()
 
     def get_profit_gbp(self):
-        return format_as_gbp(self.get_profit())
+        return uf.format_as_gbp(self.get_profit())
 
     def get_income__trading_allowance__made_a_loss__yes_no_(self):
         turnover = self.get_turnover()

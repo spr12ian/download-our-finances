@@ -13,6 +13,20 @@ def format_as_gbp(amount):
     return locale.currency(amount, grouping=True)
 
 
+def format_as_gbp_or_blank(amount):
+    """
+    Format a float as GBP or blank if zero.
+    """
+    # Set the locale to GBP
+    locale.setlocale(locale.LC_ALL, "en_GB.UTF-8")
+
+    if abs(amount) < 0.01:
+        return ""
+    else:
+        # Format the float as currency
+        return locale.currency(amount, grouping=True)
+
+
 # Function to convert currency/percent strings to float
 def string_to_float(string):
     if string.strip() == "":  # Check if the string is empty or whitespace
