@@ -61,6 +61,14 @@ class HMRC:
     def get_allowable_property_expenses_gbp(self):
         return "£5million"
 
+    def get_property_allowance__gbp_(self):
+        property_allowance = self.get_property_allowance()
+        return uf.format_as_gbp(property_allowance)
+
+    def get_savings_allowance__gbp_(self):
+        savings_allowance = self.get_savings_allowance()
+        return uf.format_as_gbp(savings_allowance)
+
     def get_property_income_allowance__gbp_(self):
         if self.use_property_income_allowance():
             property_income_allowance = self.get_property_income_allowance()
@@ -249,6 +257,18 @@ class HMRC:
         trading_income = self.get_trading_income()
 
         return trading_income > trading_allowance
+
+    def get_is_property_allowance___property_expenses__yes_no_(self):
+        property_allowance = self.get_property_allowance()
+        property_expenses = self.get_property_expenses()
+
+        return property_allowance > property_expenses
+
+    def get_is_property_income___property_allowance__yes_no_(self):
+        property_allowance = self.get_property_allowance()
+        property_income = self.get_property_income()
+
+        return property_income > property_allowance
 
     def get_is_trading_allowance___trading_expenses__yes_no_(self):
         trading_allowance = self.get_trading_allowance()
@@ -876,6 +896,17 @@ class HMRC:
 
         return property_income
 
+    def get_savings_income(self) -> float:
+        person_code = self.person_code
+        tax_year = self.tax_year
+        category_like = f"HMRC {person_code} INT income"
+
+        savings_income = self.transactions.fetch_total_by_tax_year_category_like(
+            tax_year, category_like
+        )
+
+        return savings_income
+
     def get_spouse_total_income(self) -> float:
         person_code = self.spouse.code
         tax_year = self.tax_year
@@ -897,6 +928,12 @@ class HMRC:
         )
 
         return total_income
+
+    def get_property_income__gbp_(self) -> str:
+        return uf.format_as_gbp(self.get_property_income())
+
+    def get_savings_income__gbp_(self) -> str:
+        return uf.format_as_gbp(self.get_savings_income())
 
     def get_trading_income__turnover___gbp_(self) -> str:
         return uf.format_as_gbp(self.get_trading_income())
@@ -924,6 +961,7 @@ class HMRC:
             self.transactions.query_builder()
             .select("Date", "Key", "Description", "Note", "Nett", "Category")
             .where(f'"Tax year"="{tax_year}" AND "Category" LIKE "{category_like}%"')
+            .order("Date")
             .build()
         )
         l.debug(query)
@@ -954,6 +992,14 @@ class HMRC:
         # which have a property income category for the current person
         person_code = self.person_code
         category_like = f"HMRC {person_code} UKP income"
+
+        return self.__get_breakdown(category_like)
+
+    def get_savings_income_breakdown(self):
+        # search the transactions table for any records in this tax year
+        # which have a savings income category for the current person
+        person_code = self.person_code
+        category_like = f"HMRC {person_code} INT income"
 
         return self.__get_breakdown(category_like)
 
@@ -1013,6 +1059,12 @@ class HMRC:
                 f"Not claimed: Total expenses {trading_expenses_gbp} exceed allowance"
             )
 
+    def get_property_allowance(self):
+        return self.constants.get_property_income_allowance()
+
+    def get_savings_allowance(self):
+        return self.constants.get_personal_savings_allowance()
+
     def get_trading_allowance(self):
         return self.constants.get_trading_income_allowance()
 
@@ -1034,6 +1086,17 @@ class HMRC:
     def get_trading_income_was_below__85k__total_expenses_in_box_20(self):
         return "See box 20"
 
+    def get_property_expenses(self):
+        person_code = self.person_code
+        tax_year = self.tax_year
+        category_like = f"HMRC {person_code} UKP expense"
+
+        trading_expenses = self.transactions.fetch_total_by_tax_year_category_like(
+            tax_year, category_like
+        )
+
+        return trading_expenses
+
     def get_trading_expenses(self):
         if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
@@ -1047,6 +1110,9 @@ class HMRC:
         )
 
         return trading_expenses
+
+    def get_property_expenses__gbp_(self):
+        return uf.format_as_gbp(self.get_property_expenses())
 
     def get_trading_expenses__gbp_(self):
         if self.use_trading_allowance:
@@ -1325,7 +1391,7 @@ class HMRC:
         tax_year = self.tax_year
 
         return self.get_year_category_total(
-            tax_year, f"HMRC {person_code} INC income: Taxed UK interest"
+            tax_year, f"HMRC {person_code} INT income: interest UK taxed"
         )
 
     def get_payments_to_annuity_tax_relief_not_claimed(self):
@@ -1668,7 +1734,7 @@ class HMRC:
         tax_year = self.tax_year
 
         return self.get_year_category_total(
-            tax_year, f"HMRC {person_code} INC income: Untaxed foreign interest"
+            tax_year, f"HMRC {person_code} INT income: interest foreign untaxed"
         )
 
     def get_did_you_give_to_charity__yes_no_(self):
@@ -1858,7 +1924,7 @@ class HMRC:
         tax_year = self.tax_year
 
         return self.get_year_category_total(
-            tax_year, f"HMRC {person_code} INC income: Untaxed UK interest"
+            tax_year, f"HMRC {person_code} INT income: interest UK untaxed"
         )
 
     def get_uk_property__yes_no_(self):
