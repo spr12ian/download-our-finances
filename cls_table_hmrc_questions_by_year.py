@@ -63,10 +63,12 @@ class HMRC_QuestionsByYear(SQLiteTable):
             + ' AND q2."Online order" = 0'
         )
         rows = self.sql.fetch_all(query)
-        if len(rows) > 0:
+        how_many_rows = len(rows)
+        if how_many_rows > 0:
+            l.debug(how_many_rows)
             l.debug(query)
             for row in rows:
-                l.info(row)
+                l.debug(row)
 
     def get_online_questions(self):
         columns = [

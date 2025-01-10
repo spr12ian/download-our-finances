@@ -31,6 +31,7 @@ class HMRC:
         self.sql = SQL_Helper().select_sql_helper("SQLite")
 
     def call_method(self, method_name):
+        l.debug(f"Calling method: {method_name}")
         try:
             method = getattr(self, method_name)
             return method()
@@ -243,17 +244,11 @@ class HMRC:
         else:
             return f"No: Income {gbp_income} <= {gbp_allowance} Allowance"
 
-    def get_total_turnover___trading_allowance__yes_no_(self):
+    def get_total_trading_income___trading_allowance__yes_no_(self):
         trading_allowance = self.get_trading_allowance()
-        turnover = self.get_turnover()
+        trading_income = self.get_trading_income()
 
-        gbp_turnover = uf.format_as_gbp(turnover)
-        gbp_allowance = uf.format_as_gbp(trading_allowance)
-
-        if turnover > trading_allowance:
-            return f"Yes: Turnover {gbp_turnover} > {gbp_allowance} Trading allowance"
-        else:
-            return f"No: Turnover {gbp_turnover} <= {gbp_allowance} Allowance"
+        return trading_income > trading_allowance
 
     def get_is_trading_allowance___trading_expenses__yes_no_(self):
         trading_allowance = self.get_trading_allowance()
@@ -261,11 +256,11 @@ class HMRC:
 
         return trading_allowance > trading_expenses
 
-    def get_is_turnover___trading_allowance__yes_no_(self):
+    def get_is_trading_income___trading_allowance__yes_no_(self):
         trading_allowance = self.get_trading_allowance()
-        turnover = self.get_turnover()
+        trading_income = self.get_trading_income()
 
-        return turnover > trading_allowance
+        return trading_income > trading_allowance
 
     def get_have_you_any_income_from_property_let_jointly__yes_no_(self):
         return "Check what this means"
@@ -302,7 +297,7 @@ class HMRC:
 
         return len(hmrc_businesses)
 
-    def get_business_1_name(self):
+    def get_business_name(self):
         if self.get_how_many_businesses() > 0:
             hmrc_businesses = self.get_hmrc_businesses()
 
@@ -903,10 +898,10 @@ class HMRC:
 
         return total_income
 
-    def get_turnover__gbp_(self) -> str:
-        return uf.format_as_gbp(self.get_turnover())
+    def get_trading_income__turnover___gbp_(self) -> str:
+        return uf.format_as_gbp(self.get_trading_income())
 
-    def get_turnover(self) -> float:
+    def get_trading_income(self) -> float:
         if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
 
@@ -914,32 +909,30 @@ class HMRC:
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} SES income"
 
-        turnover = self.transactions.fetch_total_by_tax_year_category_like(
+        trading_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
 
-        return turnover
+        return trading_income
 
-    def get_turnover_breakdown(self):
+    def __get_breakdown(self, category_like):
         # search the transactions table for any records in this tax year
-        # which have a self-employment income category for the current person
-        person_code = self.person_code
+        # which have an appropriate category for the current person
         tax_year = self.tax_year
-        category_like = f"HMRC {person_code} SES income"
 
         query = (
             self.transactions.query_builder()
-            .select('"Date", "Account", "Description", "Note", "Nett", "Category"')
-            .where(f'"Tax year"="{tax_year}" AND "Category" LIKE {category_like}"')
+            .select("Date", "Key", "Description", "Note", "Nett", "Category")
+            .where(f'"Tax year"="{tax_year}" AND "Category" LIKE "{category_like}%"')
             .build()
         )
-
+        l.debug(query)
         rows = self.sql.fetch_all(query)  # Fetch all rows from the database
         if not rows:
             return ""  # Return an empty string if no rows are fetched
 
         # Use a list for efficient concatenation
-        breakdown = []
+        breakdown = ["Date | Account | Description | Note | Nett | Category"]
         for row in rows:
             breakdown.append(
                 f"{row[0]} | {row[1]} | {row[2]} | {row[3]} | {row[4]} | {row[5]}"
@@ -948,18 +941,50 @@ class HMRC:
         # Join the rows with newline characters
         return "\n".join(breakdown)
 
-    def get_other_business_income_not_included_as_turnover(self):
+    def get_property_expenses_breakdown(self):
+        # search the transactions table for any records in this tax year
+        # which have a property expense category for the current person
+        person_code = self.person_code
+        category_like = f"HMRC {person_code} UKP expense"
+
+        return self.__get_breakdown(category_like)
+
+    def get_property_income_breakdown(self):
+        # search the transactions table for any records in this tax year
+        # which have a property income category for the current person
+        person_code = self.person_code
+        category_like = f"HMRC {person_code} UKP income"
+
+        return self.__get_breakdown(category_like)
+
+    def get_trading_expenses_breakdown(self):
+        # search the transactions table for any records in this tax year
+        # which have a self-employment expense category for the current person
+        person_code = self.person_code
+        category_like = f"HMRC {person_code} SES expense"
+
+        return self.__get_breakdown(category_like)
+
+    def get_trading_income_breakdown(self):
+        # search the transactions table for any records in this tax year
+        # which have a self-employment income category for the current person
+        person_code = self.person_code
+        category_like = f"HMRC {person_code} SES income"
+
+        return self.__get_breakdown(category_like)
+
+    def get_other_business_income_not_included_as_trading_income(self):
         return 0
 
-    def get_other_business_income_not_turnover__gbp_(self):
+    def get_other_business_income_not_trading_income__gbp_(self):
         return uf.format_as_gbp(
-            self.get_other_business_income_not_included_as_turnover()
+            self.get_other_business_income_not_included_as_trading_income()
         )
 
     def get_business_income(self):
         return (
-            self.get_turnover()
-            + self.get_other_business_income_not_included_as_turnover()
+            self.get_trading_income()
+            + self.get_other_business_income_not_included_as_trading_income()
         )
 
     def get_business_income__gbp_(self):
@@ -1006,7 +1031,7 @@ class HMRC:
 
         return trading_allowance > trading_expenses
 
-    def get_turnover_was_below__85k__total_expenses_in_box_20(self):
+    def get_trading_income_was_below__85k__total_expenses_in_box_20(self):
         return "See box 20"
 
     def get_trading_expenses(self):
@@ -1652,11 +1677,11 @@ class HMRC:
     def get_claim_married_couple_s_allowance__yes_no_(self):
         return False
 
-    def get_annual_turnover___vat_registration_cusp__yes_no_(self):
-        turnover = self.get_turnover()
+    def get_annual_trading_income___vat_registration_cusp__yes_no_(self):
+        trading_income = self.get_trading_income()
         vat_registration_cusp = self.get_vat_registration_threshold()
 
-        return turnover > vat_registration_cusp
+        return trading_income > vat_registration_cusp
 
     def get_affected_by_basis_period_reform__yes_no_(self):
         return False
@@ -1683,38 +1708,38 @@ class HMRC:
         return False
 
     def get_income__trading_allowance__volunteer_c2_nics__yes_no_(self):
-        turnover = self.get_turnover()
+        trading_income = self.get_trading_income()
         trading_allowance = self.get_trading_allowance()
         pay_voluntarily_nics = (
             self.get_do_you_want_to_pay_class_2_nics_voluntarily__yes_no_()
         )
 
-        return turnover <= trading_allowance and pay_voluntarily_nics
+        return trading_income <= trading_allowance and pay_voluntarily_nics
 
     def get_income__trading_allowance__claim_back_cis__yes_no_(self):
         return False
 
     def get_loss(self):
-        return self.get_trading_expenses() - self.get_turnover()
+        return self.get_trading_expenses() - self.get_trading_income()
 
     def get_loss_gbp(self):
         return uf.format_as_gbp(self.get_loss())
 
     def get_profit(self):
-        return self.get_turnover() - self.get_trading_expenses()
+        return self.get_trading_income() - self.get_trading_expenses()
 
     def get_profit_gbp(self):
         return uf.format_as_gbp(self.get_profit())
 
     def get_income__trading_allowance__made_a_loss__yes_no_(self):
-        turnover = self.get_turnover()
+        trading_income = self.get_trading_income()
         trading_allowance = self.get_trading_allowance()
         loss = self.get_loss()
-        return turnover <= trading_allowance and loss > 0
+        return trading_income <= trading_allowance and loss > 0
 
     def get__business_1_page_1__none_of_these_apply__yes_no_(self):
         conditions = [
-            self.get_annual_turnover___vat_registration_cusp__yes_no_(),
+            self.get_annual_trading_income___vat_registration_cusp__yes_no_(),
             self.get_affected_by_basis_period_reform__yes_no_(),
             self.get_i_am_a_foster_carer__yes_no_(),
             self.get_i_wish_to_make_an_adjustment_to_my_profits__yes_no_(),
