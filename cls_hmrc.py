@@ -5,6 +5,7 @@ from tables import *
 import utility_functions as uf
 
 l = LogHelper(__name__)
+l.setLevelDebug()
 l.debug(__file__)
 
 
@@ -34,7 +35,7 @@ class HMRC:
             method = getattr(self, method_name)
             return method()
         except AttributeError:
-            l.warning(f'\tdef {method_name}(self): return "Undefined"')
+            l.error(f'\tdef {method_name}(self): return "Undefined"')
 
     def get_answers(self):
         questions = self.get_questions()
@@ -83,6 +84,15 @@ class HMRC:
 
     def get_costs_of_services_provided__including_wages__gbp_(self):
         return uf.format_as_gbp(self.get_costs_of_services_provided__including_wages())
+
+    def get_other_information_about_this_business(self):
+        return ""
+
+    def get_other_information_about_your_uk_property_income(self):
+        return ""
+
+    def get_tr_do_you_need__additional_information__pages__yes_no_(self):
+        return ""
 
     def get_other_allowable_property_expenses__gbp_(self):
         return uf.format_as_gbp(self.get_other_allowable_property_expenses())
@@ -521,12 +531,6 @@ class HMRC:
     def get_losses_brought_forward_and_set_off__gbp_(self):
         return "Undefined"
 
-    def get_taxable_profit_for_the_year__gbp_(self):
-        return "Undefined"
-
-    def get_adjusted_loss_for_the_year__gbp_(self):
-        return "Undefined"
-
     def get_taxed_uk_interest_after_tax_has_been_taken_off__gbp_(self):
         return "Undefined"
 
@@ -924,16 +928,22 @@ class HMRC:
     def get_taxpayer_residency_status(self):
         return self.person.get_taxpayer_residency_status()
 
-    def get_total_allowable_expenses_gbp(self):
-        return uf.format_as_gbp(self.get_total_allowable_expenses())
+    def get_trading_expenses_gbp(self):
+        return uf.format_as_gbp(self.get_trading_expenses())
 
-    def get_trading_income_allowance__gbp_(self):
+    def get_trading_allowance__gbp_(self):
+        trading_income_allowance = self.get_trading_income_allowance()
+        return uf.format_as_gbp(trading_income_allowance)
+
+    def get_claimed_trading_income_allowance__gbp_(self):
         if self.use_trading_income_allowance():
             trading_income_allowance = self.get_trading_income_allowance()
             return uf.format_as_gbp(trading_income_allowance)
         else:
-            total_allowable_expenses_gbp = self.get_total_allowable_expenses_gbp()
-            return f"Not claimed: Total expenses {total_allowable_expenses_gbp} exceed allowance"
+            trading_expenses_gbp = self.get_trading_expenses_gbp()
+            return (
+                f"Not claimed: Total expenses {trading_expenses_gbp} exceed allowance"
+            )
 
     def get_trading_income_allowance(self):
         return self.constants.get_trading_income_allowance()
@@ -949,14 +959,14 @@ class HMRC:
 
     def use_trading_income_allowance(self):
         trading_income_allowance = self.get_trading_income_allowance()
-        total_allowable_expenses = self.get_total_allowable_expenses()
+        trading_expenses = self.get_trading_expenses()
 
-        return trading_income_allowance > total_allowable_expenses
+        return trading_income_allowance > trading_expenses
 
     def get_turnover_was_below__85k__total_expenses_in_box_20(self):
         return "See box 20"
 
-    def get_total_allowable_expenses(self):
+    def get_trading_expenses(self):
         if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
 
@@ -964,19 +974,17 @@ class HMRC:
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} SES expense"
 
-        total_allowable_expenses = (
-            self.transactions.fetch_total_by_tax_year_category_like(
-                tax_year, category_like
-            )
+        trading_expenses = self.transactions.fetch_total_by_tax_year_category_like(
+            tax_year, category_like
         )
 
-        return total_allowable_expenses
+        return trading_expenses
 
-    def get_total_allowable_expenses__gbp_(self):
+    def get_trading_expenses__gbp_(self):
         if self.use_trading_income_allowance:
             return uf.format_as_gbp(0)
         else:
-            return uf.format_as_gbp(self.get_total_allowable_expenses())
+            return uf.format_as_gbp(self.get_trading_expenses())
 
     def get_allowable_property_expenses__gbp_(self):
         if self.use_property_income_allowance:
@@ -1000,7 +1008,7 @@ class HMRC:
         return allowable_property_expenses
 
     def get_bottom_line(self):
-        return self.get_business_income() - self.get_total_allowable_expenses()
+        return self.get_business_income() - self.get_trading_expenses()
 
     def get_bottom_line_gbp(self):
         return uf.format_as_gbp(self.bottom_line())
@@ -1065,7 +1073,7 @@ class HMRC:
             )
         else:
             net_business_profit_for_tax_purposes = max(
-                0, income - self.get_total_allowable_expenses()
+                0, income - self.get_trading_expenses()
             )
 
         return net_business_profit_for_tax_purposes
@@ -1112,7 +1120,7 @@ class HMRC:
     def get_net_business_loss_for_tax_purposes(self):
         income = self.get_business_income()
         net_business_loss_for_tax_purposes = (
-            min(0, income - self.get_total_allowable_expenses()) * -1
+            min(0, income - self.get_trading_expenses()) * -1
         )
 
         return net_business_loss_for_tax_purposes
@@ -1644,13 +1652,13 @@ class HMRC:
         return False
 
     def get_loss(self):
-        return self.get_total_allowable_expenses() - self.get_turnover()
+        return self.get_trading_expenses() - self.get_turnover()
 
     def get_loss_gbp(self):
         return uf.format_as_gbp(self.get_loss())
 
     def get_profit(self):
-        return self.get_turnover() - self.get_total_allowable_expenses()
+        return self.get_turnover() - self.get_trading_expenses()
 
     def get_profit_gbp(self):
         return uf.format_as_gbp(self.get_profit())

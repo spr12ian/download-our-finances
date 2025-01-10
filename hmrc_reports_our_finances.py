@@ -1,5 +1,10 @@
 from cls_hmrc import HMRC
 from cls_table_hmrc_questions_by_year import HMRC_QuestionsByYear
+from cls_helper_log import LogHelper
+
+l = LogHelper(__name__)
+# l.setLevelDebug()
+l.debug(__file__)
 
 
 def check_questions(tax_year):

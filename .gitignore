@@ -2,6 +2,7 @@
 *.db
 config.ini
 tables_sqlalchemy.py
+.logs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

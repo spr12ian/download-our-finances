@@ -4,12 +4,17 @@ from utility_functions import to_valid_method_name
 from cls_helper_log import LogHelper
 
 l = LogHelper(__name__)
+# l.setLevelDebug()
+l.debug(__file__)
 
 
 class HMRC_QuestionsByYear(SQLiteTable):
     def __init__(self, tax_year):
+        l.debug(__class__)
+        l.debug(__name__)
         table_name = f"hmrc_questions_{tax_year.replace(' ', '_')}"
         super().__init__(table_name)
+        l.debug(table_name)
 
     def __get_questions(self, columns, order_column):
         query = (
@@ -34,6 +39,22 @@ class HMRC_QuestionsByYear(SQLiteTable):
         return questions
 
     def check_questions(self):
+        l.debug("check_questions")
+        core_questions = "hmrc_questions"
+        query = (
+            "SELECT q1.Question"
+            + f" FROM {core_questions} q1 LEFT JOIN {self.table_name} q2"
+            + " ON q1.Question=q2.Question"
+            + " WHERE q2.Question IS NULL"
+        )
+        rows = self.sql.fetch_all(query)
+        how_many_rows = len(rows)
+        if how_many_rows > 0:
+            l.info(how_many_rows)
+            l.debug(query)
+            for row in rows:
+                l.info(row)
+
         query = (
             'SELECT q1.Question, q1."Online order", q2."Printed order"'
             + f" FROM {self.table_name} q1 JOIN {self.table_name} q2"
@@ -45,7 +66,7 @@ class HMRC_QuestionsByYear(SQLiteTable):
         if len(rows) > 0:
             l.debug(query)
             for row in rows:
-                l.debug(row)
+                l.info(row)
 
     def get_online_questions(self):
         columns = [

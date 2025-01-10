@@ -8,6 +8,10 @@ import time
 
 from cls_helper_log import LogHelper
 
+l = LogHelper(__name__)
+# l.setLevelDebug()
+l.debug(__file__)
+
 
 class SpreadsheetToSqliteDb:
     def __init__(self):

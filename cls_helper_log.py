@@ -2,6 +2,7 @@ from cls_helper_date_time import DateTimeHelper
 from functools import wraps
 import logging
 import time
+from typing import Any
 
 # https://docs.python.org/3/library/logging.html?form=MG0AV3
 
@@ -9,12 +10,13 @@ DEBUG_FILE = "debug.log"
 logging.basicConfig(filename=DEBUG_FILE, level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+# logger.setLevel(logging.DEBUG)
+logger.debug(logger.getEffectiveLevel())
 logger.debug(__file__)
 
 # Use this snippet:
 # from cls_helper_log import LogHelper
-# l = LogHelper()
-# LogHelper.debug_enabled = True
+# l = LogHelper(__name__)
 # l.clear_debug_log()
 
 # To time functions wrap them like this:
@@ -22,7 +24,15 @@ logger.debug(__file__)
 
 
 class LogHelper:
-    debug_enabled = False
+    # Define a dictionary to map logging levels to their string representations
+    LOG_LEVELS = {
+        logging.CRITICAL: "CRITICAL",  # 50
+        logging.ERROR: "ERROR",  # 40
+        logging.WARNING: "WARNING",  # 30
+        logging.INFO: "INFO",  # 20
+        logging.DEBUG: "DEBUG",  # 10
+        logging.NOTSET: "NOTSET",  # 0
+    }
 
     def __init__(self, name):
         self.logger = logging.getLogger(name)
@@ -30,23 +40,39 @@ class LogHelper:
         self.dt = DateTimeHelper()
 
     def clear_debug_log(self):
-        with open(self.LOG_FILE, "w") as file:
+        with open(DEBUG_FILE, "w") as file:
             pass
+
+    def critical(self, msg):
+        self.logger.critical(msg)
 
     def debug(self, msg):
         self.logger.debug(msg)
 
-    def debug_date_today(self):
-        if self.debug_enabled:
-            with open(DEBUG_FILE, "a") as file:
-                file.write(f"{self.get_date_today()}\n")
+    def error(self, msg):
+        self.logger.error(msg)
 
     def get_date_today(self):
         dt = self.dt
         return dt.get_date_today()
 
+    def get_level(self):
+        return self.logger.getEffectiveLevel()
+
+    # Function to get the effective logging level as a string
+    def get_level_as_string(self):
+        level = self.get_level()
+        level_name = LogHelper.LOG_LEVELS.get(level, "UNKNOWN")
+        return level_name
+
     def info(self, msg):
         self.logger.info(msg)
+
+    def log_date_today(self):
+        self.info(f"{self.get_date_today()}")
+
+    def log_debug_level(self):
+        self.info(f"{self.get_level_as_string()}: {self.get_level()}")
 
     @staticmethod
     def log_execution_time(func):
@@ -69,32 +95,79 @@ class LogHelper:
 
         return wrapper
 
-    def print_date_today(self):
-        logger.info(self.get_date_today())
-
-    def print_time(self):
+    def log_time(self):
         dt = self.dt
 
         time_now = dt.get_time_now()
 
-        logger.info("Current Time:", time_now)
+        self.info("Current Time:", time_now)
+
+    def set_level(self, level: Any) -> None:
+        if isinstance(level, int):
+            self.set_level_int(level)
+        elif isinstance(level, str):
+            self.set_level_string(level)
+        else:
+            raise ValueError(f"Unexpected level type: {type(level)} for level: {level}")
+
+    def set_level_int(self, level):
+        if level not in LogHelper.LOG_LEVELS:
+            raise ValueError(
+                f"Invalid log level: {level}. Expected one of {list(LogHelper.LOG_LEVELS.keys())}."
+            )
+
+        if level == logging.NOTSET:
+            raise ValueError(
+                f"Cannot set the log level to {logging.NOTSET}. Choose a valid log level."
+            )
+
+        with open("debug.log", "a") as file:
+            print(f"Calling logger.setLevel({level})", file=file)
+
+        # Set the logger level
+        self.logger.setLevel(level)
+        # Optional feedback for debugging/logging purposes
+        self.logger.debug(f"Log level set to {level}.")
+        self.logger.info(f"Log level set to {level}.")
+
+        self.log_debug_level()
+
+    def set_level_string(self, level):
+        if level not in LogHelper.LOG_LEVELS.values():
+            raise ValueError(
+                f"Invalid log level: {level}. Expected one of {list(LogHelper.LOG_LEVELS.values())}."
+            )
+
+        if level == "NOTSET":
+            raise ValueError(
+                "Cannot set the log level to NOTSET. Choose a valid log level."
+            )
+
+        # Set the logger level
+        self.logger.setLevel(level)
+        # Optional feedback for debugging/logging purposes
+        self.logger.debug(f"Log level set to {level}.")
+
+        self.log_debug_level()
+
+    def setLevelDebug(self):
+        self.logger.setLevel(logging.DEBUG)
 
     def tdebug(self, msg):
-        if self.debug_enabled:
-            dt = self.dt
-
-            time_now = dt.get_time_now()
-
-            message = f"{time_now}: {msg}"
-            logger.info(message)
-
-    def tprint(self, msg):
         dt = self.dt
 
         time_now = dt.get_time_now()
 
         message = f"{time_now}: {msg}"
-        logger.info(message)
+        self.debug(message)
+
+    def tlog(self, msg):
+        dt = self.dt
+
+        time_now = dt.get_time_now()
+
+        message = f"{time_now}: {msg}"
+        self.info(message)
 
     def warning(self, msg):
         self.logger.warning(msg)

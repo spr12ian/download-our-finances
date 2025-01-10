@@ -2,11 +2,13 @@ from cls_helper_google import GoogleHelper
 from cls_helper_log import LogHelper
 
 
+l = LogHelper(__name__)
+# l.setLevelDebug()
+l.debug(__file__)
+
+
 @LogHelper.log_execution_time
 def main():
-    l = LogHelper(__name__)
-    l.info(__file__)
-
     goo = GoogleHelper()
 
     # Define the required scopes
