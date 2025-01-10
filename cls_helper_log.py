@@ -87,7 +87,7 @@ class LogHelper:
             # print(f"Finished '{func.__name__}' at {time.ctime(end_time)}")
 
             execution_time = end_time - start_time
-            logger.info(
+            logger.debug(
                 f"Function '{func.__name__}' executed in {execution_time:.2f} seconds"
             )
 

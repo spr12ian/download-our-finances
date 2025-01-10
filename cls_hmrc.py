@@ -244,16 +244,31 @@ class HMRC:
             return f"No: Income {gbp_income} <= {gbp_allowance} Allowance"
 
     def get_total_turnover___trading_allowance__yes_no_(self):
-        trading_income_allowance = self.get_trading_income_allowance()
+        trading_allowance = self.get_trading_allowance()
         turnover = self.get_turnover()
 
         gbp_turnover = uf.format_as_gbp(turnover)
-        gbp_allowance = uf.format_as_gbp(trading_income_allowance)
+        gbp_allowance = uf.format_as_gbp(trading_allowance)
 
-        if turnover > trading_income_allowance:
+        if turnover > trading_allowance:
             return f"Yes: Turnover {gbp_turnover} > {gbp_allowance} Trading allowance"
         else:
             return f"No: Turnover {gbp_turnover} <= {gbp_allowance} Allowance"
+
+    def get_is_trading_allowance___trading_expenses__yes_no_(self):
+        trading_allowance = self.get_trading_allowance()
+        trading_expenses = self.get_trading_expenses()
+
+        return trading_allowance > trading_expenses
+
+    def get_is_turnover___trading_allowance__yes_no_(self):
+        trading_allowance = self.get_trading_allowance()
+        turnover = self.get_turnover()
+
+        return turnover > trading_allowance
+
+    def get_have_you_any_income_from_property_let_jointly__yes_no_(self):
+        return "Check what this means"
 
     def get_were_you_self_employed_in_this_tax_year__yes_no_(self):
         return True
@@ -905,6 +920,34 @@ class HMRC:
 
         return turnover
 
+    def get_turnover_breakdown(self):
+        # search the transactions table for any records in this tax year
+        # which have a self-employment income category for the current person
+        person_code = self.person_code
+        tax_year = self.tax_year
+        category_like = f"HMRC {person_code} SES income"
+
+        query = (
+            self.transactions.query_builder()
+            .select('"Date", "Account", "Description", "Note", "Nett", "Category"')
+            .where(f'"Tax year"="{tax_year}" AND "Category" LIKE {category_like}"')
+            .build()
+        )
+
+        rows = self.sql.fetch_all(query)  # Fetch all rows from the database
+        if not rows:
+            return ""  # Return an empty string if no rows are fetched
+
+        # Use a list for efficient concatenation
+        breakdown = []
+        for row in rows:
+            breakdown.append(
+                f"{row[0]} | {row[1]} | {row[2]} | {row[3]} | {row[4]} | {row[5]}"
+            )
+
+        # Join the rows with newline characters
+        return "\n".join(breakdown)
+
     def get_other_business_income_not_included_as_turnover(self):
         return 0
 
@@ -932,20 +975,20 @@ class HMRC:
         return uf.format_as_gbp(self.get_trading_expenses())
 
     def get_trading_allowance__gbp_(self):
-        trading_income_allowance = self.get_trading_income_allowance()
-        return uf.format_as_gbp(trading_income_allowance)
+        trading_allowance = self.get_trading_allowance()
+        return uf.format_as_gbp(trading_allowance)
 
-    def get_claimed_trading_income_allowance__gbp_(self):
-        if self.use_trading_income_allowance():
-            trading_income_allowance = self.get_trading_income_allowance()
-            return uf.format_as_gbp(trading_income_allowance)
+    def get_claimed_trading_allowance__gbp_(self):
+        if self.use_trading_allowance():
+            trading_allowance = self.get_trading_allowance()
+            return uf.format_as_gbp(trading_allowance)
         else:
             trading_expenses_gbp = self.get_trading_expenses_gbp()
             return (
                 f"Not claimed: Total expenses {trading_expenses_gbp} exceed allowance"
             )
 
-    def get_trading_income_allowance(self):
+    def get_trading_allowance(self):
         return self.constants.get_trading_income_allowance()
 
     def use_property_income_allowance(self):
@@ -957,11 +1000,11 @@ class HMRC:
 
         return property_income_allowance > allowable_property_expenses
 
-    def use_trading_income_allowance(self):
-        trading_income_allowance = self.get_trading_income_allowance()
+    def use_trading_allowance(self):
+        trading_allowance = self.get_trading_allowance()
         trading_expenses = self.get_trading_expenses()
 
-        return trading_income_allowance > trading_expenses
+        return trading_allowance > trading_expenses
 
     def get_turnover_was_below__85k__total_expenses_in_box_20(self):
         return "See box 20"
@@ -981,7 +1024,7 @@ class HMRC:
         return trading_expenses
 
     def get_trading_expenses__gbp_(self):
-        if self.use_trading_income_allowance:
+        if self.use_trading_allowance:
             return uf.format_as_gbp(0)
         else:
             return uf.format_as_gbp(self.get_trading_expenses())
@@ -1067,9 +1110,9 @@ class HMRC:
 
     def get_net_business_profit_for_tax_purposes(self):
         income = self.get_business_income()
-        if self.use_trading_income_allowance():
+        if self.use_trading_allowance():
             net_business_profit_for_tax_purposes = max(
-                0, income - self.get_trading_income_allowance()
+                0, income - self.get_trading_allowance()
             )
         else:
             net_business_profit_for_tax_purposes = max(
@@ -1641,12 +1684,12 @@ class HMRC:
 
     def get_income__trading_allowance__volunteer_c2_nics__yes_no_(self):
         turnover = self.get_turnover()
-        trading_income_allowance = self.get_trading_income_allowance()
+        trading_allowance = self.get_trading_allowance()
         pay_voluntarily_nics = (
             self.get_do_you_want_to_pay_class_2_nics_voluntarily__yes_no_()
         )
 
-        return turnover <= trading_income_allowance and pay_voluntarily_nics
+        return turnover <= trading_allowance and pay_voluntarily_nics
 
     def get_income__trading_allowance__claim_back_cis__yes_no_(self):
         return False
@@ -1665,7 +1708,7 @@ class HMRC:
 
     def get_income__trading_allowance__made_a_loss__yes_no_(self):
         turnover = self.get_turnover()
-        trading_allowance = self.get_trading_income_allowance()
+        trading_allowance = self.get_trading_allowance()
         loss = self.get_loss()
         return turnover <= trading_allowance and loss > 0
 
