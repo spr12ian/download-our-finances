@@ -2,8 +2,8 @@ from cls_hmrc import HMRC
 from cls_table_hmrc_questions_by_year import HMRC_QuestionsByYear
 from cls_helper_log import LogHelper
 
-l = LogHelper(__name__)
-# l.setLevelDebug()
+l = LogHelper(__file__)
+# l.set_level_debug()
 l.debug(__file__)
 
 

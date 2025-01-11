@@ -5,7 +5,7 @@ from tables import *
 import utility_functions as uf
 
 l = LogHelper(__name__)
-# l.setLevelDebug()
+# l.set_level_debug()
 l.debug(__file__)
 
 
@@ -59,7 +59,10 @@ class HMRC:
         return uf.format_as_gbp(0)
 
     def get_allowable_property_expenses_gbp(self):
-        return "£5million"
+        if self.use_property_income_allowance:
+            return uf.format_as_gbp(0)
+        else:
+            return uf.format_as_gbp(self.get_allowable_property_expenses())
 
     def get_property_allowance_gbp(self):
         property_allowance = self.get_property_allowance()
@@ -111,6 +114,9 @@ class HMRC:
 
     def get_blind_person_s_surplus_allowance_you_can_have(self):
         return "Not applicable"
+
+    def get_total_income_gbp(self):
+        return uf.format_as_gbp(self.get_total_income())
 
     def get_claim_marriage_allowance__yes_no_(self):
         if self.get_marital_status() != "Married":
@@ -1042,6 +1048,12 @@ class HMRC:
     def get_trading_expenses_gbp(self):
         return uf.format_as_gbp(self.get_trading_expenses())
 
+    def get_trading_expenses_gbpX(self):
+        if self.use_trading_allowance:
+            return uf.format_as_gbp(0)
+        else:
+            return uf.format_as_gbp(self.get_trading_expenses())
+
     def get_trading_allowance_gbp(self):
         trading_allowance = self.get_trading_allowance()
         return uf.format_as_gbp(trading_allowance)
@@ -1110,18 +1122,6 @@ class HMRC:
 
     def get_property_expenses_gbp(self):
         return uf.format_as_gbp(self.get_property_expenses())
-
-    def get_trading_expenses_gbp(self):
-        if self.use_trading_allowance:
-            return uf.format_as_gbp(0)
-        else:
-            return uf.format_as_gbp(self.get_trading_expenses())
-
-    def get_allowable_property_expenses_gbp(self):
-        if self.use_property_income_allowance:
-            return uf.format_as_gbp(0)
-        else:
-            return uf.format_as_gbp(self.get_allowable_property_expenses())
 
     def get_allowable_property_expenses(self):
         l.debug("get_allowable_property_expenses")
@@ -1740,7 +1740,7 @@ class HMRC:
     def get_claim_married_couple_s_allowance__yes_no_(self):
         return False
 
-    def get_annual_trading_income___vat_registration_cusp__yes_no_(self):
+    def is_trading_income___vat_registration_cusp(self):
         trading_income = self.get_trading_income()
         vat_registration_cusp = self.get_vat_registration_threshold()
 

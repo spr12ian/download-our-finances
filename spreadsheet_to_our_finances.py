@@ -7,10 +7,10 @@ from cls_real_columns import RealColumns
 import time
 
 from cls_helper_log import LogHelper
-from cls_helper_log import log_execution_time
+from cls_helper_log import log_function_call
 
-l = LogHelper(__name__)
-# l.setLevelDebug()
+l = LogHelper(__file__)
+# l.set_level_debug()
 l.debug(__file__)
 
 
@@ -24,7 +24,7 @@ class SpreadsheetToSqliteDb:
             spreadsheet_name (str): Name of the Google Spreadsheet
         """
 
-        self.log = LogHelper(__name__)
+        self.log = LogHelper("SpreadsheetToSqliteDb")
 
         # Define the required scopes
         scopes = [
@@ -50,7 +50,7 @@ class SpreadsheetToSqliteDb:
 
         self.sql.close_connection()
 
-    @log_execution_time
+    @log_function_call
     def convert_worksheet(self, worksheet):
         self.log.info(f"Converting {worksheet.title}")
 
@@ -72,10 +72,8 @@ class SpreadsheetToSqliteDb:
         df.to_sql(table_name, self.sql.db_connection, if_exists="replace", index=False)
 
 
-@log_execution_time
+@log_function_call
 def main():
-    l = LogHelper(__name__)
-    l.info(__file__)
     l.info(f"Converting Google Sheets spreadsheet to SQLite database\n")
 
     converter = SpreadsheetToSqliteDb()

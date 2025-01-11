@@ -1,20 +1,27 @@
 from cls_sqlite_table import SQLiteTable
 from utility_functions import to_valid_method_name
-
 from cls_helper_log import LogHelper
-
-l = LogHelper(__name__)
-# l.setLevelDebug()
-l.debug(__file__)
 
 
 class HMRC_QuestionsByYear(SQLiteTable):
+    yes_no_questions = [
+        "Do ",
+        "Does ",
+        "Has ",
+        "Have ",
+        "Is ",
+        "Was ",
+    ]
+
     def __init__(self, tax_year):
-        l.debug(__class__)
-        l.debug(__name__)
+        self.l = LogHelper("HMRC_QuestionsByYear")
+        self.l.set_level_debug()
+        self.l.debug(__file__)
+        self.l.debug(__class__)
+        self.l.debug(__name__)
         table_name = f"hmrc_questions_{tax_year.replace(' ', '_')}"
         super().__init__(table_name)
-        l.debug(table_name)
+        self.l.debug(table_name)
 
     def __get_questions(self, columns, order_column):
         query = (
@@ -39,7 +46,7 @@ class HMRC_QuestionsByYear(SQLiteTable):
         return questions
 
     def check_questions(self):
-        l.debug("check_questions")
+        self.l.debug("check_questions")
         core_questions = "hmrc_questions"
         query = (
             "SELECT q1.Question"
@@ -50,10 +57,10 @@ class HMRC_QuestionsByYear(SQLiteTable):
         rows = self.sql.fetch_all(query)
         how_many_rows = len(rows)
         if how_many_rows > 0:
-            l.info(f"{how_many_rows} unused questions")
-            l.debug(query)
+            self.l.info(f"{how_many_rows} unused questions")
+            self.l.debug(query)
             for row in rows:
-                l.info(row)
+                self.l.info(row)
 
         query = (
             'SELECT q1.Question, q1."Online order", q2."Printed order"'
@@ -65,10 +72,10 @@ class HMRC_QuestionsByYear(SQLiteTable):
         rows = self.sql.fetch_all(query)
         how_many_rows = len(rows)
         if how_many_rows > 0:
-            l.debug(how_many_rows)
-            l.debug(query)
+            self.l.debug(how_many_rows)
+            self.l.debug(query)
             for row in rows:
-                l.debug(row)
+                self.l.debug(row)
 
     def get_online_questions(self):
         columns = [
@@ -85,21 +92,24 @@ class HMRC_QuestionsByYear(SQLiteTable):
         order_column = "Printed order"
         return self.__get_questions(columns, order_column)
 
-    def to_method_name(self, question):
-        l.debug("\nto_method_name")
-        l.debug(f"question: {question}")
-        reformatted_question = to_valid_method_name(question)
-        l.debug(f"reformatted_question: {reformatted_question}")
+    def is_it_a_yes_no_question(self, question):
+        return any(question.startswith(q) for q in self.yes_no_questions)
 
-        if question[:3] == "If ":
-            l.debug("If matched")
+    def to_method_name(self, question):
+        self.l.debug("\n\nto_method_name")
+        self.l.debug(f"question: {question}")
+        reformatted_question = to_valid_method_name(question)
+        self.l.debug(f"reformatted_question: {reformatted_question}")
+
+        if self.is_it_a_yes_no_question(question):
+            self.l.debug(f"{question} is a yes/no question")
             method_name = reformatted_question
         elif question[-6:] == " (GBP)":
-            l.debug(" (GBP) matched")
+            self.l.debug(" (GBP) matched")
             method_name = "get_" + reformatted_question[:-6] + "_gbp"
         else:
             method_name = "get_" + to_valid_method_name(question)
 
-        l.debug(f"method_name: {method_name}")
+        self.l.debug(f"method_name: {method_name}")
 
         return method_name

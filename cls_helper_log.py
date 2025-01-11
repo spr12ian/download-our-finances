@@ -1,6 +1,7 @@
 from cls_helper_date_time import DateTimeHelper
 from functools import wraps
 import logging
+import os
 import time
 from typing import Any
 
@@ -8,7 +9,8 @@ from typing import Any
 
 DEBUG_FILE = "debug.log"
 logging.basicConfig(filename=DEBUG_FILE, level=logging.INFO)
-
+logger = logging.getLogger(__name__)
+# logger.setLevel(logging.DEBUG)
 
 # Use this snippet:
 # from cls_helper_log import LogHelper
@@ -16,7 +18,7 @@ logging.basicConfig(filename=DEBUG_FILE, level=logging.INFO)
 # l.clear_debug_log()
 
 # To time functions wrap them like this:
-# @LogHelper.log_execution_time
+# @LogHelper.log_function_call
 
 
 class LogHelper:
@@ -31,6 +33,9 @@ class LogHelper:
     }
 
     def __init__(self, name):
+        # print(f"LogHelper name: {name}")
+        name = os.path.basename(name)
+        # print(f"LogHelper basename: {basename}")
         self.logger = logging.getLogger(name)
 
         self.dt = DateTimeHelper()
@@ -128,7 +133,7 @@ class LogHelper:
 
         self.log_debug_level()
 
-    def setLevelDebug(self):
+    def set_level_debug(self):
         self.logger.setLevel(logging.DEBUG)
 
     def tdebug(self, msg):
@@ -151,25 +156,32 @@ class LogHelper:
         self.logger.warning(msg)
 
 
-l = logging.getLogger(__name__)
-# l.setLevel(logging.DEBUG)
-l.debug(l.getEffectiveLevel())
-l.debug(__file__)
+def log_function_call(func):
+    l = logging.getLogger(func.__name__)
+    # l.setLevel(logging.DEBUG)
+    l.debug(__file__)
 
-
-def log_execution_time(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
+        # l.info(f"Called with args: {args} and kwargs: {kwargs}")
+        if len(args):
+            l.debug(f"args: {args}")
+        if len(kwargs):
+            l.debug(f"kwargs: {kwargs}")
+
         start_time = time.time()
-        # print(f"Starting '{func.__name__}' at {time.ctime(start_time)}")
+        l.debug(f"Started at {time.ctime(start_time)}")
 
         result = func(*args, **kwargs)
 
         end_time = time.time()
-        # print(f"Finished '{func.__name__}' at {time.ctime(end_time)}")
+
+        l.debug(f"Finished at {time.ctime(end_time)}")
+
+        l.info(f"Returned: {result}")
 
         execution_time = end_time - start_time
-        l.debug(f"Function '{func.__name__}' executed in {execution_time:.2f} seconds")
+        l.debug(f"Executed in {execution_time:.2f} seconds")
 
         return result
 

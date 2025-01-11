@@ -2,7 +2,7 @@ from cls_helper_log import LogHelper
 import logging
 
 l = LogHelper(__name__)
-# l.setLevelDebug()
+# l.set_level_debug()
 l.debug(__file__)
 
 
