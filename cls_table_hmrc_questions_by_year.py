@@ -5,12 +5,14 @@ from cls_helper_log import LogHelper
 
 class HMRC_QuestionsByYear(SQLiteTable):
     yes_no_questions = [
+        "Are ",
         "Do ",
         "Does ",
         "Has ",
         "Have ",
         "Is ",
         "Was ",
+        "Were ",
     ]
 
     def __init__(self, tax_year):
