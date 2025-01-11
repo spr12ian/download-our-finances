@@ -1,11 +1,12 @@
-from cls_sqlite_table import SQLiteTable
-from utility_functions import to_valid_method_name
 from cls_helper_log import LogHelper
+from cls_sqlite_table import SQLiteTable
+import utility_functions as uf
 
 
 class HMRC_QuestionsByYear(SQLiteTable):
     yes_no_questions = [
         "Are ",
+        "Did ",
         "Do ",
         "Does ",
         "Has ",
@@ -100,7 +101,7 @@ class HMRC_QuestionsByYear(SQLiteTable):
     def to_method_name(self, question):
         self.l.debug("\n\nto_method_name")
         self.l.debug(f"question: {question}")
-        reformatted_question = to_valid_method_name(question)
+        reformatted_question = uf.to_valid_method_name(question)
         self.l.debug(f"reformatted_question: {reformatted_question}")
 
         if self.is_it_a_yes_no_question(question):
@@ -108,9 +109,9 @@ class HMRC_QuestionsByYear(SQLiteTable):
             method_name = reformatted_question
         elif question[-6:] == " (GBP)":
             self.l.debug(" (GBP) matched")
-            method_name = "get_" + reformatted_question[:-6] + "_gbp"
+            method_name = "get_" + uf.crop(reformatted_question, "__gbp_") + "_gbp"
         else:
-            method_name = "get_" + to_valid_method_name(question)
+            method_name = "get_" + reformatted_question
 
         self.l.debug(f"method_name: {method_name}")
 

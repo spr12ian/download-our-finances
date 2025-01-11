@@ -2,6 +2,13 @@ import locale
 import re
 
 
+def crop(string, excess):
+    excess_length = len(excess)
+    if string[-excess_length:] == excess:
+        string = string[:-excess_length]
+    return string
+
+
 def format_as_gbp(amount):
     """
     Format a float as GBP.
