@@ -7,6 +7,7 @@ from cls_real_columns import RealColumns
 import time
 
 from cls_helper_log import LogHelper
+from cls_helper_log import log_execution_time
 
 l = LogHelper(__name__)
 # l.setLevelDebug()
@@ -49,7 +50,7 @@ class SpreadsheetToSqliteDb:
 
         self.sql.close_connection()
 
-    @LogHelper.log_execution_time
+    @log_execution_time
     def convert_worksheet(self, worksheet):
         self.log.info(f"Converting {worksheet.title}")
 
@@ -71,7 +72,7 @@ class SpreadsheetToSqliteDb:
         df.to_sql(table_name, self.sql.db_connection, if_exists="replace", index=False)
 
 
-@LogHelper.log_execution_time
+@log_execution_time
 def main():
     l = LogHelper(__name__)
     l.info(__file__)

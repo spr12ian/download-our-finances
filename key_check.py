@@ -1,5 +1,6 @@
 from cls_helper_google import GoogleHelper
 from cls_helper_log import LogHelper
+from cls_helper_log import log_execution_time
 
 
 l = LogHelper(__name__)
@@ -7,7 +8,7 @@ l = LogHelper(__name__)
 l.debug(__file__)
 
 
-@LogHelper.log_execution_time
+@log_execution_time
 def main():
     goo = GoogleHelper()
 

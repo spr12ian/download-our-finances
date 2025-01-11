@@ -9,10 +9,6 @@ from typing import Any
 DEBUG_FILE = "debug.log"
 logging.basicConfig(filename=DEBUG_FILE, level=logging.INFO)
 
-logger = logging.getLogger(__name__)
-# logger.setLevel(logging.DEBUG)
-logger.debug(logger.getEffectiveLevel())
-logger.debug(__file__)
 
 # Use this snippet:
 # from cls_helper_log import LogHelper
@@ -52,6 +48,9 @@ class LogHelper:
     def error(self, msg):
         self.logger.error(msg)
 
+    def exception(self, msg):
+        self.logger.exception(msg)
+
     def get_date_today(self):
         dt = self.dt
         return dt.get_date_today()
@@ -73,27 +72,6 @@ class LogHelper:
 
     def log_debug_level(self):
         self.info(f"{self.get_level_as_string()}: {self.get_level()}")
-
-    @staticmethod
-    def log_execution_time(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            start_time = time.time()
-            # print(f"Starting '{func.__name__}' at {time.ctime(start_time)}")
-
-            result = func(*args, **kwargs)
-
-            end_time = time.time()
-            # print(f"Finished '{func.__name__}' at {time.ctime(end_time)}")
-
-            execution_time = end_time - start_time
-            logger.debug(
-                f"Function '{func.__name__}' executed in {execution_time:.2f} seconds"
-            )
-
-            return result
-
-        return wrapper
 
     def log_time(self):
         dt = self.dt
@@ -171,3 +149,28 @@ class LogHelper:
 
     def warning(self, msg):
         self.logger.warning(msg)
+
+
+l = logging.getLogger(__name__)
+# l.setLevel(logging.DEBUG)
+l.debug(l.getEffectiveLevel())
+l.debug(__file__)
+
+
+def log_execution_time(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        # print(f"Starting '{func.__name__}' at {time.ctime(start_time)}")
+
+        result = func(*args, **kwargs)
+
+        end_time = time.time()
+        # print(f"Finished '{func.__name__}' at {time.ctime(end_time)}")
+
+        execution_time = end_time - start_time
+        l.debug(f"Function '{func.__name__}' executed in {execution_time:.2f} seconds")
+
+        return result
+
+    return wrapper
