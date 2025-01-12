@@ -1,6 +1,6 @@
 from cls_helper_google import GoogleHelper
 from cls_helper_log import LogHelper
-from cls_helper_log import log_function_call
+from cls_helper_log import debug_function_call
 
 
 l = LogHelper(__file__)
@@ -8,7 +8,7 @@ l = LogHelper(__file__)
 l.debug(__file__)
 
 
-@log_function_call
+@debug_function_call
 def main():
     l.info(__file__)
     goo = GoogleHelper()

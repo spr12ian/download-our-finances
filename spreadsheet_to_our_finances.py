@@ -7,7 +7,7 @@ from cls_real_columns import RealColumns
 import time
 
 from cls_helper_log import LogHelper
-from cls_helper_log import log_function_call
+from cls_helper_log import debug_function_call
 
 l = LogHelper(__file__)
 # l.set_level_debug()
@@ -50,7 +50,7 @@ class SpreadsheetToSqliteDb:
 
         self.sql.close_connection()
 
-    @log_function_call
+    @debug_function_call
     def convert_worksheet(self, worksheet):
         self.log.info(f"Converting {worksheet.title}")
 
@@ -72,7 +72,7 @@ class SpreadsheetToSqliteDb:
         df.to_sql(table_name, self.sql.db_connection, if_exists="replace", index=False)
 
 
-@log_function_call
+@debug_function_call
 def main():
     l.info(f"Converting Google Sheets spreadsheet to SQLite database\n")
 

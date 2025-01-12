@@ -42,10 +42,10 @@ class HMRC:
         questions = self.get_questions()
 
         answers = []
-        for question, section, header, box, method_name in questions:
+        for question, section, header, box, method_name, information in questions:
             answer = self.call_method(method_name)
 
-            answers.append([question, section, header, box, answer])
+            answers.append([question, section, header, box, answer, information])
 
         return answers
 
@@ -371,7 +371,7 @@ class HMRC:
 
         return total_interest > 0
 
-    def any_child_benefit(self):
+    def did_you_receive_child_benefit(self):
         return False
 
     def any_income_tax_losses(self):
@@ -1762,7 +1762,7 @@ class HMRC:
     def claim_married_couple_s_allowance(self):
         return False
 
-    def is_trading_income___vat_registration_cusp(self):
+    def is_trading_income_more_than_vat_registration_cusp(self):
         trading_income = self.get_trading_income()
         vat_registration_cusp = self.get_vat_registration_threshold()
 
@@ -2061,11 +2061,15 @@ class HMRC:
             "============================================================================\n"
         )
 
-    def print_formatted_answer(self, question, section, header, box, answer):
-        #     self.l.debug("print_formatted_answer")
-        #     self.l.debug(f"\n{question}\n")
-        #     self.l.debug(f"{section} - {header} - Box {box}")
-        #     self.l.debug(f"Answer: {answer}")
+    def print_formatted_answer(
+        self, question, section, header, box, answer, information
+    ):
+        self.l.debug("print_formatted_answer")
+        self.l.debug(f"\n{question}\n")
+        self.l.debug(f"{section} - {header} - Box {box}")
+        self.l.debug(f"answer: {answer}")
+        self.l.debug(f"information: {information}")
+
         if section != self.previous_section:
             self.previous_section = section
             print(f"\n\n{section.upper()}\n")
@@ -2092,6 +2096,9 @@ class HMRC:
         else:
             formatted_answer = self.position_answer([box, question, answer])
 
+        if len(information):
+            print(information)
+
         print(formatted_answer)
 
     def print_report(self, report_type):
@@ -2101,8 +2108,10 @@ class HMRC:
 
         self.print_title()
 
-        for question, section, header, box, answer in answers:
-            self.print_formatted_answer(question, section, header, box, answer)
+        for question, section, header, box, answer, information in answers:
+            self.print_formatted_answer(
+                question, section, header, box, answer, information
+            )
 
         self.print_end_of_tax_return()
 

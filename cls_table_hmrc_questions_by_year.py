@@ -29,13 +29,26 @@ class HMRC_QuestionsByYear(SQLiteTable):
         self.l.debug(f"table_name: {table_name}")
 
     def __get_questions(self, columns, order_column):
+        self.l.debug(f"columns: {columns}")
+        self.l.debug(f"order_column: {order_column}")
+
+        columns_as_string = self.convert_columns_to_string(columns)
+
         query = (
-            self.query_builder()
-            .select(*columns)
-            .where(f'"{order_column}" > 0')
-            .order(order_column)
-            .build()
+            f'SELECT {columns_as_string}, q2."Additional information"'
+            + " FROM hmrc_questions_2023_to_2024 q1 JOIN hmrc_questions q2"
+            + " ON q1.Question = q2.Question"
+            + f' WHERE q1."{order_column}" > 0'
+            + f' ORDER BY q1."{order_column}" ASC'
         )
+
+        self.l.debug(f"query: {query}")
+
+        # SELECT q1."Question", q1."Online section", q1."Online header", q1."Online box", q2."Additional information"
+        # FROM hmrc_questions_2023_to_2024 q1 JOIN hmrc_questions q2
+        # ON q1.Question = q2.Question
+        # WHERE q1."Online order" > 0
+        # ORDER BY q1."Online order" ASC
 
         questions = [
             [
@@ -44,11 +57,15 @@ class HMRC_QuestionsByYear(SQLiteTable):
                 row[2],  # header
                 row[3],  # box
                 self.to_method_name(row[0]),  # method
+                row[4],  # additional information
             ]
             for row in self.sql.fetch_all(query)
         ]
 
         return questions
+
+    def convert_columns_to_string(self, columns):
+        return ", ".join([f'q1."{column}"' for column in columns])
 
     def check_questions(self):
         self.l.debug("check_questions")

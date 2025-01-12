@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 # l.clear_debug_log()
 
 # To time functions wrap them like this:
-# @LogHelper.log_function_call
+# @LogHelper.debug_function_call
 
 
 class LogHelper:
