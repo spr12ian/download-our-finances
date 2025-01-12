@@ -294,7 +294,7 @@ class HMRC:
     def were_you_self_employed_in_this_tax_year(self):
         return True
 
-    def any_dividends(self):
+    def did_you_receive_dividend_income(self):
         person_code = self.person_code
         tax_year = self.tax_year
 

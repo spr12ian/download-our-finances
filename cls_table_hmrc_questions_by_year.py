@@ -22,9 +22,11 @@ class HMRC_QuestionsByYear(SQLiteTable):
         self.l.debug(__file__)
         self.l.debug(__class__)
         self.l.debug(__name__)
+
         table_name = f"hmrc_questions_{tax_year.replace(' ', '_')}"
         super().__init__(table_name)
-        self.l.debug(table_name)
+
+        self.l.debug(f"table_name: {table_name}")
 
     def __get_questions(self, columns, order_column):
         query = (

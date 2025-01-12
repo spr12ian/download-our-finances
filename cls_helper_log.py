@@ -37,6 +37,7 @@ class LogHelper:
         name = os.path.basename(name)
         # print(f"LogHelper basename: {basename}")
         self.logger = logging.getLogger(name)
+        self.saved_level = self.get_level()
 
         self.dt = DateTimeHelper()
 
@@ -49,6 +50,13 @@ class LogHelper:
 
     def debug(self, msg):
         self.logger.debug(msg)
+
+    def disable(self):
+        self.saved_level = self.get_level()
+        self.logger.setLevel(logging.CRITICAL)
+
+    def enable(self):
+        self.logger.setLevel(self.saved_level)
 
     def error(self, msg):
         self.logger.error(msg)
@@ -156,16 +164,16 @@ class LogHelper:
         self.logger.warning(msg)
 
 
-def log_function_call(func):
+def debug_function_call(func):
     l = logging.getLogger(func.__name__)
     # l.setLevel(logging.DEBUG)
     l.debug(__file__)
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        # l.info(f"Called with args: {args} and kwargs: {kwargs}")
         if len(args):
             l.debug(f"args: {args}")
+
         if len(kwargs):
             l.debug(f"kwargs: {kwargs}")
 
@@ -178,7 +186,7 @@ def log_function_call(func):
 
         l.debug(f"Finished at {time.ctime(end_time)}")
 
-        l.info(f"Returned: {result}")
+        l.debug(f"Returned: {result}")
 
         execution_time = end_time - start_time
         l.debug(f"Executed in {execution_time:.2f} seconds")
