@@ -972,15 +972,37 @@ class HMRC:
         if not rows:
             return ""  # Return an empty string if no rows are fetched
 
+        # Widths assume output printed is Courier New size 10 in landscape
+
+        max_description_width = 40
+        max_category_width = max_description_width
+
         # Use a list for efficient concatenation
         breakdown = ["Date | Account | Description | Note | Nett | Category"]
         for row in rows:
             breakdown.append(
-                f"{row[0]} | {row[1]} | {row[2]} | {row[3]} | {row[4]} | {row[5]}"
+                f"{row[0]} | {row[1]} | {row[2][:max_description_width]} | {row[3]} | {row[4]} | {row[5][:max_category_width]}"
             )
 
-        # Join the rows with newline characters
-        return "\n".join(breakdown)
+        return self.format_breakdown(breakdown)
+
+    def format_breakdown(self, breakdown) -> str:
+        # Split each line into fields by the '|' delimiter
+        fields = [line.split("|") for line in breakdown]
+
+        # Determine the maximum width of each column
+        max_widths = [max(len(field.strip()) for field in col) for col in zip(*fields)]
+
+        # Format each line by aligning fields to their respective column widths
+        formatted_lines = [
+            " | ".join(
+                field.strip().ljust(width) for field, width in zip(line, max_widths)
+            )
+            for line in fields
+        ]
+
+        # Join all formatted lines with newlines
+        return "\n" + "\n".join(formatted_lines)
 
     def get_property_expenses_breakdown(self):
         # search the transactions table for any records in this tax year
