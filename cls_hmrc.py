@@ -194,10 +194,10 @@ class HMRC:
     def did_all_property_income_cease(self):
         return False
 
-    def get_uk_furnished_holiday_lettings_income(self):
+    def did_you_get_uk_furnished_holiday_lettings_income(self):
         return False
 
-    def get_eea_furnished_holiday_lettings_income(self):
+    def did_you_get_eea_furnished_holiday_lettings_income(self):
         return False
 
     def get_class_4_nics_due(self):
@@ -291,10 +291,7 @@ class HMRC:
     def have_you_any_income_from_property_let_jointly(self):
         return "Check what this means"
 
-    def were_you_self_employed_in_this_tax_year(self):
-        return True
-
-    def did_you_receive_dividend_income(self):
+    def did_you_get_dividend_income(self):
         person_code = self.person_code
         tax_year = self.tax_year
 
@@ -362,7 +359,7 @@ class HMRC:
     def were_you_in_partnership_s__this_tax_year(self):
         return False
 
-    def did_you_receive_uk_interest(self):
+    def did_you_get_uk_interest(self):
         taxed_uk_interest = self.get_taxed_uk_interest()
 
         untaxed_uk_interest = self.get_untaxed_uk_interest()
@@ -371,7 +368,7 @@ class HMRC:
 
         return total_interest > 0
 
-    def did_you_receive_child_benefit(self):
+    def did_you_get_child_benefit(self):
         return False
 
     def any_income_tax_losses(self):
@@ -392,7 +389,7 @@ class HMRC:
     def get_tr_please_give_any_other_information_in_this_space(self):
         return ""
 
-    def get_additional_information__yes_no_(self):
+    def get_additional_information(self):
         return "Maybe: Married couples allowance section"
         # return False
 
@@ -444,7 +441,7 @@ class HMRC:
         else:
             return f"Not claimed: Total property expenses {total_property_expenses} exceed property income allowance {property_income_allowance}"
 
-    def cash_basis(self):
+    def did_you_use_cash_basis(self):
         return True
 
     def get_tax_taken_off_any_income_in_box_20(self):
@@ -606,7 +603,7 @@ class HMRC:
     def get_amount_of_underpaid_tax_for_earlier_years__paye__gbp(self):
         return uf.format_as_gbp(0)
 
-    def get__q164__is_this_figure_correct__yes_no_(self):
+    def get__q164__is_this_figure_correct(self):
         return True
 
     def get_estimated_underpaid_tax_for_this_tax_year_paye_gbp(self):
@@ -735,7 +732,7 @@ class HMRC:
             tax_year, f"HMRC {person_code} INC Foreign dividends"
         )
 
-    def did_you_receive_any_foreign_income(self):
+    def did_you_get_any_foreign_income(self):
         return False
 
     def get_full_utr(self) -> str:
@@ -851,7 +848,7 @@ class HMRC:
 
     def get_business_description(self):
         if self.get_how_many_businesses() > 0:
-            business_name = self.get_business_1_name()
+            business_name = self.get_business_name()
             hmrc_business = HMRC_Businesses(business_name)
             business_description = hmrc_business.get_business_description()
 
@@ -861,7 +858,7 @@ class HMRC:
 
     def get_business_postcode(self):
         if self.get_how_many_businesses() > 0:
-            business_name = self.get_business_1_name()
+            business_name = self.get_business_name()
             hmrc_business = HMRC_Businesses(business_name)
             business_postcode = hmrc_business.get_business_postcode()
 
@@ -884,9 +881,6 @@ class HMRC:
     def get_date_the_books_are_made_up_to(self):
         end_year = self.tax_year[-4:]
         return f"05/04/{end_year}"
-
-    def cash_basis(self):
-        return True
 
     def get_property_income(self) -> float:
         person_code = self.person_code
@@ -1308,13 +1302,13 @@ class HMRC:
     def get_construction_industry_deductions_gbp(self):
         return False
 
-    def were_you___sp_age_at_tax_year_start(self):
+    def were_you_at_least_state_pension_age_at_tax_year_start(self):
         return False
 
     def were_you_under_16_at_tax_year_start(self):
         return False
 
-    def not_resident_in_uk_during_the_tax_year(self):
+    def were_you_not_resident_in_uk_during_the_tax_year(self):
         return False
 
     def are_you_a_trustee__executor_or_administrator(self):
@@ -1771,37 +1765,32 @@ class HMRC:
     def are_you_affected_by_basis_period_reform(self):
         return False
 
-    def are_you_a_foster_carer(self):
-        return False
-
     def do_you_wish_to_make_an_adjustment_to_your_profits(self):
         return False
 
     def are_you_a_farmer(self):
         return False
 
-    def are_results_already_declared_on_a_previous_return(self):
+    def were_any_results_already_declared_on_a_previous_return(self):
         return False
 
-    def are_basis_period_different_to_accounting_period(self):
+    def is_the_basis_period_different_to_the_accounting_period(self):
         return False
 
-    def is_your_business_carried_on_abroad__yes_no_(self):
+    def is_your_business_carried_on_abroad(self):
         return False
 
-    def get_i_need_to_claim__overlap_relief___yes_no_(self):
+    def get_i_need_to_claim__overlap_relief_(self):
         return False
 
-    def get_income__trading_allowance__volunteer_c2_nics__yes_no_(self):
+    def get_income__trading_allowance__volunteer_c2_nics(self):
         trading_income = self.get_trading_income()
         trading_allowance = self.get_trading_allowance()
-        pay_voluntarily_nics = (
-            self.get_do_you_want_to_pay_class_2_nics_voluntarily__yes_no_()
-        )
+        pay_voluntarily_nics = self.get_do_you_want_to_pay_class_2_nics_voluntarily()
 
         return trading_income <= trading_allowance and pay_voluntarily_nics
 
-    def get_income__trading_allowance__claim_back_cis__yes_no_(self):
+    def get_income__trading_allowance__claim_back_cis(self):
         return False
 
     def get_loss(self):
@@ -1824,46 +1813,37 @@ class HMRC:
 
     def do_none_of_these_apply_business_1_page_1(self):
         conditions = [
-            self.get_annual_trading_income___vat_registration_cusp__yes_no_(),
-            self.get_affected_by_basis_period_reform__yes_no_(),
-            self.get_i_am_a_foster_carer__yes_no_(),
-            self.get_i_wish_to_make_an_adjustment_to_your_profits__yes_no_(),
-            self.get_i_am_a_farmer__yes_no_(),
-            self.get_results_already_declared_on_a_previous_return__yes_no_(),
-            self.get_basis_period_different_to_accounting_period__yes_no_(),
-            self.get_your_business_is_carried_on_abroad__yes_no_(),
-            self.get_i_need_to_claim__overlap_relief___yes_no_(),
-            self.get_income__trading_allowance__volunteer_c2_nics__yes_no_(),
-            self.get_income__trading_allowance__claim_back_cis__yes_no_(),
-            self.get_income__trading_allowance__made_a_loss__yes_no_(),
+            self.is_trading_income_more_than_vat_registration_cusp(),
+            self.are_you_affected_by_basis_period_reform(),
+            self.are_you_a_foster_carer(),
+            self.do_you_wish_to_make_an_adjustment_to_your_profits(),
+            self.are_you_a_farmer(),
+            self.were_any_results_already_declared_on_a_previous_return(),
+            self.is_the_basis_period_different_to_the_accounting_period(),
+            self.is_your_business_carried_on_abroad(),
+            self.get_i_need_to_claim__overlap_relief_(),
+            self.get_income__trading_allowance__volunteer_c2_nics(),
+            self.get_income__trading_allowance__claim_back_cis(),
+            self.get_income__trading_allowance__made_a_loss(),
         ]
 
-        return self.all_conditions_are_false(conditions)
-
-    def all_conditions_are_false(self, conditions):
-        if not self.all_items_are_boolean(conditions):
-            raise ValueError("Not all conditions are boolean")
-
-        return not any(conditions)
-
-    def all_items_are_boolean(self, lst):
-        return all(isinstance(item, bool) for item in lst)
+        return uf.all_conditions_are_false(conditions)
 
     def do_none_of_these_apply_class_4_nics(self):
         conditions = [
-            self.get_you_were____sp_age_at_tax_year_start__yes_no_(),
-            self.get_you_were_under_16_at_tax_year_start__yes_no_(),
-            self.get_not_resident_in_uk_during_the_tax_year__yes_no_(),
-            self.get_you_are_a_trustee__executor_or_administrator__yes_no_(),
-            self.get_you_are_a_diver__yes_no_(),
+            self.get_you_were____sp_age_at_tax_year_start(),
+            self.get_you_were_under_16_at_tax_year_start(),
+            self.get_not_resident_in_uk_during_the_tax_year(),
+            self.get_you_are_a_trustee__executor_or_administrator(),
+            self.get_you_are_a_diver(),
         ]
 
-        return self.all_conditions_are_false(conditions)
+        return uf.all_conditions_are_false(conditions)
 
-    def get_if_new_business__enter_start_date(self):
+    def get_business_end_date(self):
         return ""
 
-    def get_if_business_gone__enter_end_date(self):
+    def get_business_start_date(self):
         return ""
 
     def is_income___pa__spouse_income___higher_rate_cusp(self):
@@ -2000,9 +1980,6 @@ class HMRC:
 
         return how_many > 0
 
-    def were_you_in_partnership_s__this_tax_year(self):
-        return False
-
     def were_you_self_employed_in_this_tax_year(self):
         # search the transactions table for any records in this tax year
         # which have an employment income category for the current person
@@ -2037,9 +2014,9 @@ class HMRC:
 
     def position_answer(self, string_list) -> str:
         if self.report_type == HMRC.ONLINE_REPORT:
-            widths = [54]  # Define column widths
+            widths = [55]  # Define column widths
         else:
-            widths = [5, 59]
+            widths = [5, 60]
 
         how_many = len(widths)  # How many columns to format
 

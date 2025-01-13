@@ -124,7 +124,7 @@ class HMRC_QuestionsByYear(SQLiteTable):
         self.l.debug(f"reformatted_question: {reformatted_question}")
 
         if self.is_it_a_yes_no_question(question):
-            self.l.debug(f"{question} is a yes/no question")
+            self.l.debug(f"Yes/No question: {question}")
             method_name = reformatted_question
         elif question[-6:] == " (GBP)":
             self.l.debug(" (GBP) matched")

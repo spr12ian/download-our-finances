@@ -80,6 +80,9 @@ class LogHelper:
     def info(self, msg):
         self.logger.info(msg)
 
+    def is_debug_enabled(self):
+        return self.get_level() == logging.DEBUG
+
     def log_date_today(self):
         self.info(f"{self.get_date_today()}")
 
@@ -92,6 +95,10 @@ class LogHelper:
         time_now = dt.get_time_now()
 
         self.info("Current Time:", time_now)
+
+    def print(self, msg):
+        self.info(msg)
+        print(msg)
 
     def set_level(self, level: Any) -> None:
         if isinstance(level, int):

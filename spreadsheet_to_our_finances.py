@@ -1,4 +1,5 @@
 from cls_date_columns import DateColumns
+from cls_helper_config import ConfigHelper
 from cls_helper_google import GoogleHelper
 from cls_helper_pandas import PandasHelper
 from cls_helper_sql import SQL_Helper
@@ -23,6 +24,11 @@ class SpreadsheetToSqliteDb:
             credentials_path (str): Path to your Google Cloud service account JSON
             spreadsheet_name (str): Name of the Google Spreadsheet
         """
+        config = ConfigHelper()
+        if config["Google"]["convert_underscore_tables"] == "No":
+            self.convert_underscore_tables = False
+        else:
+            self.convert_underscore_tables = True
 
         self.log = LogHelper("SpreadsheetToSqliteDb")
 
@@ -44,9 +50,10 @@ class SpreadsheetToSqliteDb:
 
         # Iterate through all worksheets
         for worksheet in self.spreadsheet.worksheets():
-            self.convert_worksheet(worksheet)
+            if self.convert_underscore_tables or not worksheet.title.startswith("_"):
+                self.convert_worksheet(worksheet)
 
-            time.sleep(1.1)  # Prevent Google API rate limiting
+                time.sleep(1.1)  # Prevent Google API rate limiting
 
         self.sql.close_connection()
 
@@ -74,14 +81,14 @@ class SpreadsheetToSqliteDb:
 
 @debug_function_call
 def main():
-    l.info(f"Converting Google Sheets spreadsheet to SQLite database\n")
+    l.print(f"Converting Google Sheets spreadsheet to SQLite database\n")
 
     converter = SpreadsheetToSqliteDb()
 
     # Convert spreadsheet to SQLite
     converter.convert_to_sqlite()
 
-    l.info(f"Converted Google Sheets spreadsheet to SQLite database")
+    l.print(f"Converted Google Sheets spreadsheet to SQLite database")
 
 
 if __name__ == "__main__":

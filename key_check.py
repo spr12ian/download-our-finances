@@ -10,7 +10,6 @@ l.debug(__file__)
 
 @debug_function_call
 def main():
-    l.info(__file__)
     goo = GoogleHelper()
 
     # Define the required scopes
@@ -20,6 +19,10 @@ def main():
     ]
 
     spreadsheet = goo.get_spreadsheet(scopes)
+
+    l.print(
+        f'Successfully connected to "{spreadsheet.title}" Google Sheets spreadsheet'
+    )
 
 
 if __name__ == "__main__":
