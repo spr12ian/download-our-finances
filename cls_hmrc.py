@@ -142,34 +142,57 @@ class HMRC:
     def get_total_income_gbp(self):
         return uf.format_as_gbp(self.get_total_income())
 
-    def claim_marriage_allowance(self):
+    def get_marriage_allowance_transfer_amount(self):
         if self.get_marital_status() != "Married":
-            return "No: not married"
+            return 0
 
         total_income = self.get_total_income()
 
         spouse_total_income = self.get_spouse_total_income()
 
         if total_income > spouse_total_income:
-            gbp_total_income = uf.format_as_gbp(total_income)
-            gbp_spouse_total_income = uf.format_as_gbp(spouse_total_income)
-            return f"No: Total income {gbp_total_income} > spouse total income {gbp_spouse_total_income}"
+            return 0
 
         marriage_allowance = self.constants.get_marriage_allowance()
 
         personal_allowance = self.constants.get_personal_allowance()
 
-        if total_income > personal_allowance:
-            gbp_total_income = uf.format_as_gbp(total_income)
-            gbp_personal_allowance = uf.format_as_gbp(personal_allowance)
-            return f"No: Total income {gbp_total_income} > personal allowance {gbp_personal_allowance}"
-
-        claimed_marriage_allowance = min(
-            marriage_allowance, personal_allowance - total_income
+        total_income_excluding_tax_free_savings = (
+            self.get_total_income_excluding_tax_free_savings()
         )
-        gbp_claimed_marriage_allowance = uf.format_as_gbp(claimed_marriage_allowance)
 
-        return f"Yes: expect to claim {gbp_claimed_marriage_allowance}"
+        if total_income_excluding_tax_free_savings > personal_allowance:
+            return 0
+
+        return min(
+            marriage_allowance,
+            personal_allowance - total_income_excluding_tax_free_savings,
+        )
+
+    def get_marriage_allowance_transfer_amount_gbp(self):
+        return uf.format_as_gbp(self.get_marriage_allowance_transfer_amount())
+
+    def are_you_claiming_marriage_allowance(self):
+        if self.get_marital_status() != "Married":
+            return False
+
+        total_income = self.get_total_income()
+
+        spouse_total_income = self.get_spouse_total_income()
+
+        if total_income > spouse_total_income:
+            return False
+
+        personal_allowance = self.constants.get_personal_allowance()
+
+        total_income_excluding_tax_free_savings = (
+            self.get_total_income_excluding_tax_free_savings()
+        )
+
+        if total_income_excluding_tax_free_savings > personal_allowance:
+            return False
+
+        return True
 
     def get_class_2_nics_weekly_rate(self):
         return self.constants.get_class_2_nics_weekly_rate()
@@ -300,17 +323,31 @@ class HMRC:
 
         return trading_income > trading_allowance
 
-    def any_pensions__annuities__or_state_benefits(self):
+    def did_you_get_pensions__annuities__or_state_benefits(self):
+
+        total = self.get_pensions() + self.get_state_benefits()
+
+        return total > 0
+
+    def get_pensions(self):
+        person_code = self.person_code
+        tax_year = self.tax_year
+
+        category_like = f"HMRC {person_code} PEN income: "
+
+        return self.transactions.fetch_total_by_tax_year_category_like(
+            tax_year, category_like
+        )
+
+    def get_state_benefits(self):
         person_code = self.person_code
         tax_year = self.tax_year
 
         category_like = f"HMRC {person_code} BEN income: "
 
-        total = self.transactions.fetch_total_by_tax_year_category_like(
+        return self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
-
-        return total > 0
 
     def get_how_many_businesses(self):
         hmrc_businesses = self.get_hmrc_businesses()
@@ -366,9 +403,6 @@ class HMRC:
         return total_interest > 0
 
     def did_you_get_child_benefit(self):
-        return False
-
-    def any_income_tax_losses(self):
         return False
 
     def get_decrease_in_tax_due_to_adjustments_to_an_earlier_year(self):
@@ -546,8 +580,19 @@ class HMRC:
     def get_rental_income_gbp(self):
         return "Undefined"
 
-    def get_total_expenses_gbp(self):
-        return "Undefined"
+    def get_total_income_excluding_tax_free_savings(self):
+        total_income = self.get_total_income()
+        savings_income = self.get_savings_income()
+
+        return total_income - savings_income
+
+    def get_total_income__excluding_tax_free_savings__gbp(self):
+        trading_income_gbp = self.get_trading_income__turnover__gbp()
+        property_income_gbp = self.get_property_income_gbp()
+        t_and_p_gbp = uf.format_as_gbp(
+            self.get_total_income_excluding_tax_free_savings()
+        )
+        return f"{trading_income_gbp} (trading) {property_income_gbp} (property) = {t_and_p_gbp}"
 
     def get_adjustments_gbp(self):
         return "Undefined"
@@ -1327,7 +1372,7 @@ class HMRC:
             tax_year, f"HMRC {person_code} INC Other dividends"
         )
 
-    def other_taxable_income(self):
+    def did_you_get_other_taxable_income(self):
         return False
 
     def get_payments_to_pension_schemes__relief_at_source(self):
@@ -1734,7 +1779,7 @@ class HMRC:
     def did_you_give_to_charity(self):
         return False
 
-    def claim_married_couple_s_allowance(self):
+    def are_you_claiming_married_couple_s_allowance(self):
         return False
 
     def is_trading_income_more_than_vat_registration_cusp(self):
@@ -2062,6 +2107,9 @@ class HMRC:
 
         self.previous_section = ""
         self.previous_header = ""
+
+    def were_there_income_tax_losses(self):
+        return False
 
     def were_you_employed_in_this_tax_year(self) -> bool:
         # search the transactions table for any records in this tax year
