@@ -30,6 +30,9 @@ class HMRC:
 
         self.sql = SQL_Helper().select_sql_helper("SQLite")
 
+    def are_you_liable_to_pension_savings_tax_charges(self):
+        return False
+
     def call_method(self, method_name):
         self.l.debug(f"Calling method: {method_name}")
         try:
@@ -37,6 +40,36 @@ class HMRC:
             return method()
         except AttributeError:
             self.l.error(f'\tdef {method_name}(self): return "Undefined"')
+
+    def did_property_rental_income_cease(self):
+        return False
+
+    def did_you_get_dividend_income(self):
+        person_code = self.person_code
+        tax_year = self.tax_year
+
+        category_like = f"HMRC {person_code} DIV income: "
+
+        total = self.transactions.fetch_total_by_tax_year_category_like(
+            tax_year, category_like
+        )
+
+        return total > 0
+
+    def did_you_get_eea_furnished_holiday_lettings_income(self):
+        return False
+
+    def did_you_get_income_from_property_let_jointly(self):
+        return False
+
+    def did_you_get_uk_furnished_holiday_lettings_income(self):
+        return False
+
+    def get_allowable_property_expenses_gbp(self):
+        if self.use_property_income_allowance:
+            return uf.format_as_gbp(0)
+        else:
+            return uf.format_as_gbp(self.get_allowable_property_expenses())
 
     def get_answers(self):
         questions = self.get_questions()
@@ -52,17 +85,8 @@ class HMRC:
     def get_any_other_information(self):
         return False
 
-    def are_you_liable_to_pension_savings_tax_charges(self):
-        return False
-
     def get_balancing_charges_gbp(self):
         return uf.format_as_gbp(0)
-
-    def get_allowable_property_expenses_gbp(self):
-        if self.use_property_income_allowance:
-            return uf.format_as_gbp(0)
-        else:
-            return uf.format_as_gbp(self.get_allowable_property_expenses())
 
     def get_property_allowance_gbp(self):
         property_allowance = self.get_property_allowance()
@@ -188,18 +212,6 @@ class HMRC:
 
         return how_many
 
-    def do_you_have_any_income_from_property_let_jointly(self):
-        return False
-
-    def did_all_property_income_cease(self):
-        return False
-
-    def did_you_get_uk_furnished_holiday_lettings_income(self):
-        return False
-
-    def did_you_get_eea_furnished_holiday_lettings_income(self):
-        return False
-
     def get_class_4_nics_due(self):
         return "Not applicable"
 
@@ -287,21 +299,6 @@ class HMRC:
         trading_income = self.get_trading_income()
 
         return trading_income > trading_allowance
-
-    def have_you_any_income_from_property_let_jointly(self):
-        return "Check what this means"
-
-    def did_you_get_dividend_income(self):
-        person_code = self.person_code
-        tax_year = self.tax_year
-
-        category_like = f"HMRC {person_code} DIV income: "
-
-        total = self.transactions.fetch_total_by_tax_year_category_like(
-            tax_year, category_like
-        )
-
-        return total > 0
 
     def any_pensions__annuities__or_state_benefits(self):
         person_code = self.person_code
@@ -603,14 +600,8 @@ class HMRC:
     def get_amount_of_underpaid_tax_for_earlier_years__paye__gbp(self):
         return uf.format_as_gbp(0)
 
-    def get__q164__is_this_figure_correct(self):
-        return True
-
     def get_estimated_underpaid_tax_for_this_tax_year_paye_gbp(self):
         return uf.format_as_gbp(0)
-
-    def is_this_figure_correct_q166(self):
-        return True
 
     def get_outstanding_debt_included_in_tax_code(self):
         return 0
@@ -750,16 +741,6 @@ class HMRC:
         return self.person.get_marital_status()
 
     def are_you_registered_blind(self):
-        return False
-
-    def is_your_address_correct(self):
-        address = f"Yes: {self.person.get_address()}"
-        return address
-
-    def is_student_loan_repayment_due(self):
-        return False
-
-    def is_postgraduate_loan_repayment_due(self):
         return False
 
     def get_how_many_self_employed_businesses_did_you_have(self):
@@ -975,7 +956,7 @@ class HMRC:
         breakdown = ["Date | Account | Description | Note | Nett | Category"]
         for row in rows:
             breakdown.append(
-                f"{row[0]} | {row[1]} | {row[2][:max_description_width]} | {row[3]} | {row[4]} | {row[5][:max_category_width]}"
+                f"{row[0]} | {row[1]} | {row[2][:max_description_width]} | {row[3]} | {row[4]:>10.2f} | {row[5][:max_category_width]}"
             )
 
         return self.format_breakdown(breakdown)
@@ -1302,7 +1283,7 @@ class HMRC:
     def get_construction_industry_deductions_gbp(self):
         return False
 
-    def were_you_at_least_state_pension_age_at_tax_year_start(self):
+    def were_you_over_state_pension_age_at_tax_year_start(self):
         return False
 
     def were_you_under_16_at_tax_year_start(self):
@@ -1829,13 +1810,13 @@ class HMRC:
 
         return uf.all_conditions_are_false(conditions)
 
-    def do_none_of_these_apply_class_4_nics(self):
+    def did_none_of_these_apply__class_4_nics_(self):
         conditions = [
-            self.get_you_were____sp_age_at_tax_year_start(),
-            self.get_you_were_under_16_at_tax_year_start(),
-            self.get_not_resident_in_uk_during_the_tax_year(),
-            self.get_you_are_a_trustee__executor_or_administrator(),
-            self.get_you_are_a_diver(),
+            self.were_you_over_state_pension_age_at_tax_year_start(),
+            self.were_you_under_16_at_tax_year_start(),
+            self.were_you_not_resident_in_uk_during_the_tax_year(),
+            self.are_you_a_trustee__executor_or_administrator(),
+            self.are_you_a_diver(),
         ]
 
         return uf.all_conditions_are_false(conditions)
@@ -1962,41 +1943,21 @@ class HMRC:
     def get_your_phone_number(self):
         return self.person.get_phone_number()
 
-    def were_you_employed_in_this_tax_year(self):
-        # search the transactions table for any records in this tax year
-        # which have an employment income category for the current person
-        person_code = self.person.code
-        tax_year = self.tax_year
-        query = (
-            self.transactions.query_builder()
-            .select_raw("COUNT(*)")
-            .where(
-                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} EMP%income"'
-            )
-            .build()
-        )
+    def is_the_underpaid_tax_amount_for_earlier_years_correct(self) -> bool:
+        return True
 
-        how_many = self.sql.fetch_one_value(query)
+    def is_the_underpaid_tax_amount_for_this_tax_year_correct(self) -> bool:
+        return True
 
-        return how_many > 0
+    def is_your_address_correct(self):
+        address = f"Yes: {self.person.get_address()}"
+        return address
 
-    def were_you_self_employed_in_this_tax_year(self):
-        # search the transactions table for any records in this tax year
-        # which have an employment income category for the current person
-        person_code = self.person.code
-        tax_year = self.tax_year
-        query = (
-            self.transactions.query_builder()
-            .select_raw("COUNT(*)")
-            .where(
-                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} SES%income"'
-            )
-            .build()
-        )
+    def is_student_loan_repayment_due(self) -> bool:
+        return False
 
-        how_many = self.sql.fetch_one_value(query)
-
-        return how_many > 0
+    def is_postgraduate_loan_repayment_due(self) -> bool:
+        return False
 
     def list_categories(self):
         query = (
@@ -2101,3 +2062,39 @@ class HMRC:
 
         self.previous_section = ""
         self.previous_header = ""
+
+    def were_you_employed_in_this_tax_year(self) -> bool:
+        # search the transactions table for any records in this tax year
+        # which have an employment income category for the current person
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("COUNT(*)")
+            .where(
+                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} EMP%income"'
+            )
+            .build()
+        )
+
+        how_many = self.sql.fetch_one_value(query)
+
+        return how_many > 0
+
+    def were_you_self_employed_in_this_tax_year(self) -> bool:
+        # search the transactions table for any records in this tax year
+        # which have an employment income category for the current person
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("COUNT(*)")
+            .where(
+                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} SES%income"'
+            )
+            .build()
+        )
+
+        how_many = self.sql.fetch_one_value(query)
+
+        return how_many > 0
