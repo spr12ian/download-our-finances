@@ -1075,7 +1075,8 @@ class HMRC:
         trading_allowance = self.get_trading_allowance()
         return uf.format_as_gbp(trading_allowance)
 
-    def get_claimed_property_allowance(self):
+    def get_claimed_property_allowance_gbp(self):
+        self.l.debug("get_claimed_property_allowance")
         if self.use_property_allowance():
             property_allowance = self.get_property_allowance()
             return uf.format_as_gbp(property_allowance)
@@ -1536,8 +1537,8 @@ class HMRC:
     def get_if_you_filled_in_boxes_23_and_24_enter_your_name(self):
         return "Not applicable"
 
-    def get_and_your_address(self):
-        return "Not applicable"
+    def get_your_address(self):
+        return self.person.get_address()
 
     def get_gilt_interest_after_tax_taken_off(self):
         return "Not applicable"
@@ -1970,9 +1971,8 @@ class HMRC:
     def is_the_underpaid_tax_amount_for_this_tax_year_correct(self) -> bool:
         return True
 
-    def is_your_address_correct(self):
-        address = f"Yes: {self.person.get_address()}"
-        return address
+    def is_the_address_shown_above_correct(self):
+        return True
 
     def is_student_loan_repayment_due(self) -> bool:
         return False
