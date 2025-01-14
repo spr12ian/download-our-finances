@@ -12,7 +12,7 @@ class HMRC:
 
     def __init__(self, person_code, tax_year):
         self.l = LogHelper("HMRC")
-        # self.l.set_level_debug()
+        self.l.set_level_debug()
         self.l.debug(__file__)
 
         self.person_code = person_code
@@ -1016,7 +1016,8 @@ class HMRC:
         # Format each line by aligning fields to their respective column widths
         formatted_lines = [
             " | ".join(
-                field.strip().ljust(width) for field, width in zip(line, max_widths)
+                field.strip().ljust(width) if index != 4 else field.strip().rjust(width)
+                for index, (field, width) in enumerate(zip(line, max_widths))
             )
             for line in fields
         ]
