@@ -302,12 +302,6 @@ class HMRC:
     def get_additional_information(self):
         return "Maybe: Married couples allowance section"
 
-    def get_property_adjustments_gbp(self):
-        return "Undefined"
-
-    def get_adjusted_property_profit_or_loss_for_the_year_gbp(self):
-        return "Undefined"
-
     def get_adjusted_loss_for_the_year(self):
         return "Not applicable"
 
@@ -321,6 +315,9 @@ class HMRC:
         return "Undefined"
 
     def get_adjusted_profit_or_loss_for_the_year_gbp(self):
+        return "Undefined"
+
+    def get_adjusted_property_profit_or_loss_for_the_year_gbp(self):
         return "Undefined"
 
     def get_adjustments_gbp(self):
@@ -389,12 +386,6 @@ class HMRC:
 
     def get_any_tax_taken_off_box_17(self):
         return 0
-
-    def get_balancing_charges(self):
-        return "Not applicable"
-
-    def get_balancing_charges_gbp(self):
-        return uf.format_as_gbp(0)
 
     def get_bank_account_holder(self):
         return self.person.get_name()
@@ -525,11 +516,15 @@ class HMRC:
     def get_construction_industry_deductions_gbp(self):
         return False
 
-    def get_cost_to_replace_residential_domestic_items_gbp(self):
-        return "Undefined"
+    def get_cost_to_replace_residential_domestic_items(self) -> float:
+        category_like = "UKP expense: cost of replacing domestic items"
+        cost_to_replace_residential_domestic_items = (
+            self.get_total_transactions_by_category_like(category_like)
+        )
+        return uf.round_up(cost_to_replace_residential_domestic_items)
 
-    def get_costs_of_replacing_domestic_items(self):
-        return "Not applicable"
+    def get_cost_to_replace_residential_domestic_items_gbp(self) -> str:
+        return uf.format_as_gbp(self.get_cost_to_replace_residential_domestic_items())
 
     def get_costs_of_services_provided__including_wages(self):
         return 0
@@ -779,7 +774,7 @@ class HMRC:
         legal__management_and_other_professional_fees = (
             self.get_total_transactions_by_category_like(category_like)
         )
-        return legal__management_and_other_professional_fees
+        return uf.round_up(legal__management_and_other_professional_fees)
 
     def get_legal__management_and_other_professional_fees_gbp(self):
         return uf.format_as_gbp(
@@ -1100,10 +1095,10 @@ class HMRC:
         return uf.format_as_gbp(0)
 
     def get_private_use_adjustment(self):
-        return "Not applicable"
+        return 0
 
     def get_private_use_adjustment_gbp(self):
-        return uf.format_as_gbp(0)
+        return uf.format_as_gbp(self.get_private_use_adjustment())
 
     def get_profit(self):
         return self.get_trading_income() - self.get_trading_expenses()
@@ -1118,12 +1113,21 @@ class HMRC:
         else:
             return self.get_loss_gbp()
 
+    def get_property_adjustments_gbp(self):
+        return "Undefined"
+
     def get_property_allowance(self):
         return self.constants.get_property_income_allowance()
 
     def get_property_allowance_gbp(self):
         property_allowance = self.get_property_allowance()
         return uf.format_as_gbp(property_allowance)
+
+    def get_property_balancing_charges(self):
+        return 0
+
+    def get_property_balancing_charges_gbp(self):
+        return uf.format_as_gbp(self.get_property_balancing_charges())
 
     def get_property_expenses(self):
         self.l.debug("get_property_expenses")
@@ -1134,7 +1138,7 @@ class HMRC:
             tax_year, category_like
         )
         self.l.debug(property_expenses)
-        return property_expenses
+        return uf.round_up(property_expenses)
 
     def get_property_expenses_breakdown(self):
         person_code = self.person_code
@@ -1151,7 +1155,7 @@ class HMRC:
         property_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
-        return property_income
+        return uf.round_down(property_income)
 
     def get_property_income_breakdown(self):
         person_code = self.person_code
@@ -1203,7 +1207,7 @@ class HMRC:
     def get_rent__rates__insurance_and_ground_rents(self) -> float:
         category_like = "UKP expense: rent, rates"
         rent_rates_etc = self.get_total_transactions_by_category_like(category_like)
-        return rent_rates_etc
+        return uf.round_up(rent_rates_etc)
 
     def get_rent__rates__insurance_and_ground_rents_gbp(self):
         return uf.format_as_gbp(self.get_rent__rates__insurance_and_ground_rents())
@@ -1243,7 +1247,7 @@ class HMRC:
         savings_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
-        return savings_income
+        return uf.round_down(savings_income)
 
     def get_savings_income_breakdown(self):
         person_code = self.person_code
@@ -1450,7 +1454,7 @@ class HMRC:
         total_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
-        return total_income
+        return uf.round_down(total_income)
 
     def get_total_income__excluding_tax_free_savings__gbp(self):
         trading_income_gbp = self.get_trading_income__turnover__gbp()
@@ -1491,7 +1495,7 @@ class HMRC:
         total_property_expenses = self.get_total_transactions_by_category_like(
             category_like
         )
-        return total_property_expenses
+        return uf.round_up(total_property_expenses)
 
     def get_total_property_expenses_gbp(self):
         return uf.format_as_gbp(self.get_total_property_expenses())
@@ -1553,6 +1557,12 @@ class HMRC:
         trading_allowance = self.get_trading_allowance()
         return uf.format_as_gbp(trading_allowance)
 
+    def get_trading_balancing_charges(self):
+        return 0
+
+    def get_trading_balancing_charges_gbp(self):
+        return uf.format_as_gbp_or_blank(self.get_trading_balancing_charges())
+
     def get_trading_expenses(self):
         if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
@@ -1562,7 +1572,7 @@ class HMRC:
         trading_expenses = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
-        return trading_expenses
+        return uf.round_up(trading_expenses)
 
     def get_trading_expenses_breakdown(self):
         person_code = self.person_code
@@ -1571,12 +1581,6 @@ class HMRC:
 
     def get_trading_expenses_gbp(self):
         return uf.format_as_gbp(self.get_trading_expenses())
-
-    def get_trading_expenses_gbpX(self):
-        if self.use_trading_allowance:
-            return uf.format_as_gbp(0)
-        else:
-            return uf.format_as_gbp(self.get_trading_expenses())
 
     def get_trading_income(self) -> float:
         if self.get_how_many_self_employed_businesses_did_you_have() > 1:
@@ -1587,7 +1591,7 @@ class HMRC:
         trading_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
-        return trading_income
+        return uf.round_down(trading_income)
 
     def get_trading_income__turnover__gbp(self) -> str:
         return uf.format_as_gbp(self.get_trading_income())
@@ -1857,14 +1861,38 @@ class HMRC:
         print(formatted_answer)
 
     def print_report(self, report_type):
+        """
+        Generates and prints a report based on the specified report type.
+
+        Args:
+            report_type (str): The type of report to generate.
+
+        Raises:
+            ValueError: If `report_type` is not valid.
+        """
+        # Validate report type
+        if not isinstance(report_type, str) or not report_type:
+            raise ValueError("Invalid report type provided.")
+
         self.report_type = report_type
+
+        # Fetch answers
         answers = self.get_answers()
+        if not answers:
+            self.l.warning("No answers found. The report will be empty.")
+            return
+
+        # Print the report title
         self.print_title()
-        for question, section, header, box, answer, information in answers:
-            self.print_formatted_answer(
-                question, section, header, box, answer, information
-            )
+
+        # Iterate through answers and format each one
+        for answer_number, (question, section, header, box, answer, information) in enumerate(answers, start=1):
+            self.l.debug(f"Processing answer #{answer_number}")
+            self.print_formatted_answer(question, section, header, box, answer, information)
+
+        # Print the end of the tax return
         self.print_end_of_tax_return()
+
 
     def print_reports(self):
         for report in HMRC.REPORTS:

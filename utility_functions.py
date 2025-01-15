@@ -1,4 +1,5 @@
 import locale
+import math
 import re
 
 
@@ -43,6 +44,12 @@ def format_as_gbp_or_blank(amount) -> str:
     else:
         # Format the float as currency
         return locale.currency(amount, grouping=True)
+
+def round_down(number: float) -> int:
+    return math.floor(number)
+
+def round_up(number: float) -> int:
+    return math.ceil(number)
 
 
 # Function to convert currency/percent strings to float
