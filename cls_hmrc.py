@@ -34,7 +34,7 @@ class HMRC:
 
     def __init__(self, person_code, tax_year):
         self.l = LogHelper("HMRC")
-        # self.l.set_level_debug()
+        self.l.set_level_debug()
         self.l.debug(__file__)
         self.person_code = person_code
         self.tax_year = tax_year
