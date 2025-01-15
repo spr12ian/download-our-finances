@@ -1,3 +1,4 @@
+*.bak
 *.csv
 *.db
 config.ini

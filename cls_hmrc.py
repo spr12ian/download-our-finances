@@ -34,7 +34,7 @@ class HMRC:
 
     def __init__(self, person_code, tax_year):
         self.l = LogHelper("HMRC")
-        self.l.set_level_debug()
+        # self.l.set_level_debug()
         self.l.debug(__file__)
         self.person_code = person_code
         self.tax_year = tax_year
@@ -51,6 +51,9 @@ class HMRC:
 
     def are_computations_provided(self):
         return False
+
+    def are_nics_needed_to_acheive_max_state_pension(self):
+        return self.person.are_nics_needed_to_acheive_max_state_pension()
 
     def are_supplementary_pages_enclodsed(self):
         return "Not applicable"
@@ -76,7 +79,10 @@ class HMRC:
     def are_you_affected_by_basis_period_reform(self):
         return False
 
-    def are_you_claiming_back_cis(self):
+    def are_you_claiming__overlap_relief_(self):
+        return False
+
+    def are_you_claiming_back_cis_tax_already_paid(self):
         return False
 
     def are_you_claiming_marriage_allowance(self):
@@ -100,6 +106,12 @@ class HMRC:
     def are_you_claiming_other_tax_reliefs(self):
         return False
 
+    def are_you_claiming_relief_for_a_loss(self):
+        trading_income = self.get_trading_income()
+        trading_allowance = self.get_trading_allowance()
+        loss = self.get_loss()
+        return trading_income <= trading_allowance and loss > 0
+
     def are_you_claiming_rent_a_room_relief(self):
         return False
 
@@ -108,9 +120,6 @@ class HMRC:
 
     def are_you_liable_to_pension_savings_tax_charges(self):
         return False
-
-    def are_you_paying_voluntary_class_2_nics(self):
-        return self.do_you_want_to_pay_class_2_nics_voluntarily()
 
     def are_you_registered_blind(self):
         return False
@@ -126,14 +135,23 @@ class HMRC:
     def ceased_renting__consider_cgt(self):
         return "Not applicable"
 
-    def claim_other_tax_reliefs(self):
-        return False
-
-    def claim_rent_a_room_relief(self):
-        return "Not applicable"
-
     def did_business_details_change(self):
         return False
+
+    def did_none_of_these_apply__business_1_page_1__(self):
+        conditions = [
+            self.are_you_a_foster_carer(),
+            self.do_you_wish_to_make_an_adjustment_to_your_profits(),
+            self.are_you_a_farmer(),
+            self.were_any_results_already_declared_on_a_previous_return(),
+            self.is_the_basis_period_different_to_the_accounting_period(),
+            self.is_your_business_carried_on_abroad(),
+            self.are_you_claiming__overlap_relief_(),
+            self.do_you_wish_to_voluntarily_pay_class_2_nics(),
+            self.are_you_claiming_back_cis_tax_already_paid(),
+            self.are_you_claiming_relief_for_a_loss(),
+        ]
+        return uf.all_conditions_are_false(conditions)
 
     def did_none_of_these_apply__class_4_nics_(self):
         conditions = [
@@ -142,23 +160,6 @@ class HMRC:
             self.were_you_not_resident_in_uk_during_the_tax_year(),
             self.are_you_a_trustee__executor_or_administrator(),
             self.are_you_a_diver(),
-        ]
-        return uf.all_conditions_are_false(conditions)
-
-    def did_none_of_these_apply_business_1_page_1(self):
-        conditions = [
-            self.is_trading_income_more_than_vat_registration_cusp(),
-            self.are_you_affected_by_basis_period_reform(),
-            self.are_you_a_foster_carer(),
-            self.do_you_wish_to_make_an_adjustment_to_your_profits(),
-            self.are_you_a_farmer(),
-            self.were_any_results_already_declared_on_a_previous_return(),
-            self.is_the_basis_period_different_to_the_accounting_period(),
-            self.is_your_business_carried_on_abroad(),
-            self.do_you_need_to_claim__overlap_relief_(),
-            self.get_income__trading_allowance__volunteer_c2_nics(),
-            self.get_income__trading_allowance__claim_back_cis(),
-            self.get_income__trading_allowance__made_a_loss(),
         ]
         return uf.all_conditions_are_false(conditions)
 
@@ -172,7 +173,7 @@ class HMRC:
         return False
 
     def did_you_get_child_benefit(self):
-        return False
+        return self.receives_child_benefit()
 
     def did_you_get_dividend_income(self):
         person_code = self.person_code
@@ -236,9 +237,6 @@ class HMRC:
     def do_you_need__additional_information__pages_tr(self):
         return ""
 
-    def do_you_need_to_claim__overlap_relief_(self):
-        return False
-
     def do_you_need_to_complete_the_capital_gains_section(self):
         return False
 
@@ -265,8 +263,18 @@ class HMRC:
     def do_you_want_to_reduce_next_year_payments_on_account(self):
         return False
 
-    def do_you_wish_to_make_an_adjustment_to_your_profits(self):
+    def do_you_wish_to_make_an_adjustment_to_your_profits(self) -> bool:
         return False
+
+    def do_you_wish_to_voluntarily_pay_class_2_nics(self) -> bool:
+        trading_income = self.get_trading_income()
+        personal_allowance = self.get_personal_allowance()
+        if trading_income > personal_allowance:
+            return False
+        small_profits_threshold = self.get_small_profits_threshold()
+        if trading_income > small_profits_threshold:
+            return False
+        return self.are_nics_needed_to_acheive_max_state_pension()
 
     def does_this_return_contain_provisional_figures(self):
         return False
@@ -293,6 +301,12 @@ class HMRC:
 
     def get_additional_information(self):
         return "Maybe: Married couples allowance section"
+
+    def get_property_adjustments_gbp(self):
+        return "Undefined"
+
+    def get_adjusted_property_profit_or_loss_for_the_year_gbp(self):
+        return "Undefined"
 
     def get_adjusted_loss_for_the_year(self):
         return "Not applicable"
@@ -737,12 +751,6 @@ class HMRC:
     def get_income__trading_allowance__claim_back_cis(self):
         return False
 
-    def get_income__trading_allowance__made_a_loss(self):
-        trading_income = self.get_trading_income()
-        trading_allowance = self.get_trading_allowance()
-        loss = self.get_loss()
-        return trading_income <= trading_allowance and loss > 0
-
     def get_income__trading_allowance__volunteer_c2_nics(self):
         trading_income = self.get_trading_income()
         trading_allowance = self.get_trading_allowance()
@@ -850,8 +858,8 @@ class HMRC:
     def get_marital_status(self):
         return self.person.get_marital_status()
 
-    def get_marriage_allowance_transfer_amount(self):
-        if self.get_marital_status() != "Married":
+    def get_marriage_allowance_transfer_amount(self) -> float:
+        if not self.is_married():
             return 0
         total_income = self.get_total_income()
         spouse_total_income = self.get_spouse_total_income()
@@ -1714,6 +1722,9 @@ class HMRC:
             and spouse_total_income < higher_rate_threshold
         )
 
+    def is_married(self) -> bool:
+        return self.person.is_married()
+
     def is_postgraduate_loan_repayment_due(self) -> bool:
         return False
 
@@ -1863,6 +1874,9 @@ class HMRC:
         print(self.get_title())
         self.previous_section = ""
         self.previous_header = ""
+
+    def receives_child_benefit(self):
+        return self.person.receives_child_benefit()
 
     def residence__remittance_basis_etc(self):
         return False
