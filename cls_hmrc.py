@@ -70,7 +70,7 @@ class HMRC:
     def are_you_a_trustee__executor_or_administrator(self):
         return False
 
-    def are_you_acting_on_behalf_of_someone_else(self):
+    def are_you_acting_in_capacity_on_behalf_of_someone_else(self):
         return False
 
     def are_you_affected_by_basis_period_reform(self):
