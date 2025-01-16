@@ -21,7 +21,7 @@ def crop(string, excess) -> str:
     return string
 
 
-def format_as_gbp(amount) -> str:
+def format_as_gbp(amount: float, field_width: int = 10) -> str:
     """
     Format a float as GBP.
     """
@@ -29,24 +29,27 @@ def format_as_gbp(amount) -> str:
     locale.setlocale(locale.LC_ALL, "en_GB.UTF-8")
 
     # Format the float as currency
-    return locale.currency(amount, grouping=True)
+    formatted_amount = locale.currency(amount, grouping=True)
+
+    # Right justify the formatted amount within the specified field width
+    return f"{formatted_amount:>{field_width}}"
 
 
 def format_as_gbp_or_blank(amount) -> str:
     """
     Format a float as GBP or blank if zero.
     """
-    # Set the locale to GBP
-    locale.setlocale(locale.LC_ALL, "en_GB.UTF-8")
 
     if abs(amount) < 0.01:
         return ""
     else:
         # Format the float as currency
-        return locale.currency(amount, grouping=True)
+        return format_as_gbp(amount)
+
 
 def round_down(number: float) -> int:
     return math.floor(number)
+
 
 def round_up(number: float) -> int:
     return math.ceil(number)

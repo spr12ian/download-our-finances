@@ -12,6 +12,7 @@ class HMRC_QuestionsByYear(SQLiteTable):
         "Has ",
         "Have ",
         "Is ",
+        "Should ",
         "Was ",
         "Were ",
     ]
