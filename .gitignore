@@ -1,6 +1,7 @@
 *.bak
 *.csv
 *.db
+*.txt
 config.ini
 tables_sqlalchemy.py
 .logs/

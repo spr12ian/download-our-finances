@@ -3,13 +3,10 @@ from cls_helper_sql import SQL_Helper
 from cls_hmrc_people import HMRC_People
 from tables import *
 import utility_functions as uf
+from cls_hmrc_output import HMRC_Output
 
 
 class HMRC:
-    ONLINE_REPORT = "Online"
-    PRINTED_REPORT = "Printed Form"
-    REPORTS = [ONLINE_REPORT, PRINTED_REPORT]
-
     def __get_breakdown(self, category_like):
         tax_year = self.tax_year
         query = (
@@ -633,11 +630,6 @@ class HMRC:
     def get_freeport_and_investment_zones_allowance_gbp(self):
         return ""
 
-    def get_full_utr(self) -> str:
-        utr: str = self.person.get_unique_tax_reference()
-        utr_check_digit: str = self.person.get_utr_check_digit()
-        return utr + utr_check_digit
-
     def get_gains_from_voided_isas(self):
         return "Not applicable"
 
@@ -1179,7 +1171,7 @@ class HMRC:
         return "Not applicable"
 
     def get_questions(self):
-        if self.report_type == HMRC.ONLINE_REPORT:
+        if self.report_type == HMRC_Output.ONLINE_REPORT:
             return HMRC_QuestionsByYear(self.tax_year).get_online_questions()
         else:
             return HMRC_QuestionsByYear(self.tax_year).get_printed_form_questions()
@@ -1430,13 +1422,6 @@ class HMRC:
 
     def get_tc_please_give_any_other_information_in_this_space(self):
         return ""
-
-    def get_title(self):
-        full_utr = self.get_full_utr()
-        person_name = self.person.get_name()
-        report_type = self.report_type
-        tax_year = self.tax_year
-        return f"HMRC {tax_year} {report_type} tax return for {person_name} - UTR {full_utr}\n"
 
     def get_total_amount_of_allowable_expenses(self):
         return 0
@@ -1806,102 +1791,24 @@ class HMRC:
         for row in categories:
             print(row[0])
 
-    def position_answer(self, string_list) -> str:
-        if self.report_type == HMRC.ONLINE_REPORT:
-            widths = [55]
-        else:
-            widths = [5, 60]
-        how_many = len(widths)
-        formatted_parts = [
-            f"{string:<{width}}"
-            for (string, width) in zip(string_list[:how_many], widths)
-        ]
-        return "".join(formatted_parts) + string_list[how_many]
+    def get_person_name(self):
+        return self.person.get_name()
 
-    def print_end_of_tax_return(self):
-        person_name = self.person.get_name()
-        report_type = self.report_type
-        tax_year = self.tax_year
-        print(f"\nEnd of {tax_year} {report_type} tax return for {person_name}\n")
-        print(
-            "============================================================================\n"
-        )
-
-    def print_formatted_answer(
-        self, question, section, header, box, answer, information
-    ):
-        self.l.debug("print_formatted_answer")
-        self.l.debug(f"\n{question}\n")
-        self.l.debug(f"{section} - {header} - Box {box}")
-        self.l.debug(f"answer: {answer}")
-        self.l.debug(f"information: {information}")
-        if section != self.previous_section:
-            self.previous_section = section
-            print(f"\n\n{section.upper()}\n")
-        if header != self.previous_header:
-            self.previous_header = header
-            print(f"\n{header.upper()}\n")
-        if isinstance(answer, bool):
-            answer = "Yes" if answer else "No"
-        elif isinstance(answer, float):
-            answer = f"£{answer:,.2f}"
-        elif isinstance(answer, int):
-            answer = f"{answer:,}"
-        elif isinstance(answer, str):
-            pass
-        else:
-            answer = str(answer)
-        box = uf.crop(box, " (GBP)")
-        if self.report_type == HMRC.ONLINE_REPORT:
-            formatted_answer = self.position_answer([box, answer])
-        else:
-            formatted_answer = self.position_answer([box, question, answer])
-        if len(information):
-            print(information)
-        print(formatted_answer)
-
-    def print_report(self, report_type):
-        """
-        Generates and prints a report based on the specified report type.
-
-        Args:
-            report_type (str): The type of report to generate.
-
-        Raises:
-            ValueError: If `report_type` is not valid.
-        """
-        # Validate report type
-        if not isinstance(report_type, str) or not report_type:
-            raise ValueError("Invalid report type provided.")
-
-        self.report_type = report_type
-
-        # Fetch answers
-        answers = self.get_answers()
-        if not answers:
-            self.l.warning("No answers found. The report will be empty.")
-            return
-
-        # Print the report title
-        self.print_title()
-
-        # Iterate through answers and format each one
-        for answer_number, (question, section, header, box, answer, information) in enumerate(answers, start=1):
-            self.l.debug(f"Processing answer #{answer_number}")
-            self.print_formatted_answer(question, section, header, box, answer, information)
-
-        # Print the end of the tax return
-        self.print_end_of_tax_return()
-
+    def get_unique_tax_reference(self):
+        return self.person.get_unique_tax_reference()
 
     def print_reports(self):
-        for report in HMRC.REPORTS:
-            self.print_report(report)
-
-    def print_title(self):
-        print(self.get_title())
-        self.previous_section = ""
-        self.previous_header = ""
+        for report_type in HMRC_Output.REPORT_TYPES:
+            self.report_type = report_type
+            output_details = {
+                "answers": self.get_answers(),
+                "person_name": self.get_person_name(),
+                "report_type": report_type,
+                "tax_year": self.tax_year,
+                "unique_tax_reference": self.get_unique_tax_reference(),
+            }
+            hmrc_output = HMRC_Output(output_details)
+            hmrc_output.print_report()
 
     def receives_child_benefit(self):
         return self.person.receives_child_benefit()
