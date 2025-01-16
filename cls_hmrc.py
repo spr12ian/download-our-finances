@@ -305,6 +305,12 @@ class HMRC:
     def get_additional_information(self):
         return "Maybe: Married couples allowance section"
 
+    def get_additional_tax_rate(self):
+        self.l.debug("get_additional_tax_rate")
+        additional_tax_rate = self.constants.get_additional_tax_rate()
+        self.l.debug(f"additional_tax_rate: {additional_tax_rate}")
+        return additional_tax_rate
+
     def get_adjusted_loss_for_the_year(self):
         return uf.format_as_gbp_or_blank(0)
 
@@ -397,8 +403,14 @@ class HMRC:
     def get_bank_name(self):
         return self.person.get_bank_name()
 
+    def get_basic_rate_threshold(self):
+        return self.constants.get_basic_rate_threshold()
+
     def get_basic_tax_rate(self):
-        return self.constants.get_basic_tax_rate_rate()
+        self.l.debug("get_basic_tax_rate")
+        basic_tax_rate = self.constants.get_basic_tax_rate()
+        self.l.debug(f"basic_tax_rate: {basic_tax_rate}")
+        return basic_tax_rate
 
     def get_benefit_from_pre_owned_assets(self):
         return 0
@@ -510,6 +522,12 @@ class HMRC:
 
     def get_class_4_nics_due(self):
         return 0
+
+    def get_class_4_nics_lower_rate(self):
+        return self.constants.get_class_4_nics_lower_rate()
+
+    def get_class_4_nics_upper_rate(self):
+        return self.constants.get_class_4_nics_upper_rate()
 
     def get_community_investment_tax_relief(self):
         return uf.format_as_gbp_or_blank(0)
@@ -666,6 +684,14 @@ class HMRC:
 
     def get_gross_amount_before_tax(self):
         return uf.format_as_gbp_or_blank(0)
+
+    def get_higher_rate_threshold(self):
+        return self.constants.get_higher_rate_threshold()
+
+    def get_higher_tax_rate(self):
+        self.l.debug("get_higher_tax_rate")
+        higher_tax_rate = self.constants.get_higher_tax_rate()
+        return higher_tax_rate
 
     def get_hmrc_businesses(self):
         hmrc_businesses = []
@@ -1434,14 +1460,24 @@ class HMRC:
         return ""
 
     def get_total_amount_due(self):
+        self.l.debug("get_total_amount_due")
         taxable_income = self.get_total_taxable_income()
+        self.l.debug(f"taxable_income: {taxable_income}")
         personal_allowance = self.get_personal_allowance()
-        taxable_amount = taxable_income - personal_allowance
+        taxable_amount = max(0, taxable_income - personal_allowance)
+        self.l.debug(f"taxable_amount: {taxable_amount}")
         basic_tax_rate = self.get_basic_tax_rate()
         tax_due = taxable_amount * basic_tax_rate
+        self.l.debug(f"tax_due: {tax_due}")
         class_2_nics_due = self.get_class_2_nics_due()
+        self.l.debug(f"class_2_nics_due: {class_2_nics_due}")
         class_4_nics_due = self.get_class_4_nics_due()
+        self.l.debug(f"class_4_nics_due: {class_4_nics_due}")
         total_amount_due = tax_due + class_2_nics_due + class_4_nics_due
+        self.l.debug(f"total_amount_due: {total_amount_due}")
+        total_amount_tax_due = self.get_total_amount_tax_due()
+        self.l.debug(f"total_amount_tax_due: {total_amount_tax_due}")
+        return total_amount_due
 
     def get_total_amount_due_gbp(self):
         self.l.debug("get_total_amount_due_gbp")
@@ -1451,6 +1487,53 @@ class HMRC:
 
     def get_total_amount_of_allowable_expenses(self):
         return 0
+
+    def get_total_amount_tax_due(self):
+        self.l.debug("get_total_amount_tax_due")
+        self_employment_income = self.get_trading_income()
+        self.l.debug(f"self_employment_income: {self_employment_income}")
+        rental_income = self.get_property_income()
+        self.l.debug(f"rental_income: {rental_income}")
+        untaxed_interest_income = self.get_untaxed_uk_interest()
+        self.l.debug(f"untaxed_interest_income: {untaxed_interest_income}")
+        personal_allowance = self.get_personal_allowance()
+        basic_rate_threshold = self.get_basic_rate_threshold()
+        higher_rate_threshold = self.get_higher_rate_threshold()
+        additional_rate_threshold = float("inf")
+        class_2_nics = self.get_class_2_nics_due()
+        class_4_nics_lower_rate = self.get_class_4_nics_lower_rate()
+        class_4_nics_upper_rate = self.get_class_4_nics_upper_rate()
+        total_income = self_employment_income + rental_income + untaxed_interest_income
+        self.l.debug(f"total_income: {total_income}")
+        taxable_income = max(total_income - personal_allowance, 0)
+        self.l.debug(f"taxable_income: {taxable_income}")
+        additional_tax_rate = self.get_additional_tax_rate()
+        basic_tax_rate = self.get_basic_tax_rate()
+        higher_tax_rate = self.get_higher_tax_rate()
+        if taxable_income <= basic_rate_threshold:
+            income_tax = taxable_income * basic_tax_rate
+            self.l.debug(f"income_tax: {income_tax}")
+        elif taxable_income <= higher_rate_threshold:
+            income_tax = (
+                basic_rate_threshold * basic_tax_rate
+                + (taxable_income - basic_rate_threshold) * higher_tax_rate
+            )
+        else:
+            income_tax = (
+                basic_rate_threshold * basic_tax_rate
+                + (higher_rate_threshold - basic_rate_threshold) * higher_tax_rate
+                + (taxable_income - higher_rate_threshold) * additional_tax_rate
+            )
+        class_4_nics = (
+            min(self_employment_income, higher_rate_threshold - personal_allowance)
+            * class_4_nics_lower_rate
+            + max(self_employment_income - higher_rate_threshold, 0)
+            * class_4_nics_upper_rate
+        )
+        self.l.debug(f"class_4_nics: {class_4_nics}")
+        total_tax_due = income_tax + class_2_nics + class_4_nics
+        self.l.debug(f"total_tax_due: {total_tax_due}")
+        return total_tax_due
 
     def get_total_balancing_charges_gbp(self):
         return ""
@@ -1526,10 +1609,15 @@ class HMRC:
         return uf.format_as_gbp_or_blank(0)
 
     def get_total_taxable_income(self):
+        self.l.debug("get_total_taxable_income")
         trading_profit = self.get_net_business_profit_for_tax_purposes()
+        self.l.debug(f"trading_profit: {trading_profit}")
         property_profit = self.get_property_taxable_profit_for_the_year()
+        self.l.debug(f"property_profit: {property_profit}")
         taxable_savings = self.get_taxable_savings()
-        total_taxable_income = trading_profit + trading_profit + taxable_savings
+        self.l.debug(f"taxable_savings: {taxable_savings}")
+        total_taxable_income = trading_profit + property_profit + taxable_savings
+        self.l.debug(f"total_taxable_income: {total_taxable_income}")
         return total_taxable_income
 
     def get_total_taxable_profits_from_this_business(self):
@@ -1736,30 +1824,6 @@ class HMRC:
 
     def get_zero_emissions_allowance(self):
         return uf.format_as_gbp_or_blank(0)
-
-    def calculate_tax_due(self, self_employment_income, rental_income, untaxed_interest_income):
-        personal_allowance = 12570
-        basic_rate_threshold = 37700
-        higher_rate_threshold = 125140
-        additional_rate_threshold = float('inf')
-        class_2_nics = 3.15 * 52  # Weekly rate * weeks in a year
-        class_4_nics_lower_rate = 0.09
-        class_4_nics_upper_rate = 0.02
-
-        total_income = self_employment_income + rental_income + untaxed_interest_income
-        taxable_income = max(total_income - personal_allowance, 0)
-
-        if taxable_income <= basic_rate_threshold:
-            income_tax = taxable_income * 0.20
-        elif taxable_income <= higher_rate_threshold:
-            income_tax = (basic_rate_threshold * 0.20) + ((taxable_income - basic_rate_threshold) * 0.40)
-        else:
-            income_tax = (basic_rate_threshold * 0.20) + ((higher_rate_threshold - basic_rate_threshold) * 0.40) + ((taxable_income - higher_rate_threshold) * 0.45)
-
-        class_4_nics = (min(self_employment_income, 50270 - personal_allowance) * class_4_nics_lower_rate) + (max(self_employment_income - 50270, 0) * class_4_nics_upper_rate)
-        total_tax_due = income_tax + class_2_nics + class_4_nics
-
-        return total_tax_due
 
     def how_many_nic_weeks_in_year(self) -> int:
         return self.constants.how_many_nic_weeks_in_year()

@@ -4,6 +4,27 @@ from utility_functions import string_to_float
 
 
 class HMRC_ConstantsByYear(SQLiteTable):
+
+    def __get_value_by_hmrc_constant(self, hmrc_constant):
+        tax_year = self.tax_year
+        query = (
+            self.query_builder()
+            .select(tax_year)
+            .where(f'"HMRC constant" = "{hmrc_constant}"')
+            .build()
+        )
+
+        result = self.sql.fetch_one_value(
+            query
+        )  # Could be formatted as a float, a ccy, etc.
+
+        if result is None:
+            raise ValueError(
+                f"Could not find the HMRC constant '{hmrc_constant}' for tax year {tax_year}"
+            )
+
+        return result
+
     def __init__(self, tax_year):
         self.l = LogHelper("HMRC_ConstantsByYear")
         self.l.set_level_debug()
@@ -20,6 +41,15 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return basic_rate_threshold
 
+    def get_additional_tax_rate(self) -> float:
+        additional_tax_rate = string_to_float(
+            self.__get_value_by_hmrc_constant("Additional tax rate")
+        )
+
+        self.l.debug(f"additional_tax_rate: {additional_tax_rate}")
+
+        return additional_tax_rate
+
     def get_basic_tax_rate(self) -> float:
         basic_tax_rate = string_to_float(
             self.__get_value_by_hmrc_constant("Basic tax rate")
@@ -31,12 +61,30 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
     def get_class_2_nics_weekly_rate(self) -> float:
         class_2_nics_weekly_rate = string_to_float(
-            self.__get_value_by_hmrc_constant("Class 2 NIC weekly rate")
+            self.__get_value_by_hmrc_constant("NIC Class 2 weekly rate")
         )
 
         self.l.debug(f"class_2_nics_weekly_rate: {class_2_nics_weekly_rate}")
 
         return class_2_nics_weekly_rate
+
+    def get_class_4_nics_lower_rate(self) -> float:
+        class_4_nics_lower_rate = string_to_float(
+            self.__get_value_by_hmrc_constant("NIC Class 4 lower rate")
+        )
+
+        self.l.debug(f"class_4_nics_lower_rate: {class_4_nics_lower_rate}")
+
+        return class_4_nics_lower_rate
+
+    def get_class_4_nics_upper_rate(self) -> float:
+        class_4_nics_upper_rate = string_to_float(
+            self.__get_value_by_hmrc_constant("NIC Class 4 upper rate")
+        )
+
+        self.l.debug(f"class_4_nics_upper_rate: {class_4_nics_upper_rate}")
+
+        return class_4_nics_upper_rate
 
     def get_higher_rate_threshold(self) -> float:
         higher_rate_threshold = string_to_float(
@@ -46,6 +94,15 @@ class HMRC_ConstantsByYear(SQLiteTable):
         self.l.debug(f"higher_rate_threshold: {higher_rate_threshold}")
 
         return higher_rate_threshold
+
+    def get_higher_tax_rate(self) -> float:
+        higher_tax_rate = string_to_float(
+            self.__get_value_by_hmrc_constant("Higher tax rate")
+        )
+
+        self.l.debug(f"higher_tax_rate: {higher_tax_rate}")
+
+        return higher_tax_rate
 
     def get_marriage_allowance(self) -> float:
         marriage_allowance = string_to_float(
@@ -131,26 +188,6 @@ class HMRC_ConstantsByYear(SQLiteTable):
         self.l.debug(f"trading_income_allowance: {trading_income_allowance}")
 
         return trading_income_allowance
-
-    def __get_value_by_hmrc_constant(self, hmrc_constant):
-        tax_year = self.tax_year
-        query = (
-            self.query_builder()
-            .select(tax_year)
-            .where(f'"HMRC constant" = "{hmrc_constant}"')
-            .build()
-        )
-
-        result = self.sql.fetch_one_value(
-            query
-        )  # Could be formatted as a float, a ccy, etc.
-
-        if result is None:
-            raise ValueError(
-                f"Could not find the HMRC constant '{hmrc_constant}' for tax year {tax_year}"
-            )
-
-        return result
 
     def get_vat_registration_threshold(self):
         vat_registration_threshold = string_to_float(
