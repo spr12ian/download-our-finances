@@ -109,7 +109,7 @@ class HMRC:
 
     def are_you_claiming_relief_for_a_loss(self):
         trading_income = self.get_trading_income()
-        trading_allowance = self.get_trading_allowance()
+        trading_allowance = self.get_trading_allowance_actual()
         loss = self.get_loss()
         return trading_income <= trading_allowance and loss > 0
 
@@ -190,43 +190,16 @@ class HMRC:
     def did_you_get_eea_furnished_holiday_lettings_income(self):
         return False
 
-    def get_rented_property_postcode(self):
-        person_code = self.person.code
-        tax_year = self.tax_year
-        query = (
-            self.transactions.query_builder()
-            .select_raw("DISTINCT Category")
-            .where(
-                f'"Tax year"="{tax_year}"'
-                + f' AND "Category" LIKE "HMRC {person_code} UKP income: rent received %"'
-            )
-            .build()
-        )
-        self.l.debug(f"query: {query}")
-        category = self.sql.fetch_one_value(query)
-        self.l.debug(f"category: {category}")
-
-        prefix_length = len("HMRC B UKP income: rent received ")
-
-        rented_property_postcode = category[prefix_length:]
-        self.l.debug(f"rented_property_postcode: {rented_property_postcode}")
-
-        return rented_property_postcode
-
     def did_you_get_income_from_property_let_jointly(self):
         how_many_properties_do_you_rent_out = (
             self.get_how_many_properties_do_you_rent_out()
         )
         if not how_many_properties_do_you_rent_out:
             return False
-
         rented_property_postcode = self.get_rented_property_postcode()
-
         hmrc_property = HMRC_Property(rented_property_postcode)
-
         is_let_jointly = hmrc_property.is_let_jointly()
         self.l.debug(f"is_let_jointly: {is_let_jointly}")
-
         return is_let_jointly
 
     def did_you_get_other_taxable_income(self):
@@ -538,26 +511,47 @@ class HMRC:
         else:
             return uf.format_as_gbp_or_blank(0)
 
-    def get_claimed_trading_allowance_gbp(self):
-        if self.use_trading_allowance():
-            trading_allowance = self.get_trading_allowance()
-            return uf.format_as_gbp_or_blank(trading_allowance)
-        else:
-            return uf.format_as_gbp_or_blank(0)
-
     def get_class_2_nics_amount_gbp(self):
         return uf.format_as_gbp_or_blank(self.get_class_2_nics_due())
 
     def get_class_2_nics_due(self):
-        how_many_nic_weeks_in_year = self.how_many_nic_weeks_in_year()
-        class_2_nics_weekly_rate = self.get_class_2_nics_weekly_rate()
-        return how_many_nic_weeks_in_year * class_2_nics_weekly_rate
+        weekly_rate_class2 = self.get_class_2_nics_weekly_rate()
+        weeks_in_year = self.how_many_nic_weeks_in_year()
+        if self.are_nics_needed_to_acheive_max_state_pension():
+            return weekly_rate_class2 * weeks_in_year
+        small_profits_threshold = self.get_small_profits_threshold()
+        trading_profit = self.get_trading_profit()
+        if trading_profit < small_profits_threshold:
+            return 0.0
+        else:
+            return weekly_rate_class2 * weeks_in_year
 
     def get_class_2_nics_weekly_rate(self):
         return self.constants.get_class_2_nics_weekly_rate()
 
     def get_class_4_nics_due(self):
-        return 0
+        class_4_nics_lower_rate = self.get_class_4_nics_lower_rate()
+        class_4_nics_upper_rate = self.get_class_4_nics_upper_rate()
+        higher_rate_threshold = self.get_higher_rate_threshold()
+        personal_allowance = self.get_personal_allowance()
+        trading_profit = self.get_trading_profit()
+        self.l.debug(f"trading_profit: {trading_profit}")
+        if trading_profit <= personal_allowance:
+            class_4_nics_due = 0.0
+        elif trading_profit <= higher_rate_threshold:
+            class_4_nics_due = (
+                trading_profit - personal_allowance
+            ) * class_4_nics_lower_rate
+        else:
+            lower_band_nic = (
+                higher_rate_threshold - personal_allowance
+            ) * class_4_nics_lower_rate
+            upper_band_nic = (
+                trading_profit - higher_rate_threshold
+            ) * class_4_nics_upper_rate
+            class_4_nics_due = lower_band_nic + upper_band_nic
+        self.l.debug(f"class_4_nics_due: {class_4_nics_due}")
+        return class_4_nics_due
 
     def get_class_4_nics_lower_rate(self):
         return self.constants.get_class_4_nics_lower_rate()
@@ -815,7 +809,7 @@ class HMRC:
 
     def get_income__trading_allowance__volunteer_c2_nics(self):
         trading_income = self.get_trading_income()
-        trading_allowance = self.get_trading_allowance()
+        trading_allowance = self.get_trading_allowance_actual()
         pay_voluntarily_nics = self.do_you_want_to_pay_class_2_nics_voluntarily()
         return trading_income <= trading_allowance and pay_voluntarily_nics
 
@@ -850,7 +844,7 @@ class HMRC:
         return uf.format_as_gbp_or_blank(0)
 
     def get_loss(self):
-        return self.get_trading_expenses() - self.get_trading_income()
+        return self.get_trading_expenses_actual() - self.get_trading_income()
 
     def get_loss_brought_forward_against_this_year_s_profits_gbp(self):
         return uf.format_as_gbp_or_blank(0)
@@ -936,7 +930,7 @@ class HMRC:
     def get_net_business_loss_for_tax_purposes(self):
         income = self.get_business_income()
         net_business_loss_for_tax_purposes = (
-            min(0, income - self.get_trading_expenses()) * -1
+            min(0, income - self.get_trading_expenses_actual()) * -1
         )
         return net_business_loss_for_tax_purposes
 
@@ -945,13 +939,14 @@ class HMRC:
 
     def get_net_business_profit_for_tax_purposes(self):
         income = self.get_business_income()
+
         if self.use_trading_allowance():
             net_business_profit_for_tax_purposes = max(
-                0, income - self.get_trading_allowance()
+                0, income - self.get_trading_allowance_actual()
             )
         else:
             net_business_profit_for_tax_purposes = max(
-                0, income - self.get_trading_expenses()
+                0, income - self.get_trading_expenses_actual()
             )
         return net_business_profit_for_tax_purposes
 
@@ -1151,19 +1146,6 @@ class HMRC:
     def get_private_use_adjustment_gbp(self):
         return uf.format_as_gbp_or_blank(self.get_private_use_adjustment())
 
-    def get_profit(self):
-        return self.get_trading_income() - self.get_trading_expenses()
-
-    def get_profit_gbp(self):
-        return uf.format_as_gbp_or_blank(self.get_profit())
-
-    def get_profit_or_loss_gbp(self):
-        profit = self.get_profit()
-        if profit > 0:
-            return self.get_profit_gbp()
-        else:
-            return self.get_loss_gbp()
-
     def get_property_adjustments_gbp(self):
         return uf.format_as_gbp_or_blank(0)
 
@@ -1278,6 +1260,26 @@ class HMRC:
 
     def get_rental_income_gbp(self):
         return uf.format_as_gbp_or_blank(0)
+
+    def get_rented_property_postcode(self):
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("DISTINCT Category")
+            .where(
+                f'"Tax year"="{tax_year}"'
+                + f' AND "Category" LIKE "HMRC {person_code} UKP income: rent received %"'
+            )
+            .build()
+        )
+        self.l.debug(f"query: {query}")
+        category = self.sql.fetch_one_value(query)
+        self.l.debug(f"category: {category}")
+        prefix_length = len("HMRC B UKP income: rent received ")
+        rented_property_postcode = category[prefix_length:]
+        self.l.debug(f"rented_property_postcode: {rented_property_postcode}")
+        return rented_property_postcode
 
     def get_residential_property_finance_costs(self):
         return uf.format_as_gbp_or_blank(0)
@@ -1536,9 +1538,6 @@ class HMRC:
         basic_rate_threshold = self.get_basic_rate_threshold()
         higher_rate_threshold = self.get_higher_rate_threshold()
         additional_rate_threshold = float("inf")
-        class_2_nics = self.get_class_2_nics_due()
-        class_4_nics_lower_rate = self.get_class_4_nics_lower_rate()
-        class_4_nics_upper_rate = self.get_class_4_nics_upper_rate()
         total_income = self_employment_income + rental_income + untaxed_interest_income
         self.l.debug(f"total_income: {total_income}")
         taxable_income = max(total_income - personal_allowance, 0)
@@ -1560,12 +1559,9 @@ class HMRC:
                 + (higher_rate_threshold - basic_rate_threshold) * higher_tax_rate
                 + (taxable_income - higher_rate_threshold) * additional_tax_rate
             )
-        class_4_nics = (
-            min(self_employment_income, higher_rate_threshold - personal_allowance)
-            * class_4_nics_lower_rate
-            + max(self_employment_income - higher_rate_threshold, 0)
-            * class_4_nics_upper_rate
-        )
+        class_2_nics = self.get_class_2_nics_due()
+        self.l.debug(f"class_2_nics: {class_2_nics}")
+        class_4_nics = self.get_class_4_nics_due()
         self.l.debug(f"class_4_nics: {class_4_nics}")
         total_tax_due = income_tax + class_2_nics + class_4_nics
         self.l.debug(f"total_tax_due: {total_tax_due}")
@@ -1697,7 +1693,18 @@ class HMRC:
         return ""
 
     def get_trading_allowance(self):
+        actual_trading_allowance = self.get_trading_allowance_actual()
+        actual_trading_expenses = self.get_trading_expenses_actual()
+        if actual_trading_allowance >= actual_trading_expenses:
+            return actual_trading_allowance
+        else:
+            return 0
+
+    def get_trading_allowance_actual(self):
         return self.constants.get_trading_income_allowance()
+
+    def get_trading_allowance_actual_gbp(self):
+        return uf.format_as_gbp_or_blank(self.get_trading_allowance_actual())
 
     def get_trading_allowance_gbp(self):
         trading_allowance = self.get_trading_allowance()
@@ -1710,6 +1717,14 @@ class HMRC:
         return uf.format_as_gbp_or_blank(self.get_trading_balancing_charges())
 
     def get_trading_expenses(self):
+        actual_trading_allowance = self.get_trading_allowance_actual()
+        actual_trading_expenses = self.get_trading_expenses_actual()
+        if actual_trading_expenses > actual_trading_allowance:
+            return actual_trading_expenses
+        else:
+            return 0
+
+    def get_trading_expenses_actual(self):
         if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
         person_code = self.person_code
@@ -1727,6 +1742,9 @@ class HMRC:
 
     def get_trading_expenses_gbp(self):
         return uf.format_as_gbp_or_blank(self.get_trading_expenses())
+
+    def get_trading_expenses_actual_gbp(self):
+        return uf.format_as_gbp_or_blank(self.get_trading_expenses_actual())
 
     def get_trading_income(self) -> float:
         if self.get_how_many_self_employed_businesses_did_you_have() > 1:
@@ -1749,6 +1767,21 @@ class HMRC:
 
     def get_trading_income_was_below__85k__total_expenses_in_box_20(self):
         return "See box 20"
+
+    def get_trading_profit(self):
+        trading_allowance = self.get_trading_allowance()
+        trading_expenses = self.get_trading_expenses()
+        return self.get_trading_income() - max(trading_allowance, trading_expenses)
+
+    def get_trading_profit_gbp(self):
+        return uf.format_as_gbp_or_blank(self.get_trading_profit())
+
+    def get_trading_profit_or_loss_gbp(self):
+        profit = self.get_trading_profit()
+        if profit > 0:
+            return self.get_trading_profit_gbp()
+        else:
+            return self.get_loss_gbp()
 
     def get_uk_gains_where_tax_was_not_treated_as_paid(self):
         return uf.format_as_gbp_or_blank(0)
@@ -1921,17 +1954,17 @@ class HMRC:
             return f"No: Income {gbp_income} <= {gbp_allowance} Allowance"
 
     def is_total_trading_income_more_than_trading_allowance(self):
-        trading_allowance = self.get_trading_allowance()
+        trading_allowance = self.get_trading_allowance_actual()
         trading_income = self.get_trading_income()
         return trading_income > trading_allowance
 
     def is_trading_allowance_more_than_trading_expenses(self):
-        trading_allowance = self.get_trading_allowance()
-        trading_expenses = self.get_trading_expenses()
+        trading_allowance = self.get_trading_allowance_actual()
+        trading_expenses = self.get_trading_expenses_actual()
         return trading_allowance > trading_expenses
 
     def is_trading_income_more_than_trading_allowance(self):
-        trading_allowance = self.get_trading_allowance()
+        trading_allowance = self.get_trading_allowance_actual()
         trading_income = self.get_trading_income()
         return trading_income > trading_allowance
 
@@ -1993,8 +2026,8 @@ class HMRC:
         return property_allowance > property_expenses
 
     def use_trading_allowance(self):
-        trading_allowance = self.get_trading_allowance()
-        trading_expenses = self.get_trading_expenses()
+        trading_allowance = self.get_trading_allowance_actual()
+        trading_expenses = self.get_trading_expenses_actual()
         return trading_allowance > trading_expenses
 
     def were_any_repayments_claimed_for_next_year(self):
