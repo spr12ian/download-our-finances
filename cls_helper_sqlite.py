@@ -67,11 +67,9 @@ class SQLiteHelper:
 
     def fetch_one_row(self, query):
         self.open_connection()
-
         cursor = self.db_connection.cursor()
         cursor.execute(query)
         row = cursor.fetchone()
-
         self.close_connection()
 
         return row

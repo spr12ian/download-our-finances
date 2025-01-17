@@ -190,8 +190,44 @@ class HMRC:
     def did_you_get_eea_furnished_holiday_lettings_income(self):
         return False
 
+    def get_rented_property_postcode(self):
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("DISTINCT Category")
+            .where(
+                f'"Tax year"="{tax_year}"'
+                + f' AND "Category" LIKE "HMRC {person_code} UKP income: rent received %"'
+            )
+            .build()
+        )
+        self.l.debug(f"query: {query}")
+        category = self.sql.fetch_one_value(query)
+        self.l.debug(f"category: {category}")
+
+        prefix_length = len("HMRC B UKP income: rent received ")
+
+        rented_property_postcode = category[prefix_length:]
+        self.l.debug(f"rented_property_postcode: {rented_property_postcode}")
+
+        return rented_property_postcode
+
     def did_you_get_income_from_property_let_jointly(self):
-        return False
+        how_many_properties_do_you_rent_out = (
+            self.get_how_many_properties_do_you_rent_out()
+        )
+        if not how_many_properties_do_you_rent_out:
+            return False
+
+        rented_property_postcode = self.get_rented_property_postcode()
+
+        hmrc_property = HMRC_Property(rented_property_postcode)
+
+        is_let_jointly = hmrc_property.is_let_jointly()
+        self.l.debug(f"is_let_jointly: {is_let_jointly}")
+
+        return is_let_jointly
 
     def did_you_get_other_taxable_income(self):
         return False
