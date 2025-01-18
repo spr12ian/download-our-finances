@@ -72,6 +72,13 @@ def string_to_float(string) -> float:
     return float(string)
 
 
+def sum_values(lst) -> float:
+    total = 0
+    for value in lst:
+        total += value
+    return total
+
+
 def to_valid_method_name(s) -> str:
     """
     Convert a string to be a valid variable name:

@@ -33,14 +33,21 @@ class HMRC_ConstantsByYear(SQLiteTable):
         super().__init__("hmrc_constants_by_year")
         self.tax_year = tax_year
 
-    def get_basic_rate_threshold(self) -> float:
-        basic_rate_threshold = string_to_float(
-            self.__get_value_by_hmrc_constant("Basic rate threshold")
+    def get_additional_rate_threshold(self) -> float:
+        additional_rate_threshold = self.__get_value_by_hmrc_constant(
+            "Additional rate threshold"
         )
 
-        self.l.debug(f"basic_rate_threshold: {basic_rate_threshold}")
+        self.l.debug(f"additional_rate_threshold: {additional_rate_threshold}")
 
-        return basic_rate_threshold
+        if additional_rate_threshold == "Infinity":
+            additional_rate_threshold = float("inf")
+        else:
+            raise ValueError(
+                f'Unexpected additional_rate_threshold: "{additional_rate_threshold}"'
+            )
+
+        return additional_rate_threshold
 
     def get_additional_tax_rate(self) -> float:
         additional_tax_rate = string_to_float(
@@ -51,6 +58,15 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return additional_tax_rate
 
+    def get_basic_rate_threshold(self) -> float:
+        basic_rate_threshold = string_to_float(
+            self.__get_value_by_hmrc_constant("Basic rate threshold")
+        )
+
+        self.l.debug(f"basic_rate_threshold: {basic_rate_threshold}")
+
+        return basic_rate_threshold
+
     def get_basic_tax_rate(self) -> float:
         basic_tax_rate = string_to_float(
             self.__get_value_by_hmrc_constant("Basic tax rate")
@@ -60,7 +76,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return basic_tax_rate
 
-    def get_class_2_nics_weekly_rate(self) -> float:
+    def get_class_2_weekly_rate(self) -> float:
         class_2_nics_weekly_rate = string_to_float(
             self.__get_value_by_hmrc_constant("NIC Class 2 weekly rate")
         )
@@ -69,7 +85,16 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return class_2_nics_weekly_rate
 
-    def get_class_4_nics_lower_rate(self) -> float:
+    def get_class_4_lower_profits_limit(self) -> float:
+        class_4_lower_profits_limit = string_to_float(
+            self.__get_value_by_hmrc_constant("NIC Class 4 lower profits limit")
+        )
+
+        self.l.debug(f"class_4_lower_profits_limit: {class_4_lower_profits_limit}")
+
+        return class_4_lower_profits_limit
+
+    def get_class_4_lower_rate(self) -> float:
         class_4_nics_lower_rate = string_to_float(
             self.__get_value_by_hmrc_constant("NIC Class 4 lower rate")
         )
@@ -78,7 +103,16 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return class_4_nics_lower_rate
 
-    def get_class_4_nics_upper_rate(self) -> float:
+    def get_class_4_upper_profits_limit(self) -> float:
+        class_4_upper_profits_limit = string_to_float(
+            self.__get_value_by_hmrc_constant("NIC Class 4 upper profits limit")
+        )
+
+        self.l.debug(f"class_4_upper_profits_limit: {class_4_upper_profits_limit}")
+
+        return class_4_upper_profits_limit
+
+    def get_class_4_upper_rate(self) -> float:
         class_4_nics_upper_rate = string_to_float(
             self.__get_value_by_hmrc_constant("NIC Class 4 upper rate")
         )
