@@ -681,10 +681,6 @@ class HMRC:
         payment = self.get_first_payment_on_account_for_next_year()
         return uf.format_as_gbp_or_blank(payment)
 
-    def get_second_payment_on_account_for_next_year_gbp(self) -> str:
-        payment = self.get_first_payment_on_account_for_next_year()
-        return uf.format_as_gbp_or_blank(payment)
-
     def get_for_how_many_children__cb_(self):
         return uf.format_as_gbp_or_blank(0)
 
@@ -851,14 +847,6 @@ class HMRC:
         )
         return uf.round_up(legal__management_and_other_professional_fees)
 
-    def get_total_to_be_added_to_sa_account_due_by_31st_january(self):
-        values = [
-            self.get_total_tax_due(),
-            self.get_first_payment_on_account_for_next_year(),
-        ]
-        total_amounts = uf.sum_values(values)
-        return uf.format_as_gbp_or_blank(total_amounts)
-
     def get_legal__management_and_other_professional_fees_gbp(self):
         return uf.format_as_gbp_or_blank(
             self.get_legal__management_and_other_professional_fees()
@@ -878,6 +866,9 @@ class HMRC:
 
     def get_loss_brought_forward_against_this_year_s_profits_gbp(self):
         return uf.format_as_gbp_or_blank(0)
+
+    def get_loss_brought_forward_set_off_against_profits(self):
+        return 0
 
     def get_loss_brought_forward_set_off_against_profits_gbp(self):
         return uf.format_as_gbp_or_blank(0)
@@ -1175,6 +1166,9 @@ class HMRC:
     def get_private_use_adjustment_gbp(self):
         return uf.format_as_gbp_or_blank(self.get_private_use_adjustment())
 
+    def get_profit_or_loss_gbp(self):
+        return uf.format_as_gbp_or_blank(self.get_business_income())
+
     def get_property_adjustments_gbp(self):
         return uf.format_as_gbp_or_blank(0)
 
@@ -1356,6 +1350,10 @@ class HMRC:
 
     def get_seafarers__earnings_deduction(self):
         return uf.format_as_gbp_or_blank(0)
+
+    def get_second_payment_on_account_for_next_year_gbp(self) -> str:
+        payment = self.get_first_payment_on_account_for_next_year()
+        return uf.format_as_gbp_or_blank(payment)
 
     def get_share_schemes_taxable_amount(self):
         return uf.format_as_gbp_or_blank(0)
@@ -1669,9 +1667,6 @@ class HMRC:
         self.l.debug(f"total_taxable_income: {total_taxable_income}")
         return total_taxable_income
 
-    def get_loss_brought_forward_set_off_against_profits(self):
-        return 0
-
     def get_total_taxable_profits_from_this_business(self):
         net_business_profit_for_tax_purposes = (
             self.get_net_business_profit_for_tax_purposes()
@@ -1694,6 +1689,14 @@ class HMRC:
             self.get_total_taxable_profits_from_this_business()
         )
 
+    def get_total_to_be_added_to_sa_account_due_by_31st_january(self):
+        values = [
+            self.get_total_tax_due(),
+            self.get_first_payment_on_account_for_next_year(),
+        ]
+        total_amounts = uf.sum_values(values)
+        return uf.format_as_gbp_or_blank(total_amounts)
+
     def get_total_transactions_by_category_like(self, category_like) -> float:
         person_code = self.person_code
         tax_year = self.tax_year
@@ -1705,9 +1708,6 @@ class HMRC:
 
     def get_total_uk_property_income_gbp(self):
         return self.get_property_income()
-
-    def get_profit_or_loss_gbp(self):
-        return uf.format_as_gbp_or_blank(self.get_business_income())
 
     def get_total_unused_losses_carried_forward(self):
         return uf.format_as_gbp_or_blank(0)
