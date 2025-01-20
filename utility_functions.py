@@ -1,6 +1,11 @@
 import locale
 import math
 import re
+from cls_helper_log import LogHelper
+
+l = LogHelper("utility_functions")
+l.set_level_debug()
+l.debug(__file__)
 
 
 def all_conditions_are_false(conditions) -> bool:
@@ -73,6 +78,8 @@ def string_to_float(string) -> float:
 
 
 def sum_values(lst) -> float:
+    l.debug("sum_values")
+    l.debug(lst)
     total = 0
     for value in lst:
         total += value

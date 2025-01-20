@@ -188,6 +188,18 @@ class HMRC:
     def did_you_get_child_benefit(self):
         return self.receives_child_benefit()
 
+    def get_dividend_income(self):
+        person_code = self.person_code
+        tax_year = self.tax_year
+        category_like = f"HMRC {person_code} DIV income: "
+        dividend_income = self.transactions.fetch_total_by_tax_year_category_like(
+            tax_year, category_like
+        )
+        return uf.round_down(dividend_income)
+
+    def get_dividend_income_gbp(self):
+        return uf.format_as_gbp_or_blank(self.get_dividend_income())
+
     def did_you_get_dividend_income(self):
         person_code = self.person_code
         tax_year = self.tax_year
@@ -1226,15 +1238,12 @@ class HMRC:
         return uf.format_as_gbp_or_blank(self.get_property_balancing_charges())
 
     def get_property_expenses(self):
-        self.l.debug("get_property_expenses")
-        person_code = self.person_code
-        tax_year = self.tax_year
-        category_like = f"HMRC {person_code} UKP expense"
-        property_expenses = self.transactions.fetch_total_by_tax_year_category_like(
-            tax_year, category_like
-        )
-        self.l.debug(f"property_expenses: {property_expenses}")
-        return uf.round_up(property_expenses)
+        actual_property_allowance = self.get_property_allowance_actual()
+        actual_property_expenses = self.get_property_expenses_actual()
+        if actual_property_expenses > actual_property_allowance:
+            return actual_property_expenses
+        else:
+            return 0
 
     def get_property_expenses_actual(self):
         person_code = self.person_code
@@ -1274,9 +1283,16 @@ class HMRC:
         return uf.format_as_gbp_or_blank(self.get_property_income())
 
     def get_property_profit(self):
+        self.l.debug("get_property_profit")
         property_allowance = self.get_property_allowance()
-        property_expenses = self.get_property_expenses()
-        return self.get_property_income() - max(property_allowance, property_expenses)
+        self.l.debug(f"property_allowance: {property_allowance}")
+        property_expenses = self.get_total_property_expenses()
+        self.l.debug(f"property_expenses: {property_expenses}")
+        property_profit = self.get_property_income() - max(
+            property_allowance, property_expenses
+        )
+        self.l.debug(f"property_profit: {property_profit}")
+        return property_profit
 
     def get_property_repairs_and_maintenance(self) -> float:
         category_like = "UKP expense: repairs and maintenance"
@@ -1666,10 +1682,21 @@ class HMRC:
     def get_total_tax_due(self):
         self.l.debug("get_total_tax_due")
 
-        taxable_income = self.get_taxable_income()
+        non_savings_income = self.get_non_savings_income()
+        self.l.debug(f"non_savings_income: {non_savings_income}")
 
         # Allow for marriage allowance
         tax_free_allowance = self.get_tax_free_allowance()
+
+        taxable_income = self.get_taxable_income()
+
+        taxable_non_savings = non_savings_income - tax_free_allowance
+        self.l.debug(f"taxable_non_savings: {taxable_non_savings}")
+
+        total_income_on_which_tax_is_due = taxable_income - tax_free_allowance
+        self.l.debug(
+            f"total_income_on_which_tax_is_due: {total_income_on_which_tax_is_due}"
+        )
 
         zero_rate_threshold = tax_free_allowance
 
@@ -1677,7 +1704,6 @@ class HMRC:
         basic_rate_threshold = self.get_revised_basic_rate_threshold()
 
         higher_rate_threshold = self.get_higher_rate_threshold()
-        additional_rate_threshold = self.get_additional_rate_threshold()
         additional_tax_rate = self.get_additional_tax_rate()
         basic_tax_rate = self.get_basic_tax_rate()
         higher_tax_rate = self.get_higher_tax_rate()
@@ -1732,19 +1758,27 @@ class HMRC:
         self.l.debug(f"tax_free_allowance: {tax_free_allowance}")
         return tax_free_allowance
 
+    def get_non_savings_income(self):
+        self.l.debug("get_non_savings_income")
+
+        values = [
+            self.get_trading_profit(),
+            self.get_property_profit(),
+        ]
+        non_savings_income = uf.sum_values(values)
+        self.l.debug(f"non_savings_income: {non_savings_income}")
+        return non_savings_income
+
     def get_taxable_income(self):
         self.l.debug("get_taxable_income")
 
-        trading_profit = self.get_trading_profit()
-        self.l.debug(f"trading_profit: {trading_profit}")
-
-        property_profit = self.get_property_profit()
-        self.l.debug(f"property_profit: {property_profit}")
-
-        savings_income = self.get_savings_income()
-        self.l.debug(f"savings_income: {savings_income}")
-
-        taxable_income = trading_profit + property_profit + savings_income
+        values = [
+            self.get_trading_profit(),
+            self.get_property_profit(),
+            self.get_savings_income(),
+            self.get_dividend_income(),
+        ]
+        taxable_income = uf.sum_values(values)
         self.l.debug(f"taxable_income: {taxable_income}")
         return taxable_income
 
@@ -1943,7 +1977,7 @@ class HMRC:
         )
 
     def get_untaxed_foreign_interest__up_to__2_000__gbp(self):
-        untaxed_foreign_interest=self.get_untaxed_foreign_interest()
+        untaxed_foreign_interest = self.get_untaxed_foreign_interest()
         return uf.format_as_gbp_or_blank(untaxed_foreign_interest)
 
     def get_untaxed_uk_interest(self):
