@@ -222,6 +222,9 @@ class HMRC:
     def did_you_get_student_loans_company_notification(self):
         return False
 
+    def did_you_get_trust_income(self):
+        return False
+
     def did_you_get_uk_furnished_holiday_lettings_income(self):
         return False
 
@@ -1573,6 +1576,10 @@ class HMRC:
             tax_year, f"HMRC {person_code} INT income: interest UK taxed"
         )
 
+    def get_taxed_uk_interest_gbp(self):
+        taxed_uk_interest = self.get_taxed_uk_interest()
+        return uf.format_as_gbp_or_blank(taxed_uk_interest)
+
     def get_taxed_uk_interest_after_tax_has_been_taken_off_gbp(self):
         return uf.format_as_gbp_or_blank(0)
 
@@ -1936,7 +1943,8 @@ class HMRC:
         )
 
     def get_untaxed_foreign_interest__up_to__2_000__gbp(self):
-        return uf.format_as_gbp_or_blank(0)
+        untaxed_foreign_interest=self.get_untaxed_foreign_interest()
+        return uf.format_as_gbp_or_blank(untaxed_foreign_interest)
 
     def get_untaxed_uk_interest(self):
         person_code = self.person_code
@@ -2140,9 +2148,6 @@ class HMRC:
             return False
         return self.do_you_wish_to_voluntarily_pay_class_2_nics()
 
-    def trusts_etc(self):
-        return False
-
     def use_property_allowance(self):
         self.l.debug("use_property_allowance")
         property_allowance = self.get_property_allowance()
@@ -2189,17 +2194,7 @@ class HMRC:
         return False
 
     def were_you_self_employed_in_this_tax_year(self) -> bool:
-        person_code = self.person.code
-        tax_year = self.tax_year
-        query = (
-            self.transactions.query_builder()
-            .select_raw("COUNT(*)")
-            .where(
-                f'"Tax year"="{tax_year}" AND "Category" LIKE "HMRC {person_code} SES%income"'
-            )
-            .build()
-        )
-        how_many = self.sql.fetch_one_value(query)
+        how_many = self.get_how_many_businesses()
         return how_many > 0
 
     def were_you_under_16_at_tax_year_start(self):
