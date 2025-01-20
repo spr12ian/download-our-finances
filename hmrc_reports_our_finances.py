@@ -1,6 +1,7 @@
 from cls_hmrc import HMRC
 from cls_table_hmrc_questions_by_year import HMRC_QuestionsByYear
 from cls_helper_log import LogHelper
+from datetime import datetime
 
 l = LogHelper(__file__)
 # l.set_level_debug()
@@ -21,14 +22,26 @@ def print_reports(hmrc_people, tax_year):
 def main():
     # List of people to generate reports for
     hmrc_people = ["S", "B", "C"]
+    hmrc_people = ["B"]
 
-    # Tax year to generate reports for
-    tax_year = "2023 to 2024"
-    # tax_year = "2024 to 2025"
+    earliest_year = 2023
 
-    check_questions(tax_year)
+    tax_years = get_tax_years_from(earliest_year)
 
-    print_reports(hmrc_people, tax_year)
+    for tax_year in tax_years:
+        # Tax year to generate reports for
+
+        check_questions(tax_year)
+
+        print_reports(hmrc_people, tax_year)
+
+
+def get_tax_years_from(earliest_year) -> list[str]:
+    current_year = datetime.now().year
+    years_to_report = list(range(earliest_year, current_year))
+
+    tax_years = [f"{year} to {year + 1}" for year in years_to_report]
+    return tax_years
 
 
 if __name__ == "__main__":

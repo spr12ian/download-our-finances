@@ -197,7 +197,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
     def get_small_profits_threshold(self):
         small_profits_threshold = string_to_float(
-            self.__get_value_by_hmrc_constant("Small profits threshold")
+            self.__get_value_by_hmrc_constant("NIC Class 2 small profits threshold")
         )
 
         self.l.debug(f"small_profits_threshold: {small_profits_threshold}")
