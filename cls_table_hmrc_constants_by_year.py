@@ -121,6 +121,24 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return class_4_nics_upper_rate
 
+    def get_dividend_allowance(self):
+        dividend_allowance = string_to_float(
+            self.__get_value_by_hmrc_constant("Dividend allowance")
+        )
+
+        self.l.debug(f"dividend_allowance: {dividend_allowance}")
+
+        return dividend_allowance
+
+    def get_dividend_basic_rate(self):
+        dividend_basic_rate = string_to_float(
+            self.__get_value_by_hmrc_constant("Dividend basic rate")
+        )
+
+        self.l.debug(f"dividend_basic_rate: {dividend_basic_rate}")
+
+        return dividend_basic_rate
+
     def get_higher_rate_threshold(self) -> float:
         higher_rate_threshold = string_to_float(
             self.__get_value_by_hmrc_constant("Higher rate threshold")
@@ -194,6 +212,15 @@ class HMRC_ConstantsByYear(SQLiteTable):
         self.l.debug(f"savings_basic_rate: {savings_basic_rate}")
 
         return savings_basic_rate
+
+    def get_savings_nil_band(self):
+        savings_nil_band = string_to_float(
+            self.__get_value_by_hmrc_constant("Savings nil band")
+        )
+
+        self.l.debug(f"savings_nil_band: {savings_nil_band}")
+
+        return savings_nil_band
 
     def get_small_profits_threshold(self):
         small_profits_threshold = string_to_float(
