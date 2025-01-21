@@ -2099,9 +2099,16 @@ class HMRC:
             return self.get_trading_loss_gbp()
 
     def get_trading_reduction(self):
-        actual_trading_allowance = self.get_trading_allowance_actual()
+        trading_income = self.get_trading_income() 
         actual_trading_expenses = self.get_trading_expenses_actual()
+
+        if trading_income <= actual_trading_expenses:
+            return actual_trading_expenses
+       
+        actual_trading_allowance = self.get_trading_allowance_actual()
+
         return max(actual_trading_expenses, actual_trading_allowance)
+
 
     def get_uk_gains_where_tax_was_not_treated_as_paid(self):
         return uf.format_as_gbp_or_blank(0)
