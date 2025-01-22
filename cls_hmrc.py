@@ -659,7 +659,7 @@ class HMRC:
         return class_4_nics_due
 
     def get_class_4_nics_due_gbp(self):
-        return uf.format_as_gbp_or_blank(self.get_class_4_nics_due())
+        return uf.format_as_gbp(self.get_class_4_nics_due())
 
     def get_class_4_upper_profits_limit(self):
         return self.constants.get_class_4_lower_profits_limit()
@@ -675,14 +675,14 @@ class HMRC:
 
     def get_construction_industry_deductions_gbp(self):
         return False
-    
-    def get_combined_taxable_profit(self)->float:
-        trading_profit=self.get_trading_profit()
-        property_profit=self.get_property_profit()
-        combined_taxable_profit=trading_profit+property_profit
+
+    def get_combined_taxable_profit(self) -> float:
+        trading_profit = self.get_trading_profit()
+        property_profit = self.get_property_profit()
+        combined_taxable_profit = trading_profit + property_profit
         return combined_taxable_profit
-    
-    def get_combined_taxable_profit_gbp(self)->str:
+
+    def get_combined_taxable_profit_gbp(self) -> str:
         return uf.format_as_gbp_or_blank(self.get_combined_taxable_profit())
 
     def get_core_income_digest(self):
@@ -691,23 +691,21 @@ class HMRC:
         parts = [f"Combined taxable profit: {combined_taxable_profit_gbp}"]
         personal_allowance_gbp = self.get_personal_allowance_gbp().strip()
         parts.append(f"personal allowance: {personal_allowance_gbp}")
+        combined_taxable_profit = self.get_combined_taxable_profit()
+        personal_allowance = self.get_personal_allowance()
+        (tax, unused_allowance) = self.calculate_tax(
+            combined_taxable_profit, personal_allowance
+        )
+        self.unused_allowance = unused_allowance
+        tax_gbp = uf.format_as_gbp(tax).strip()
+        parts.append(f"tax: {tax_gbp}")
+        unused_allowance_gbp = uf.format_as_gbp(unused_allowance).strip()
+        parts.append(f"unused allowance: {unused_allowance_gbp}")
+        class_2_nics_due_gbp = self.get_class_2_nics_due_gbp().strip()
+        parts.append(f"class 2 nics: {class_2_nics_due_gbp}")
+        class_4_nics_due_gbp = self.get_class_4_nics_due_gbp().strip()
+        parts.append(f"class 4 nics: {class_4_nics_due_gbp}")
         return "\n" + " | ".join(parts)
-        i = self.get_property_income() + self.get_trading_income()
-        r = self.get_property_reduction() + self.get_trading_reduction()
-        p = i - r
-        a = self.get_tax_free_allowance()
-        (t, z) = self.calculate_tax(p, a)
-        d = {
-            "income": i,
-            "reduction": r,
-            "profit": p,
-            "allowance": a,
-            "tax": t,
-            "class 2 nics": self.get_class_2_nics_due(),
-            "class 4 nics": self.get_class_4_nics_due(),
-        }
-        digest = self.get_digest(d)
-        return digest
 
     def get_cost_to_replace_residential_domestic_items(self) -> float:
         self.l.debug("get_cost_to_replace_residential_domestic_items")
@@ -1411,7 +1409,7 @@ class HMRC:
         parts.append(f"taxable profit: {taxable_profit}")
 
         return "\n" + " | ".join(parts)
-    
+
     def get_property_expenses(self):
         actual_property_allowance = self.get_property_allowance_actual()
         actual_property_expenses = self.get_property_expenses_actual()
@@ -1591,12 +1589,21 @@ class HMRC:
 
     def get_savings_digest(self):
         self.l.debug("get_savings_digest")
-        i = self.get_savings_income()
-        a = self.get_savings_allowance()
-        (t, z) = self.calculate_savings_tax(i)
-        d = {"income": i, "allowance": a, "tax": t}
-        digest = self.get_digest(d)
-        return digest
+        income_gbp = self.get_savings_income_gbp().strip()
+        parts = [f"SAVINGS income: {income_gbp}"]
+        allowance_gbp = self.get_savings_allowance_gbp().strip()
+        parts.append(f"savings allowance: {allowance_gbp}")
+        income = self.get_savings_income()
+        taxable_savings = income - self.get_savings_allowance()
+        taxable_savings_gbp = uf.format_as_gbp(taxable_savings).strip()
+        parts.append(f"taxable savings: {taxable_savings_gbp}")
+
+        unused_allowance = self.unused_allowance
+        (tax, unused_allowance) = self.calculate_savings_tax(income, unused_allowance)
+        tax_gbp = uf.format_as_gbp(tax).strip()
+        parts.append(f"tax: {tax_gbp}")
+        parts.append(f"unused allowance: {unused_allowance}")
+        return "\n" + " | ".join(parts)
 
     def get_savings_income(self) -> float:
         person_code = self.person_code
@@ -2022,7 +2029,7 @@ class HMRC:
         parts = [f"TRADING income: {income_gbp}"]
         if self.is_trading_allowance_more_than_trading_expenses():
             allowance_gbp = self.get_trading_allowance_gbp().strip()
-            parts.append(f"allowance: {allowance_gbp}")
+            parts.append(f"trading allowance: {allowance_gbp}")
             parts.append(f"taxable profit: {taxable_profit}")
         return "\n" + " | ".join(parts)
 
