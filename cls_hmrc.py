@@ -4,6 +4,7 @@ from cls_hmrc_people import HMRC_People
 from tables import *
 import utility_functions as uf
 from cls_hmrc_output import HMRC_Output
+from functools import lru_cache
 
 
 class HMRC:
@@ -34,6 +35,9 @@ class HMRC:
         self.l = LogHelper("HMRC")
         self.l.set_level_debug()
         self.l.debug(__file__)
+        self.l.debug(f"person_code: {person_code}")
+        self.l.debug(f"tax_year: {tax_year}")
+
         self.person_code = person_code
         self.tax_year = tax_year
         self.constants = HMRC_ConstantsByYear(tax_year)
@@ -671,9 +675,23 @@ class HMRC:
 
     def get_construction_industry_deductions_gbp(self):
         return False
+    
+    def get_combined_taxable_profit(self)->float:
+        trading_profit=self.get_trading_profit()
+        property_profit=self.get_property_profit()
+        combined_taxable_profit=trading_profit+property_profit
+        return combined_taxable_profit
+    
+    def get_combined_taxable_profit_gbp(self)->str:
+        return uf.format_as_gbp_or_blank(self.get_combined_taxable_profit())
 
     def get_core_income_digest(self):
         self.l.debug("get_core_income_digest")
+        combined_taxable_profit_gbp = self.get_combined_taxable_profit_gbp().strip()
+        parts = [f"Combined taxable profit: {combined_taxable_profit_gbp}"]
+        personal_allowance_gbp = self.get_personal_allowance_gbp().strip()
+        parts.append(f"personal allowance: {personal_allowance_gbp}")
+        return "\n" + " | ".join(parts)
         i = self.get_property_income() + self.get_trading_income()
         r = self.get_property_reduction() + self.get_trading_reduction()
         p = i - r
@@ -1068,7 +1086,7 @@ class HMRC:
         if total_income > spouse_total_income:
             return 0
         marriage_allowance = self.constants.get_marriage_allowance()
-        personal_allowance = self.constants.get_personal_allowance()
+        personal_allowance = self.get_personal_allowance()
         total_income_excluding_tax_free_savings = (
             self.get_total_income_excluding_tax_free_savings()
         )
@@ -1082,15 +1100,22 @@ class HMRC:
     def get_marriage_allowance_transfer_amount_gbp(self) -> str:
         return uf.format_as_gbp_or_blank(self.get_marriage_allowance_transfer_amount())
 
+    @lru_cache(maxsize=None)
     def get_marriage_allowance_transferred_amount(self) -> float:
+        self.l.debug("get_marriage_allowance_transferred_amount")
         spouse_code = self.person.get_spouse_code()
+        if not spouse_code:
+            return 0
         tax_year = self.tax_year
+        self.l.debug(f"Getting HMRC instance for spouse: {spouse_code}")
         spouse_hmrc = HMRC(spouse_code, tax_year)
+        self.l.debug("Disabling debug for spouse HMRC instance")
         spouse_hmrc.disable_debug()
         marriage_allowance_transferred_amount = (
             spouse_hmrc.get_marriage_allowance_transfer_amount()
         )
         spouse_hmrc.enable_debug()
+        self.l.debug("Enabled debug for spouse HMRC instance")
         self.l.debug(
             f"marriage_allowance_transferred_amount: {marriage_allowance_transferred_amount}"
         )
@@ -1308,6 +1333,9 @@ class HMRC:
     def get_personal_allowance(self):
         return self.constants.get_personal_allowance()
 
+    def get_personal_allowance_gbp(self):
+        return uf.format_as_gbp(self.get_personal_allowance())
+
     def get_personal_savings_allowance(self):
         return self.constants.get_personal_savings_allowance()
 
@@ -1368,15 +1396,22 @@ class HMRC:
     def get_property_balancing_charges_gbp(self):
         return uf.format_as_gbp_or_blank(self.get_property_balancing_charges())
 
-    def get_property_digest(self):
+    def get_property_digest(self) -> str:
         self.l.debug("get_property_digest")
-        i = self.get_property_income()
-        r = self.get_property_reduction()
-        p = i - r
-        d = {"income": i, "reduction": r, "profit": p}
-        digest = self.get_digest(d)
-        return digest
+        income_gbp = self.get_property_income_gbp().strip()
+        taxable_profit = self.get_property_profit_gbp().strip()
+        parts = [f"PROPERTY income: {income_gbp}"]
+        if self.is_property_allowance_more_than_property_expenses():
+            allowance_gbp = self.get_property_allowance_gbp().strip()
+            parts.append(f"allowance: {allowance_gbp}")
+        else:
+            expenses_gbp = self.get_property_expenses_actual_gbp().strip()
+            parts.append(f"expenses: {expenses_gbp}")
 
+        parts.append(f"taxable profit: {taxable_profit}")
+
+        return "\n" + " | ".join(parts)
+    
     def get_property_expenses(self):
         actual_property_allowance = self.get_property_allowance_actual()
         actual_property_expenses = self.get_property_expenses_actual()
@@ -1966,14 +2001,30 @@ class HMRC:
     def get_trading_balancing_charges_gbp(self):
         return uf.format_as_gbp(self.get_trading_balancing_charges())
 
-    def get_trading_digest(self):
+    def get_overview(self) -> str:
+        self.l.debug("get_overview")
+        parts = [
+            self.get_trading_digest(),
+            self.get_property_digest(),
+            self.get_core_income_digest(),
+            self.get_savings_digest(),
+            self.get_dividends_digest(),
+            self.get_final_digest(),
+            "Marriage ollowance",
+        ]
+
+        return "\n".join(parts)
+
+    def get_trading_digest(self) -> str:
         self.l.debug("get_trading_digest")
-        i = self.get_trading_income()
-        r = self.get_trading_reduction()
-        p = i - r
-        d = {"income": i, "reduction": r, "profit": p}
-        digest = self.get_digest(d)
-        return digest
+        income_gbp = self.get_trading_income_gbp().strip()
+        taxable_profit = self.get_trading_profit_gbp().strip()
+        parts = [f"TRADING income: {income_gbp}"]
+        if self.is_trading_allowance_more_than_trading_expenses():
+            allowance_gbp = self.get_trading_allowance_gbp().strip()
+            parts.append(f"allowance: {allowance_gbp}")
+            parts.append(f"taxable profit: {taxable_profit}")
+        return "\n" + " | ".join(parts)
 
     def get_trading_expenses(self):
         actual_trading_allowance = self.get_trading_allowance_actual()
@@ -2088,6 +2139,9 @@ class HMRC:
         self.l.debug(f"trading_profit: {trading_profit}")
         return trading_profit
 
+    def get_property_profit_gbp(self):
+        return uf.format_as_gbp_or_blank(self.get_property_profit())
+
     def get_trading_profit_gbp(self):
         return uf.format_as_gbp_or_blank(self.get_trading_profit())
 
@@ -2099,16 +2153,15 @@ class HMRC:
             return self.get_trading_loss_gbp()
 
     def get_trading_reduction(self):
-        trading_income = self.get_trading_income() 
+        trading_income = self.get_trading_income()
         actual_trading_expenses = self.get_trading_expenses_actual()
 
         if trading_income <= actual_trading_expenses:
             return actual_trading_expenses
-       
+
         actual_trading_allowance = self.get_trading_allowance_actual()
 
         return max(actual_trading_expenses, actual_trading_allowance)
-
 
     def get_uk_gains_where_tax_was_not_treated_as_paid(self):
         return uf.format_as_gbp_or_blank(0)

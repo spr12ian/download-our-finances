@@ -3,6 +3,7 @@
 *.db
 *.txt
 config.ini
+scratch.sql
 tables_sqlalchemy.py
 .logs/
 

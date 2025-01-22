@@ -14,7 +14,8 @@ def check_questions(tax_year):
 
 
 def print_reports(hmrc_people, tax_year):
-    for person in hmrc_people:
+    for person in hmrc_people:        
+        l.debug(f"Getting HMRC instance for person: {person}, tax year: {tax_year}")
         hmrc = HMRC(person, tax_year)
         hmrc.print_reports()
 

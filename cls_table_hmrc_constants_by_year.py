@@ -1,6 +1,7 @@
 from cls_helper_log import LogHelper
 from cls_sqlite_table import SQLiteTable
 from utility_functions import string_to_float
+from functools import lru_cache
 
 
 class HMRC_ConstantsByYear(SQLiteTable):
@@ -27,12 +28,13 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
     def __init__(self, tax_year):
         self.l = LogHelper("HMRC_ConstantsByYear")
-        self.l.set_level_debug()
+        # self.l.set_level_debug()
         self.l.debug(__file__)
         self.l.debug(f"tax_year: {tax_year}")
         super().__init__("hmrc_constants_by_year")
         self.tax_year = tax_year
 
+    @lru_cache(maxsize=None)
     def get_additional_rate_threshold(self) -> float:
         additional_rate_threshold = self.__get_value_by_hmrc_constant(
             "Additional rate threshold"
@@ -49,6 +51,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return additional_rate_threshold
 
+    @lru_cache(maxsize=None)
     def get_additional_tax_rate(self) -> float:
         additional_tax_rate = string_to_float(
             self.__get_value_by_hmrc_constant("Additional tax rate")
@@ -58,6 +61,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return additional_tax_rate
 
+    @lru_cache(maxsize=None)
     def get_basic_rate_threshold(self) -> float:
         basic_rate_threshold = string_to_float(
             self.__get_value_by_hmrc_constant("Basic rate threshold")
@@ -67,6 +71,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return basic_rate_threshold
 
+    @lru_cache(maxsize=None)
     def get_basic_tax_rate(self) -> float:
         basic_tax_rate = string_to_float(
             self.__get_value_by_hmrc_constant("Basic tax rate")
@@ -76,6 +81,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return basic_tax_rate
 
+    @lru_cache(maxsize=None)
     def get_class_2_weekly_rate(self) -> float:
         class_2_nics_weekly_rate = string_to_float(
             self.__get_value_by_hmrc_constant("NIC Class 2 weekly rate")
@@ -85,6 +91,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return class_2_nics_weekly_rate
 
+    @lru_cache(maxsize=None)
     def get_class_4_lower_profits_limit(self) -> float:
         class_4_lower_profits_limit = string_to_float(
             self.__get_value_by_hmrc_constant("NIC Class 4 lower profits limit")
@@ -94,6 +101,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return class_4_lower_profits_limit
 
+    @lru_cache(maxsize=None)
     def get_class_4_lower_rate(self) -> float:
         class_4_nics_lower_rate = string_to_float(
             self.__get_value_by_hmrc_constant("NIC Class 4 lower rate")
@@ -103,6 +111,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return class_4_nics_lower_rate
 
+    @lru_cache(maxsize=None)
     def get_class_4_upper_profits_limit(self) -> float:
         class_4_upper_profits_limit = string_to_float(
             self.__get_value_by_hmrc_constant("NIC Class 4 upper profits limit")
@@ -112,6 +121,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return class_4_upper_profits_limit
 
+    @lru_cache(maxsize=None)
     def get_class_4_upper_rate(self) -> float:
         class_4_nics_upper_rate = string_to_float(
             self.__get_value_by_hmrc_constant("NIC Class 4 upper rate")
@@ -121,6 +131,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return class_4_nics_upper_rate
 
+    @lru_cache(maxsize=None)
     def get_dividend_allowance(self):
         dividend_allowance = string_to_float(
             self.__get_value_by_hmrc_constant("Dividend allowance")
@@ -130,6 +141,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return dividend_allowance
 
+    @lru_cache(maxsize=None)
     def get_dividend_basic_rate(self):
         dividend_basic_rate = string_to_float(
             self.__get_value_by_hmrc_constant("Dividend basic rate")
@@ -139,6 +151,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return dividend_basic_rate
 
+    @lru_cache(maxsize=None)
     def get_higher_rate_threshold(self) -> float:
         higher_rate_threshold = string_to_float(
             self.__get_value_by_hmrc_constant("Higher rate threshold")
@@ -148,6 +161,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return higher_rate_threshold
 
+    @lru_cache(maxsize=None)
     def get_higher_tax_rate(self) -> float:
         higher_tax_rate = string_to_float(
             self.__get_value_by_hmrc_constant("Higher tax rate")
@@ -157,6 +171,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return higher_tax_rate
 
+    @lru_cache(maxsize=None)
     def get_marriage_allowance(self) -> float:
         marriage_allowance = string_to_float(
             self.__get_value_by_hmrc_constant("Marriage allowance")
@@ -166,6 +181,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return marriage_allowance
 
+    @lru_cache(maxsize=None)
     def how_many_nic_weeks_in_year(self) -> float:
         nic_weeks_in_year = string_to_float(
             self.__get_value_by_hmrc_constant("NIC weeks in year")
@@ -175,6 +191,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return nic_weeks_in_year
 
+    @lru_cache(maxsize=None)
     def get_personal_allowance(self) -> float:
         personal_allowance = string_to_float(
             self.__get_value_by_hmrc_constant("Personal allowance")
@@ -184,6 +201,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return personal_allowance
 
+    @lru_cache(maxsize=None)
     def get_personal_savings_allowance(self) -> float:
         personal_savings_allowance = string_to_float(
             self.__get_value_by_hmrc_constant(
@@ -195,6 +213,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return personal_savings_allowance
 
+    @lru_cache(maxsize=None)
     def get_property_income_allowance(self) -> float:
         property_income_allowance = string_to_float(
             self.__get_value_by_hmrc_constant("Property income allowance")
@@ -204,6 +223,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return property_income_allowance
 
+    @lru_cache(maxsize=None)
     def get_savings_basic_rate(self):
         savings_basic_rate = string_to_float(
             self.__get_value_by_hmrc_constant("Savings basic rate")
@@ -213,6 +233,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return savings_basic_rate
 
+    @lru_cache(maxsize=None)
     def get_savings_nil_band(self):
         savings_nil_band = string_to_float(
             self.__get_value_by_hmrc_constant("Savings nil band")
@@ -222,6 +243,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return savings_nil_band
 
+    @lru_cache(maxsize=None)
     def get_small_profits_threshold(self):
         small_profits_threshold = string_to_float(
             self.__get_value_by_hmrc_constant("NIC Class 2 small profits threshold")
@@ -231,6 +253,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return small_profits_threshold
 
+    @lru_cache(maxsize=None)
     def get_starting_rate_limit_for_savings(self):
         starting_rate_limit_for_savings = string_to_float(
             self.__get_value_by_hmrc_constant("Starting rate limit for savings")
@@ -242,6 +265,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return starting_rate_limit_for_savings
 
+    @lru_cache(maxsize=None)
     def get_trading_income_allowance(self):
         trading_income_allowance = string_to_float(
             self.__get_value_by_hmrc_constant("Trading income allowance")
@@ -251,6 +275,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return trading_income_allowance
 
+    @lru_cache(maxsize=None)
     def get_vat_registration_threshold(self):
         vat_registration_threshold = string_to_float(
             self.__get_value_by_hmrc_constant("VAT registration threshold")
