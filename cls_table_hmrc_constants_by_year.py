@@ -132,24 +132,24 @@ class HMRC_ConstantsByYear(SQLiteTable):
         return class_4_nics_upper_rate
 
     @lru_cache(maxsize=None)
-    def get_dividend_allowance(self):
-        dividend_allowance = string_to_float(
-            self.__get_value_by_hmrc_constant("Dividend allowance")
+    def get_dividends_allowance(self):
+        dividends_allowance = string_to_float(
+            self.__get_value_by_hmrc_constant("Dividends allowance")
         )
 
-        self.l.debug(f"dividend_allowance: {dividend_allowance}")
+        self.l.debug(f"dividends_allowance: {dividends_allowance}")
 
-        return dividend_allowance
+        return dividends_allowance
 
     @lru_cache(maxsize=None)
-    def get_dividend_basic_rate(self):
-        dividend_basic_rate = string_to_float(
-            self.__get_value_by_hmrc_constant("Dividend basic rate")
+    def get_dividends_basic_rate(self):
+        dividends_basic_rate = string_to_float(
+            self.__get_value_by_hmrc_constant("Dividends basic rate")
         )
 
-        self.l.debug(f"dividend_basic_rate: {dividend_basic_rate}")
+        self.l.debug(f"dividends_basic_rate: {dividends_basic_rate}")
 
-        return dividend_basic_rate
+        return dividends_basic_rate
 
     @lru_cache(maxsize=None)
     def get_higher_rate_threshold(self) -> float:

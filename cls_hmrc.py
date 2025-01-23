@@ -37,13 +37,13 @@ class HMRC:
         self.l.debug(__file__)
         self.l.debug(f"person_code: {person_code}")
         self.l.debug(f"tax_year: {tax_year}")
-
         self.person_code = person_code
         self.tax_year = tax_year
         self.constants = HMRC_ConstantsByYear(tax_year)
         self.person = HMRC_People(person_code)
-        spouse_code = self.person.get_spouse_code()
-        self.spouse = HMRC_People(spouse_code)
+        if self.is_married():
+            spouse_code = self.person.get_spouse_code()
+            self.spouse = HMRC_People(spouse_code)
         self.categories = Categories()
         self.transactions = Transactions()
         self.sql = SQL_Helper().select_sql_helper("SQLite")
@@ -91,7 +91,7 @@ class HMRC:
         return False
 
     def are_you_claiming_marriage_allowance(self):
-        if self.get_marital_status() != "Married":
+        if not self.is_married():
             return False
         total_income = self.get_total_income()
         spouse_total_income = self.get_spouse_total_income()
@@ -129,8 +129,8 @@ class HMRC:
     def are_you_registered_blind(self):
         return False
 
-    def calculate_dividend_tax(self, amount, available_allowance=0):
-        self.l.debug("calculate_dividend_tax")
+    def calculate_dividends_tax(self, amount, available_allowance=0):
+        self.l.debug("calculate_dividends_tax")
         self.l.debug(f"amount: {amount}")
         self.l.debug(f"available_allowance: {available_allowance}")
         if amount <= available_allowance:
@@ -139,12 +139,12 @@ class HMRC:
         else:
             amount -= available_allowance
             available_allowance = 0
-            dividend_allowance = self.get_dividend_allowance()
-            if amount <= dividend_allowance:
+            dividends_allowance = self.get_dividends_allowance()
+            if amount <= dividends_allowance:
                 tax = 0
             else:
-                dividend_basic_rate = self.get_dividend_basic_rate()
-                tax = (amount - dividend_allowance) * dividend_basic_rate
+                dividends_basic_rate = self.get_dividends_basic_rate()
+                tax = (amount - dividends_allowance) * dividends_basic_rate
         self.l.debug(f"tax: {tax}")
         return (round(tax, 2), available_allowance)
 
@@ -203,13 +203,19 @@ class HMRC:
 
     def call_method(self, method_name):
         self.l.debug(f"Calling method: {method_name}")
-        try:
-            method = getattr(self, method_name)
-            return method()
-        except AttributeError:
+        if not self.does_method_exist(method_name):
             self.l.error(
                 f"\tdef {method_name}(self): return uf.format_as_gbp_or_blank(0)"
             )
+            return "Check log file"
+
+        method = getattr(self, method_name)
+        return method()
+
+    def does_method_exist(self, method_name):
+        self.l.debug(f"Does method exist: '{method_name}'?")
+        method = getattr(self, method_name, None)
+        return method is not None
 
     def ceased_renting__consider_cgt(self):
         return uf.format_as_gbp_or_blank(0)
@@ -258,7 +264,7 @@ class HMRC:
     def did_you_get_child_benefit(self):
         return self.receives_child_benefit()
 
-    def did_you_get_dividend_income(self):
+    def did_you_get_dividends_income(self):
         person_code = self.person_code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} DIV income: "
@@ -623,7 +629,7 @@ class HMRC:
             return weekly_rate_class2 * weeks_in_year
 
     def get_class_2_nics_due_gbp(self):
-        return uf.format_as_gbp_or_blank(self.get_class_2_nics_due())
+        return uf.format_as_gbp(self.get_class_2_nics_due())
 
     def get_class_2_weekly_rate(self):
         return self.constants.get_class_2_weekly_rate()
@@ -667,15 +673,6 @@ class HMRC:
     def get_class_4_upper_rate(self):
         return self.constants.get_class_4_upper_rate()
 
-    def get_community_investment_tax_relief(self):
-        return uf.format_as_gbp_or_blank(0)
-
-    def get_compensation_and_lump_sums_up_to__30_000_exemption(self):
-        return uf.format_as_gbp_or_blank(0)
-
-    def get_construction_industry_deductions_gbp(self):
-        return False
-
     def get_combined_taxable_profit(self) -> float:
         trading_profit = self.get_trading_profit()
         property_profit = self.get_property_profit()
@@ -685,26 +682,38 @@ class HMRC:
     def get_combined_taxable_profit_gbp(self) -> str:
         return uf.format_as_gbp_or_blank(self.get_combined_taxable_profit())
 
-    def get_core_income_digest(self):
-        self.l.debug("get_core_income_digest")
+    def get_community_investment_tax_relief(self):
+        return uf.format_as_gbp_or_blank(0)
+
+    def get_compensation_and_lump_sums_up_to__30_000_exemption(self):
+        return uf.format_as_gbp_or_blank(0)
+
+    def get_construction_industry_deductions_gbp(self):
+        return False
+
+    def get_combined_tax_digest(self):
+        self.l.debug("get_combined_tax_digest")
         combined_taxable_profit_gbp = self.get_combined_taxable_profit_gbp().strip()
-        parts = [f"Combined taxable profit: {combined_taxable_profit_gbp}"]
         personal_allowance_gbp = self.get_personal_allowance_gbp().strip()
-        parts.append(f"personal allowance: {personal_allowance_gbp}")
         combined_taxable_profit = self.get_combined_taxable_profit()
         personal_allowance = self.get_personal_allowance()
+        taxable_amount = max(0, combined_taxable_profit - personal_allowance)
+        taxable_amount_gbp = uf.format_as_gbp(taxable_amount).strip()
         (tax, unused_allowance) = self.calculate_tax(
             combined_taxable_profit, personal_allowance
         )
         self.unused_allowance = unused_allowance
         tax_gbp = uf.format_as_gbp(tax).strip()
-        parts.append(f"tax: {tax_gbp}")
-        unused_allowance_gbp = uf.format_as_gbp(unused_allowance).strip()
-        parts.append(f"unused personal allowance: {unused_allowance_gbp}")
         class_2_nics_due_gbp = self.get_class_2_nics_due_gbp().strip()
-        parts.append(f"class 2 nics: {class_2_nics_due_gbp}")
         class_4_nics_due_gbp = self.get_class_4_nics_due_gbp().strip()
+
+        parts = [f"Combined taxable profit: {combined_taxable_profit_gbp}"]
+        parts.append(f"personal allowance: {personal_allowance_gbp}")
+        parts.append(f"taxable amount: {taxable_amount_gbp}")
+        parts.append(f"tax: {tax_gbp}")
+        parts.append(f"class 2 nics: {class_2_nics_due_gbp}")
         parts.append(f"class 4 nics: {class_4_nics_due_gbp}")
+
         return "\n" + " | ".join(parts)
 
     def get_cost_to_replace_residential_domestic_items(self) -> float:
@@ -772,49 +781,51 @@ class HMRC:
     def get_disability_and_foreign_service_deduction(self):
         return uf.format_as_gbp_or_blank(0)
 
-    def get_dividend_allowance(self):
-        return self.constants.get_dividend_allowance()
+    def get_dividends_allowance(self):
+        return self.constants.get_dividends_allowance()
 
-    def get_dividend_allowance_gbp(self):
-        return uf.format_as_gbp(self.get_dividend_allowance())
+    def get_dividends_allowance_gbp(self):
+        return uf.format_as_gbp(self.get_dividends_allowance())
 
-    def get_dividend_basic_rate(self):
-        return self.constants.get_dividend_basic_rate()
+    def get_dividends_basic_rate(self):
+        return self.constants.get_dividends_basic_rate()
 
-    def get_dividend_income(self):
+    def get_dividends_income(self):
         person_code = self.person_code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} DIV income: "
-        dividend_income = self.transactions.fetch_total_by_tax_year_category_like(
+        dividends_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
-        return uf.round_down(dividend_income)
+        return uf.round_down(dividends_income)
 
-    def get_dividend_income_gbp(self):
-        return uf.format_as_gbp_or_blank(self.get_dividend_income())
+    def get_dividends_income_gbp(self):
+        return uf.format_as_gbp(self.get_dividends_income())
 
     def get_dividends_digest(self):
         self.l.debug("get_dividends_digest")
+        return self.get_digest_by_type("dividends")
 
-        income_gbp = self.get_dividend_income_gbp().strip()
-        parts = [f"DIVIDENDS income: {income_gbp}"]
+    def get_dividends_tax_digest(self):
+        self.l.debug("get_dividends_tax_digest")
 
-        allowance_gbp = self.get_dividend_allowance_gbp().strip()
-        parts.append(f"dividends allowance: {allowance_gbp}")
+        if not self.are_there_dividends_transactions():
+            return ""
 
-        income = self.get_dividend_income()
-        dividend_allowance = self.get_dividend_allowance()
-        taxable_dividends = min(0, income - dividend_allowance)
+        income = self.get_dividends_income()
+        dividends_allowance = self.get_dividends_allowance()
+        taxable_dividends = max(0, income - dividends_allowance)
         taxable_dividends_gbp = uf.format_as_gbp(taxable_dividends).strip()
-        parts.append(f"taxable dividends: {taxable_dividends_gbp}")
-
+        parts = [f"taxable dividends: {taxable_dividends_gbp}"]
         unused_allowance = self.unused_allowance
-        (tax, unused_allowance) = self.calculate_dividend_tax(income, unused_allowance)
+        taxable_amount = taxable_dividends - unused_allowance
+        (tax, unused_allowance) = self.calculate_dividends_tax(income, unused_allowance)
         self.unused_allowance = unused_allowance
         tax_gbp = uf.format_as_gbp(tax).strip()
         unused_allowance_gbp = uf.format_as_gbp(unused_allowance).strip()
-        parts.append(f"tax: {tax_gbp}")
         parts.append(f"unused personal allowance: {unused_allowance_gbp}")
+        parts.append(f"taxable amount: {taxable_amount}")
+        parts.append(f"tax: {tax_gbp}")
         return "\n" + " | ".join(parts)
 
     def get_dividends_from_uk_companies(self):
@@ -852,33 +863,12 @@ class HMRC:
         self.l.debug("get_final_digest")
         income_gbp = self.get_total_taxable_income_gbp().strip()
         parts = [f"TOTAL taxable income: {income_gbp}"]
-        allowance_gbp = self.get_savings_allowance_gbp().strip()
-        parts.append(f"savings allowance: {allowance_gbp}")
-        income = self.get_savings_income()
-        savings_allowance = self.get_savings_allowance()
-        taxable_savings = min(0, income - savings_allowance)
-        taxable_savings_gbp = uf.format_as_gbp(taxable_savings).strip()
-        parts.append(f"taxable savings: {taxable_savings_gbp}")
-
-        unused_allowance = self.unused_allowance
-        (tax, unused_allowance) = self.calculate_savings_tax(income, unused_allowance)
-        self.unused_allowance = unused_allowance
-        tax_gbp = uf.format_as_gbp(tax).strip()
-        unused_allowance_gbp = uf.format_as_gbp(unused_allowance).strip()
-        parts.append(f"tax: {tax_gbp}")
-        parts.append(f"unused personal allowance: {unused_allowance_gbp}")
+        tax = self.get_total_tax_due_gbp().strip()
+        parts.append(f"total tax: {tax}")
+        payment_by_31st_jan = self.get_total_to_add_to_sa_account_due_by_31st_january()
+        payment_by_31st_jan_gbp = uf.format_as_gbp(payment_by_31st_jan).strip()
+        parts.append(f"payment by 31st January: {payment_by_31st_jan_gbp}")
         return "\n" + " | ".join(parts)
-
-        i = (
-            self.get_non_savings_income()
-            + self.get_savings_income()
-            + self.get_dividend_income()
-        )
-        t = self.get_total_tax_due()
-        f = self.get_total_to_add_to_sa_account_due_by_31st_january()
-        d = {"total taxable income": i, "total tax": t, "payment by 31st January": f}
-        digest = self.get_digest(d)
-        return digest
 
     def get_first_name(self):
         return self.person.get_first_name()
@@ -1049,8 +1039,8 @@ class HMRC:
         self.l.debug(f"non_savings_income: {non_savings_income}")
         savings_income = self.get_savings_income()
         self.l.debug(f"savings_income: {savings_income}")
-        dividend_income = self.get_dividend_income()
-        self.l.debug(f"dividend_income: {dividend_income}")
+        dividends_income = self.get_dividends_income()
+        self.l.debug(f"dividends_income: {dividends_income}")
         tax_free_allowance = self.get_tax_free_allowance()
         (non_savings_tax, available_allowance) = self.calculate_tax(
             non_savings_income, tax_free_allowance
@@ -1062,12 +1052,12 @@ class HMRC:
         )
         self.l.debug(f"savings_tax: {savings_tax}")
         self.l.debug(f"available_allowance: {available_allowance}")
-        (dividend_tax, available_allowance) = self.calculate_dividend_tax(
-            dividend_income, available_allowance
+        (dividends_tax, available_allowance) = self.calculate_dividends_tax(
+            dividends_income, available_allowance
         )
-        self.l.debug(f"dividend_tax: {dividend_tax}")
+        self.l.debug(f"dividends_tax: {dividends_tax}")
         self.l.debug(f"available_allowance: {available_allowance}")
-        income_tax = non_savings_tax + savings_tax + dividend_tax
+        income_tax = non_savings_tax + savings_tax + dividends_tax
         self.l.debug(f"income_tax: {income_tax}")
         return income_tax
 
@@ -1138,9 +1128,10 @@ class HMRC:
     @lru_cache(maxsize=None)
     def get_marriage_allowance_transferred_amount(self) -> float:
         self.l.debug("get_marriage_allowance_transferred_amount")
-        spouse_code = self.person.get_spouse_code()
-        if not spouse_code:
+        if not self.is_married():
             return 0
+        
+        spouse_code = self.person.get_spouse_code()
         tax_year = self.tax_year
         self.l.debug(f"Getting HMRC instance for spouse: {spouse_code}")
         spouse_hmrc = HMRC(spouse_code, tax_year)
@@ -1161,7 +1152,9 @@ class HMRC:
             self.get_marriage_allowance_transferred_amount()
         )
 
-    def get_marriage_date(self):
+    def get_marriage_date(self)->str:
+        if not self.is_married():
+            return ""
         return self.spouse.get_uk_marriage_date()
 
     def get_married_people_s_surplus_allowance_you_can_have(self):
@@ -1289,6 +1282,31 @@ class HMRC:
 
     def get_outstanding_debt_included_in_tax_code_gbp(self):
         return uf.format_as_gbp(self.get_outstanding_debt_included_in_tax_code())
+
+    def get_overview(self) -> str:
+        self.l.debug("get_overview")
+        parts = self.get_overview_parts()
+        return "\n".join(parts)
+
+    def get_overview_parts(self) -> list:
+        self.l.debug("get_overview_parts")
+        steps = [
+            "get_trading_digest",
+            "get_property_digest",
+            "get_savings_digest",
+            "get_dividends_digest",
+            "get_final_digest",
+            "get_combined_tax_digest",
+            "get_savings_tax_digest",
+            "get_dividends_tax_digest",
+            "get_marriage_allowance_digest",
+        ]
+        parts = []
+        for step in steps:
+            part = self.call_method(step)
+            if part:
+                parts.append(part)
+        return parts
 
     def get_payments_to_a_retirement_annuity_contract(self):
         return 0
@@ -1433,19 +1451,7 @@ class HMRC:
 
     def get_property_digest(self) -> str:
         self.l.debug("get_property_digest")
-        income_gbp = self.get_property_income_gbp().strip()
-        taxable_profit = self.get_property_profit_gbp().strip()
-        parts = [f"PROPERTY income: {income_gbp}"]
-        if self.is_property_allowance_more_than_property_expenses():
-            allowance_gbp = self.get_property_allowance_gbp().strip()
-            parts.append(f"allowance: {allowance_gbp}")
-        else:
-            expenses_gbp = self.get_property_expenses_actual_gbp().strip()
-            parts.append(f"expenses: {expenses_gbp}")
-
-        parts.append(f"taxable profit: {taxable_profit}")
-
-        return "\n" + " | ".join(parts)
+        return self.get_digest_by_type("property")
 
     def get_property_expenses(self):
         actual_property_allowance = self.get_property_allowance_actual()
@@ -1494,17 +1500,20 @@ class HMRC:
 
     def get_property_profit(self):
         self.l.debug("get_property_profit")
-        property_allowance = self.get_property_allowance()
+        property_allowance = self.get_property_allowance_actual()
         self.l.debug(f"property_allowance: {property_allowance}")
         property_expenses = self.get_property_expenses_actual()
         self.l.debug(f"property_expenses: {property_expenses}")
         property_income = self.get_property_income()
+        self.l.debug(f"property_income: {property_income}")
         property_outgo = max(property_allowance, property_expenses)
-        property_profit = min(
-            0, property_income - property_outgo
-        )
+        self.l.debug(f"property_outgo: {property_outgo}")
+        property_profit = max(0, property_income - property_outgo)
         self.l.debug(f"property_profit: {property_profit}")
         return property_profit
+
+    def get_property_profit_gbp(self):
+        return uf.format_as_gbp_or_blank(self.get_property_profit())
 
     def get_property_reduction(self):
         actual_property_allowance = self.get_property_allowance_actual()
@@ -1626,24 +1635,189 @@ class HMRC:
     def get_savings_basic_rate(self):
         return self.constants.get_savings_basic_rate()
 
+    def get_marriage_allowance_digest(self):
+        self.l.debug("get_marriage_allowance_digest")
+
+        if not self.is_married():
+            return ""
+        
+        
+
+        marriage_allowance = self.get_marriage_allowance_transfer_amount()
+        self.l.debug(f"marriage_allowance: {marriage_allowance}")
+
+        if marriage_allowance == 0:
+            return ""
+
+        transferred_to = self.spouse.get_name()
+        marriage_allowance_gbp = uf.format_as_gbp(marriage_allowance).strip()
+        parts = [f"MARRIAGE ALLOWANCE: {marriage_allowance_gbp}"]
+        parts.append(f"transferred to: {transferred_to}")
+        return "\n" + " | ".join(parts)
+
+    def get_digest_income_gbp(self, digest_type):
+        self.l.debug("get_digest_income_gbp")
+        self.l.debug(f"digest_type: {digest_type}")
+
+        amount = self.get_digest_income(digest_type)
+
+        return uf.format_as_gbp(amount).strip()
+
+    def get_digest_income(self, digest_type):
+        amount = self.call_method(f"get_{digest_type}_income")
+        self.l.debug(f"amount: {amount}")
+        return amount
+
+    def get_digest_deductible_gbp(self, digest_type):
+        self.l.debug("get_digest_deductible_gbp")
+        self.l.debug(f"digest_type: {digest_type}")
+
+        deductible = self.get_digest_deductible(digest_type)
+        self.l.debug(f"deductible: {deductible}")
+
+        return uf.format_as_gbp(deductible).strip()
+
+    def get_digest_deductible(self, digest_type):
+        self.l.debug("get_digest_deductible")
+        if self.does_method_exist(f"get_{digest_type}_allowance_actual"):
+            allowance = self.call_method(f"get_{digest_type}_allowance_actual")
+            if self.does_method_exist(f"get_{digest_type}_expenses_actual"):
+                expenses = self.call_method(f"get_{digest_type}_expenses_actual")
+                deductible = max(allowance, expenses)
+            else:
+                deductible = allowance
+        else:
+            deductible = self.call_method(f"get_{digest_type}_allowance")
+        
+        self.l.debug(f"deductible: {deductible}")
+
+        return deductible
+
+    def get_digest_deductible_label(self, digest_type):
+        self.l.debug("get_digest_deductible_label")
+        self.l.debug(f"digest_type: {digest_type}")
+
+        if self.does_method_exist(f"get_{digest_type}_allowance_actual"):
+            allowance = self.call_method(f"get_{digest_type}_allowance_actual")
+            if self.does_method_exist(f"get_{digest_type}_expenses_actual"):
+                expenses = self.call_method(f"get_{digest_type}_expenses_actual")
+            else:
+                expenses = 0
+            if allowance > expenses:
+                deductible_label = "allowance"
+            else:
+                deductible_label = "expenses"
+        else:
+            deductible_label = "allowance"
+        self.l.debug(f"deductible_label: {deductible_label}")
+
+        return deductible_label
+
+    def get_taxable_by_digest_type(self, digest_type):
+        self.l.debug("get_taxable_by_digest_type")
+        self.l.debug(f"digest_type: {digest_type}")
+
+        amount = self.call_method(f"get_taxable_{digest_type}")
+        self.l.debug(f"amount: {amount}")
+
+        return uf.format_as_gbp(amount).strip()
+
+    def get_digest_type_categories(self):
+        person_code = self.person_code
+        return {
+            "savings": " INT ",
+            "dividends": " DIV ",
+            "trading": " SES ",
+            "property": " UKP ",
+        }
+
+    def are_there_digest_transactions(self, digest_type) -> bool:
+        self.l.debug("are_there_digest_transactions")
+        digest_category_like = self.get_digest_type_categories()[digest_type]
+        self.l.debug(f"digest_category_like: {digest_category_like}")
+
+        person_code = self.person.code
+        tax_year = self.tax_year
+        query = (
+            self.transactions.query_builder()
+            .select_raw("COUNT(DISTINCT Category)")
+            .where(
+                f'"Tax year"="{tax_year}"'
+                + f' AND "Category" LIKE "HMRC {person_code}{digest_category_like}%"'
+            )
+            .build()
+        )
+        self.l.debug(f"query: {query}")
+        how_many = self.sql.fetch_one_value(query)
+        self.l.debug(f"how_many: {how_many}")
+        return how_many > 0
+
+    def get_digest_taxible_gbp(self,digest_type):
+        self.l.debug("get_digest_taxible_gbp")
+        income = self.get_digest_income(digest_type)
+        deductible = self.get_digest_deductible(digest_type)
+        taxible = max(0, income - deductible)
+        return uf.format_as_gbp(taxible).strip()
+
+    def get_digest_by_type(self, digest_type):
+        self.l.debug("get_digest_by_type")
+        self.l.debug(f"digest_type: {digest_type}")
+
+        if not self.are_there_digest_transactions(digest_type):
+            return ""
+
+        income_gbp = self.get_digest_income_gbp(digest_type)
+        deductible_gbp = self.get_digest_deductible_gbp(digest_type)
+        deductible_label = self.get_digest_deductible_label(digest_type)
+        taxable_gbp = self.get_digest_taxible_gbp(digest_type)
+
+        parts = [f"{digest_type.upper()} income: {income_gbp}"]
+        parts.append(f"{digest_type} {deductible_label}: {deductible_gbp}")
+        parts.append(f"taxable {digest_type}: {taxable_gbp}")
+
+        return "\n" + " | ".join(parts)
+
     def get_savings_digest(self):
         self.l.debug("get_savings_digest")
-        income_gbp = self.get_savings_income_gbp().strip()
-        parts = [f"SAVINGS income: {income_gbp}"]
-        allowance_gbp = self.get_savings_allowance_gbp().strip()
-        parts.append(f"savings allowance: {allowance_gbp}")
-        income = self.get_savings_income()
-        taxable_savings = income - self.get_savings_allowance()
-        taxable_savings_gbp = uf.format_as_gbp(taxable_savings).strip()
-        parts.append(f"taxable savings: {taxable_savings_gbp}")
+        return self.get_digest_by_type("savings")
 
+    def get_savings_tax_digest(self):
+        self.l.debug("get_savings_tax_digest")
+
+        if not self.are_there_savings_transactions():
+            return ""
+
+        taxable_savings = self.get_taxable_savings()
+        self.l.debug(f"taxable_savings: {taxable_savings}")
+        
         unused_allowance = self.unused_allowance
-        (tax, unused_allowance) = self.calculate_savings_tax(income, unused_allowance)
-        self.unused_allowance = unused_allowance
+        self.l.debug(f"unused_allowance: {unused_allowance}")
+
+        taxable_amount = max(0,taxable_savings - unused_allowance)
+        self.l.debug(f"taxable_amount: {taxable_amount}")
+
+        taxable_amount_gbp = uf.format_as_gbp(taxable_amount).strip()
+
+        income = self.get_savings_income()
+        self.l.debug(f"income: {income}")
+
+        (tax, new_unused_allowance) = self.calculate_savings_tax(income, unused_allowance)
+        self.l.debug(f"new_unused_allowance: {new_unused_allowance}")
+
+        self.unused_allowance = new_unused_allowance
         tax_gbp = uf.format_as_gbp(tax).strip()
         unused_allowance_gbp = uf.format_as_gbp(unused_allowance).strip()
-        parts.append(f"tax: {tax_gbp}")
-        parts.append(f"unused personal allowance: {unused_allowance_gbp}")
+
+
+        taxable_savings_gbp = uf.format_as_gbp(taxable_savings).strip()
+
+        parts = [
+            f"taxable savings: {taxable_savings_gbp}",
+            f"unused personal allowance: {unused_allowance_gbp}",
+            f"taxable amount: {taxable_amount_gbp}",
+            f"tax: {tax_gbp}",
+        ]
+
         return "\n" + " | ".join(parts)
 
     def get_savings_income(self) -> float:
@@ -1695,9 +1869,13 @@ class HMRC:
         return self.constants.get_small_profits_threshold()
 
     def get_spouse_code(self):
+        if not self.is_married():
+            return ""
         return self.person.get_spouse_code()
 
     def get_spouse_total_income(self) -> float:
+        if not self.is_married():
+            return 0
         person_code = self.spouse.code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} % income"
@@ -1825,6 +2003,12 @@ class HMRC:
     def get_tax_year_for_which_you_re_claiming_relief_in_box_3_(self):
         return uf.format_as_gbp_or_blank(0)
 
+    def get_taxable_dividends(self):
+        dividends_allowance = self.get_dividends_allowance()
+        dividends_income = self.get_dividends_income()
+        taxable_dividends = max(0, dividends_income - dividends_allowance)
+        return taxable_dividends
+
     def get_taxable_incapacity_benefit(self):
         return 0
 
@@ -1834,7 +2018,7 @@ class HMRC:
             self.get_trading_profit(),
             self.get_property_profit(),
             self.get_savings_income(),
-            self.get_dividend_income(),
+            self.get_dividends_income(),
         ]
         taxable_income = uf.sum_values(values)
         self.l.debug(f"taxable_income: {taxable_income}")
@@ -1848,13 +2032,14 @@ class HMRC:
             self.get_net_business_profit_for_tax_purposes()
         )
 
-    def get_taxable_dividends(self):
-        dividends_allowance = self.get_dividend_allowance()
-        return self.get_dividend_income() - dividends_allowance
-
     def get_taxable_savings(self):
         savings_allowance = self.get_savings_allowance()
-        return self.get_savings_income() - savings_allowance
+        savings_income = self.get_savings_income()
+        taxable_savings = max(0, savings_income - savings_allowance)
+        return taxable_savings
+
+    def get_taxable_savings_gbp(self):
+        return uf.format_as_gbp_or_blank(self.get_taxable_savings())
 
     def get_taxable_short_service_refund__overseas_only_(self):
         return uf.format_as_gbp_or_blank(0)
@@ -1960,7 +2145,6 @@ class HMRC:
 
     def get_total_taxable_income(self):
         self.l.debug("get_total_taxable_income")
-
         values = [
             self.get_trading_profit(),
             self.get_property_profit(),
@@ -1969,7 +2153,6 @@ class HMRC:
         ]
         total_taxable_income = uf.sum_values(values)
         self.l.debug(f"total_taxable_income: {total_taxable_income}")
-
         return total_taxable_income
 
     def get_total_taxable_income_gbp(self):
@@ -2051,30 +2234,49 @@ class HMRC:
     def get_trading_balancing_charges_gbp(self):
         return uf.format_as_gbp(self.get_trading_balancing_charges())
 
-    def get_overview(self) -> str:
-        self.l.debug("get_overview")
-        parts = [
-            self.get_trading_digest(),
-            self.get_property_digest(),
-            self.get_core_income_digest(),
-            self.get_savings_digest(),
-            self.get_dividends_digest(),
-            self.get_final_digest(),
-            "Marriage ollowance",
-        ]
-
-        return "\n".join(parts)
-
     def get_trading_digest(self) -> str:
         self.l.debug("get_trading_digest")
-        income_gbp = self.get_trading_income_gbp().strip()
-        taxable_profit = self.get_trading_profit_gbp().strip()
-        parts = [f"TRADING income: {income_gbp}"]
-        if self.is_trading_allowance_more_than_trading_expenses():
-            allowance_gbp = self.get_trading_allowance_gbp().strip()
-            parts.append(f"trading allowance: {allowance_gbp}")
-            parts.append(f"taxable profit: {taxable_profit}")
-        return "\n" + " | ".join(parts)
+        return self.get_digest_by_type("trading")
+
+    def are_there_property_transactions(self) -> bool:
+        income = self.get_property_income()
+        self.l.debug(f"income: {income}")
+        if income > 0:
+            return True
+        expenses = self.get_property_expenses_actual()
+        self.l.debug(f"expenses: {expenses}")
+        if expenses > 0:
+            return True
+
+        return False
+
+    def are_there_dividends_transactions(self) -> bool:
+        income = self.get_dividends_income()
+        self.l.debug(f"income: {income}")
+        if income > 0:
+            return True
+
+        return False
+
+    def are_there_savings_transactions(self) -> bool:
+        income = self.get_savings_income()
+        self.l.debug(f"income: {income}")
+        if income > 0:
+            return True
+
+        return False
+
+    def are_there_trading_transactions(self) -> bool:
+        income = self.get_trading_income()
+        self.l.debug(f"income: {income}")
+        if income > 0:
+            return True
+        expenses = self.get_trading_expenses_actual()
+        self.l.debug(f"expenses: {expenses}")
+        if expenses > 0:
+            return True
+
+        return False
 
     def get_trading_expenses(self):
         actual_trading_allowance = self.get_trading_allowance_actual()
@@ -2179,18 +2381,15 @@ class HMRC:
         self.l.debug("get_trading_profit")
         trading_income = self.get_trading_income()
         self.l.debug(f"trading_income: {trading_income}")
-        trading_allowance = self.get_trading_allowance()
+        trading_allowance = self.get_trading_allowance_actual()
         self.l.debug(f"trading_allowance: {trading_allowance}")
-        trading_expenses = self.get_trading_expenses()
+        trading_expenses = self.get_trading_expenses_actual()
         self.l.debug(f"trading_expenses: {trading_expenses}")
         trading_outgo = max(trading_allowance, trading_expenses)
         self.l.debug(f"trading_outgo: {trading_outgo}")
         trading_profit = max(0, trading_income - trading_outgo)
         self.l.debug(f"trading_profit: {trading_profit}")
         return trading_profit
-
-    def get_property_profit_gbp(self):
-        return uf.format_as_gbp_or_blank(self.get_property_profit())
 
     def get_trading_profit_gbp(self):
         return uf.format_as_gbp_or_blank(self.get_trading_profit())
@@ -2205,12 +2404,9 @@ class HMRC:
     def get_trading_reduction(self):
         trading_income = self.get_trading_income()
         actual_trading_expenses = self.get_trading_expenses_actual()
-
         if trading_income <= actual_trading_expenses:
             return actual_trading_expenses
-
         actual_trading_allowance = self.get_trading_allowance_actual()
-
         return max(actual_trading_expenses, actual_trading_allowance)
 
     def get_uk_gains_where_tax_was_not_treated_as_paid(self):
@@ -2304,16 +2500,24 @@ class HMRC:
     def get_your_phone_number(self):
         return self.person.get_phone_number()
 
-    def get_your_spouse_s_date_of_birth(self):
+    def get_your_spouse_s_date_of_birth(self)->str:
+        if not self.is_married():
+            return ""
         return self.spouse.get_uk_date_of_birth()
 
     def get_your_spouse_s_first_name(self):
+        if not self.is_married():
+            return ""
         return self.spouse.get_first_name()
 
     def get_your_spouse_s_last_name(self):
+        if not self.is_married():
+            return ""
         return self.spouse.get_last_name()
 
     def get_your_spouse_s_national_insurance_number(self):
+        if not self.is_married():
+            return ""
         return self.spouse.get_national_insurance_number()
 
     def get_zero_emission_car_allowance_gbp(self):
@@ -2332,6 +2536,8 @@ class HMRC:
         return uf.format_as_gbp_or_blank(0)
 
     def is_income___pa___spouse_income___higher_rate_cusp(self):
+        if not self.is_married():
+            return False
         total_income_excluding_tax_free_savings = (
             self.get_total_income_excluding_tax_free_savings()
         )
