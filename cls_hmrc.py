@@ -700,7 +700,7 @@ class HMRC:
         tax_gbp = uf.format_as_gbp(tax).strip()
         parts.append(f"tax: {tax_gbp}")
         unused_allowance_gbp = uf.format_as_gbp(unused_allowance).strip()
-        parts.append(f"unused allowance: {unused_allowance_gbp}")
+        parts.append(f"unused personal allowance: {unused_allowance_gbp}")
         class_2_nics_due_gbp = self.get_class_2_nics_due_gbp().strip()
         parts.append(f"class 2 nics: {class_2_nics_due_gbp}")
         class_4_nics_due_gbp = self.get_class_4_nics_due_gbp().strip()
@@ -775,6 +775,9 @@ class HMRC:
     def get_dividend_allowance(self):
         return self.constants.get_dividend_allowance()
 
+    def get_dividend_allowance_gbp(self):
+        return uf.format_as_gbp(self.get_dividend_allowance())
+
     def get_dividend_basic_rate(self):
         return self.constants.get_dividend_basic_rate()
 
@@ -792,12 +795,27 @@ class HMRC:
 
     def get_dividends_digest(self):
         self.l.debug("get_dividends_digest")
-        i = self.get_dividend_income()
-        a = self.get_dividend_allowance()
-        (t, z) = self.calculate_dividend_tax(i)
-        d = {"income": i, "allowance": a, "tax": t}
-        digest = self.get_digest(d)
-        return digest
+
+        income_gbp = self.get_dividend_income_gbp().strip()
+        parts = [f"DIVIDENDS income: {income_gbp}"]
+
+        allowance_gbp = self.get_dividend_allowance_gbp().strip()
+        parts.append(f"dividends allowance: {allowance_gbp}")
+
+        income = self.get_dividend_income()
+        dividend_allowance = self.get_dividend_allowance()
+        taxable_dividends = min(0, income - dividend_allowance)
+        taxable_dividends_gbp = uf.format_as_gbp(taxable_dividends).strip()
+        parts.append(f"taxable dividends: {taxable_dividends_gbp}")
+
+        unused_allowance = self.unused_allowance
+        (tax, unused_allowance) = self.calculate_dividend_tax(income, unused_allowance)
+        self.unused_allowance = unused_allowance
+        tax_gbp = uf.format_as_gbp(tax).strip()
+        unused_allowance_gbp = uf.format_as_gbp(unused_allowance).strip()
+        parts.append(f"tax: {tax_gbp}")
+        parts.append(f"unused personal allowance: {unused_allowance_gbp}")
+        return "\n" + " | ".join(parts)
 
     def get_dividends_from_uk_companies(self):
         person_code = self.person_code
@@ -832,6 +850,25 @@ class HMRC:
 
     def get_final_digest(self):
         self.l.debug("get_final_digest")
+        income_gbp = self.get_total_taxable_income_gbp().strip()
+        parts = [f"TOTAL taxable income: {income_gbp}"]
+        allowance_gbp = self.get_savings_allowance_gbp().strip()
+        parts.append(f"savings allowance: {allowance_gbp}")
+        income = self.get_savings_income()
+        savings_allowance = self.get_savings_allowance()
+        taxable_savings = min(0, income - savings_allowance)
+        taxable_savings_gbp = uf.format_as_gbp(taxable_savings).strip()
+        parts.append(f"taxable savings: {taxable_savings_gbp}")
+
+        unused_allowance = self.unused_allowance
+        (tax, unused_allowance) = self.calculate_savings_tax(income, unused_allowance)
+        self.unused_allowance = unused_allowance
+        tax_gbp = uf.format_as_gbp(tax).strip()
+        unused_allowance_gbp = uf.format_as_gbp(unused_allowance).strip()
+        parts.append(f"tax: {tax_gbp}")
+        parts.append(f"unused personal allowance: {unused_allowance_gbp}")
+        return "\n" + " | ".join(parts)
+
         i = (
             self.get_non_savings_income()
             + self.get_savings_income()
@@ -1461,8 +1498,10 @@ class HMRC:
         self.l.debug(f"property_allowance: {property_allowance}")
         property_expenses = self.get_property_expenses_actual()
         self.l.debug(f"property_expenses: {property_expenses}")
-        property_profit = self.get_property_income() - max(
-            property_allowance, property_expenses
+        property_income = self.get_property_income()
+        property_outgo = max(property_allowance, property_expenses)
+        property_profit = min(
+            0, property_income - property_outgo
         )
         self.l.debug(f"property_profit: {property_profit}")
         return property_profit
@@ -1600,9 +1639,11 @@ class HMRC:
 
         unused_allowance = self.unused_allowance
         (tax, unused_allowance) = self.calculate_savings_tax(income, unused_allowance)
+        self.unused_allowance = unused_allowance
         tax_gbp = uf.format_as_gbp(tax).strip()
+        unused_allowance_gbp = uf.format_as_gbp(unused_allowance).strip()
         parts.append(f"tax: {tax_gbp}")
-        parts.append(f"unused allowance: {unused_allowance}")
+        parts.append(f"unused personal allowance: {unused_allowance_gbp}")
         return "\n" + " | ".join(parts)
 
     def get_savings_income(self) -> float:
@@ -1807,14 +1848,11 @@ class HMRC:
             self.get_net_business_profit_for_tax_purposes()
         )
 
-    def get_taxable_savings(self):
-        savings_income = self.get_savings_income()
-        if savings_income < 6000:
-            return 0
-        else:
-            return savings_income
+    def get_taxable_dividends(self):
+        dividends_allowance = self.get_dividend_allowance()
+        return self.get_dividend_income() - dividends_allowance
 
-    def get_taxable_savings2(self):
+    def get_taxable_savings(self):
         savings_allowance = self.get_savings_allowance()
         return self.get_savings_income() - savings_allowance
 
@@ -1922,15 +1960,20 @@ class HMRC:
 
     def get_total_taxable_income(self):
         self.l.debug("get_total_taxable_income")
-        trading_profit = self.get_net_business_profit_for_tax_purposes()
-        self.l.debug(f"trading_profit: {trading_profit}")
-        property_profit = self.get_property_taxable_profit_for_the_year()
-        self.l.debug(f"property_profit: {property_profit}")
-        taxable_savings = self.get_taxable_savings()
-        self.l.debug(f"taxable_savings: {taxable_savings}")
-        total_taxable_income = trading_profit + property_profit + taxable_savings
+
+        values = [
+            self.get_trading_profit(),
+            self.get_property_profit(),
+            self.get_taxable_savings(),
+            self.get_taxable_dividends(),
+        ]
+        total_taxable_income = uf.sum_values(values)
         self.l.debug(f"total_taxable_income: {total_taxable_income}")
+
         return total_taxable_income
+
+    def get_total_taxable_income_gbp(self):
+        return uf.format_as_gbp(self.get_total_taxable_income())
 
     def get_total_taxable_profits_from_this_business(self):
         net_business_profit_for_tax_purposes = (
