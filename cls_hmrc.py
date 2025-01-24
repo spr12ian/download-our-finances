@@ -1195,7 +1195,7 @@ class HMRC:
 
     def get_income_tax_gbp(self):
         return self.gbp(self.get_income_tax())
-    
+
     def get_increase_in_tax_due_to_earlier_years_adjustments_gbp(self):
         return uf.format_as_gbp_or_blank(0)
 
@@ -2251,7 +2251,7 @@ class HMRC:
         return self.gbp(self.get_hmrc_total_income())
 
     def get_hmrc_calculation(self) -> str:
-        def add_hmrc_part(key, value):
+        def add_hmrc_part(key: str, value: str = ""):
             max_key_width = 65
             max_value_width = 15
             line = f"{key.ljust(max_key_width)} {value.rjust(max_value_width)}"
@@ -2260,7 +2260,7 @@ class HMRC:
         def get_revised_basic_rate_limit(pension_payments):
             basic_rate_threshold = self.constants.get_basic_rate_threshold()
             personal_allowance = self.get_personal_allowance()
-            basic_rate_limit = basic_rate_threshold- personal_allowance
+            basic_rate_limit = basic_rate_threshold - personal_allowance
             revised_basic_rate_limit = basic_rate_limit + pension_payments
             return revised_basic_rate_limit
 
@@ -2299,7 +2299,7 @@ class HMRC:
         if total_income_received > 0:
             add_hmrc_part("Total income received", total_income_received_gbp)
 
-        hmrc_parts.append("minus")
+        add_hmrc_part("minus")
 
         add_hmrc_part("Personal Allowance", personal_allowance_gbp)
 
@@ -2314,25 +2314,64 @@ class HMRC:
         pension_payments = self.get_payments_to_pension_schemes__relief_at_source()
         if pension_payments > 0:
             pension_payments_gbp = self.gbp(pension_payments)
-            basic_rate_limit_gbp = self.gbp(get_revised_basic_rate_limit(pension_payments))
-            hmrc_parts.append(f"Pension payments {pension_payments_gbp} increase basic rate limit to {basic_rate_limit_gbp}")
+            basic_rate_limit_gbp = self.gbp(
+                get_revised_basic_rate_limit(pension_payments)
+            )
+            hmrc_parts.append(
+                f"Pension payments {pension_payments_gbp} increase basic rate limit to {basic_rate_limit_gbp}"
+            )
+
+        combined_taxable_profit = self.get_combined_taxable_profit()
+        personal_allowance = self.get_personal_allowance()
+        taxable_amount = max(0, combined_taxable_profit - personal_allowance)
+        taxable_amount_gbp = self.gbp(taxable_amount).strip()
+        if taxable_amount > 0:
+            add_hmrc_part("Pay, pensions, profit etc.")
+            basic_rate = self.constants.get_basic_tax_rate()
+            int_basic_rate = int(basic_rate * 100)
+            income_tax_gbp = self.get_income_tax_gbp()
+            basic_tax = taxable_amount * basic_rate
+            basic_tax_gbp = self.gbp(basic_tax)
+            label = f"Basic rate {taxable_amount_gbp} x{int_basic_rate}%"
+            add_hmrc_part(label, basic_tax_gbp)
+
+        if self.are_there_savings_transactions():
+            add_hmrc_part("Savings interest from banks or building societies, securities etc.")
+            savings_basic_rate = self.get_savings_basic_rate()
+            savings_nil_band = self.get_savings_nil_band()
+            savings_income = self.get_savings_income()
+            savings_nil_rate_amount = min(savings_income, savings_nil_band)
+            taxable_amount = max(0, savings_income - savings_nil_band)
+            taxable_amount_gbp = self.gbp(taxable_amount)
+            savings_nil_rate_amount_gbp = self.gbp(savings_nil_rate_amount)
+            int_basic_rate = int(savings_basic_rate * 100)
+            income_tax_gbp = self.get_income_tax_gbp()
+            nil_rate_tax_gbp = self.gbp(0)
+            label = f"Basic rate band at nil rate {savings_nil_rate_amount_gbp} x0%"
+            add_hmrc_part(label, nil_rate_tax_gbp)
+            basic_tax = taxable_amount * savings_basic_rate
+            basic_tax_gbp = self.gbp(basic_tax)
+            label = f"Basic rate {taxable_amount_gbp} x{int_basic_rate}%"
+            add_hmrc_part(label, basic_tax_gbp)
 
         income_tax_gbp = self.get_income_tax_gbp()
         add_hmrc_part("Income tax due", income_tax_gbp)
 
         class_2_nics_gbp = self.get_class_2_nics_due_gbp()
-        add_hmrc_part("Total Class 2 National Insurance contributions due", class_2_nics_gbp)
+        add_hmrc_part(
+            "Total Class 2 National Insurance contributions due", class_2_nics_gbp
+        )
 
         income_tax = self.get_income_tax()
         class_2_nics = self.get_class_2_nics_due()
-        total_for_this_year=income_tax+class_2_nics
+        total_for_this_year = income_tax + class_2_nics
         total_for_this_year_gbp = self.gbp(total_for_this_year)
         add_hmrc_part("Total tax + NICs due for this year", total_for_this_year_gbp)
         return "\n".join(hmrc_parts)
 
     def gbp(self, value):
         return uf.format_as_gbp(value)
-    
+
     def get_trading_digest(self) -> str:
         self.l.debug("get_trading_digest")
         return self.get_digest_by_type("trading")
