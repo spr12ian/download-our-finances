@@ -1435,6 +1435,7 @@ class HMRC:
     def get_overview_parts(self) -> list:
         self.l.debug("get_overview_parts")
         steps = [
+            "get_hmrc_calculation",
             "get_trading_digest",
             "get_property_digest",
             "get_savings_digest",
@@ -2232,6 +2233,43 @@ class HMRC:
 
     def get_trading_balancing_charges_gbp(self):
         return uf.format_as_gbp(self.get_trading_balancing_charges())
+    
+    def get_hmrc_total_income(self) -> float:
+        values=[
+            self.get_trading_profit(),
+            self.get_property_profit(),
+            self.get_savings_income(),
+        ]
+        return uf.sum_values(values)
+    
+    def get_hmrc_total_income_gbp(self) -> str:
+        return uf.format_as_gbp(self.get_hmrc_total_income())
+
+    def get_hmrc_calculation(self) -> str:
+        self.l.debug("get_hmrc_calculation")
+        trading_profit_gbp = self.get_trading_profit_gbp()
+        property_profit_gbp = self.get_property_profit_gbp()
+        savings_income_gbp = self.get_savings_income_gbp()
+        total_income_received_gbp = self.get_hmrc_total_income_gbp()
+        personal_allowance_gbp = self.get_personal_allowance_gbp()
+        hmrc_dict={
+            "":"",
+            "HMRC calculation": "",
+            "Profit from self-employment": trading_profit_gbp,
+            "Profit from UK land and property": property_profit_gbp,
+            "Interest from UK banks, building societies and securities etc": savings_income_gbp,
+            "Total income received": total_income_received_gbp,
+            "MINUS": "",
+            "Personal Allowance": personal_allowance_gbp,
+        }
+        hmrc_parts=[]
+        max_key_width = max([len(key) for key in hmrc_dict.keys()])
+        max_value_width = max([len(value) for value in hmrc_dict.values()])
+        self.l.debug(f"max_key_width: {max_key_width}")
+        for key, value in hmrc_dict.items():
+            hmrc_parts.append(f"{key.ljust(max_key_width)} {value.rjust(max_value_width)}")
+
+        return "\n".join(hmrc_parts)
 
     def get_trading_digest(self) -> str:
         self.l.debug("get_trading_digest")
