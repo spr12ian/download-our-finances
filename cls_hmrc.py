@@ -950,13 +950,14 @@ class HMRC:
         self.l.debug("get_dividends_tax_digest")
         if not self.are_there_dividends_transactions():
             return ""
+        
         income = self.get_dividends_income()
         dividends_allowance = self.get_dividends_allowance()
         taxable_dividends = max(0, income - dividends_allowance)
         taxable_dividends_gbp = uf.format_as_gbp(taxable_dividends).strip()
         parts = [f"taxable dividends: {taxable_dividends_gbp}"]
         unused_allowance = self.unused_allowance
-        taxable_amount = taxable_dividends - unused_allowance
+        taxable_amount = max(0,taxable_dividends - unused_allowance)
         (tax, unused_allowance) = self.calculate_dividends_tax(income, unused_allowance)
         self.unused_allowance = unused_allowance
         tax_gbp = uf.format_as_gbp(tax).strip()
