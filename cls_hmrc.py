@@ -504,9 +504,7 @@ class HMRC:
         return self.get_property_taxable_profit_for_the_year()
 
     def get_adjusted_property_profit_or_loss_for_the_year_gbp(self):
-        return self.gbpb(
-            self.get_adjusted_property_profit_or_loss_for_the_year()
-        )
+        return self.gbpb(self.get_adjusted_property_profit_or_loss_for_the_year())
 
     def get_adjustments_gbp(self):
         return self.gbpb(0)
@@ -819,9 +817,7 @@ class HMRC:
         return 0
 
     def get_decrease_in_tax_due_to_earlier_years_adjustments_gbp(self):
-        return self.gbpb(
-            self.get_decrease_in_tax_due_to_earlier_years_adjustments()
-        )
+        return self.gbpb(self.get_decrease_in_tax_due_to_earlier_years_adjustments())
 
     def get_deficiency_relief(self):
         return self.gbpb(0)
@@ -1122,12 +1118,12 @@ class HMRC:
         self.l.debug("get_hmrc_calculation")
         trading_profit = self.get_trading_profit()
         property_profit = self.get_property_profit()
-        marriage_allowance = self.get_marriage_allowance_transfer_amount()
         personal_allowance = self.get_personal_allowance()
         savings_income = self.get_savings_income()
         self.l.debug(f"savings_income: {savings_income}")
         dividends_income = self.get_dividends_income()
         total_income_received = self.get_hmrc_total_income()
+        marriage_allowance = self.get_marriage_allowance_transfer_amount()
         unused_allowance = personal_allowance - marriage_allowance
         self.l.debug(f"unused_allowance: {unused_allowance}")
         total_income = max(0, total_income_received - unused_allowance)
@@ -1137,7 +1133,7 @@ class HMRC:
         personal_allowance = self.get_personal_allowance()
         basic_rate = self.constants.get_basic_tax_rate()
         basic_rate_integer = int(basic_rate * 100)
-        hmrc_parts = ["", "HMRC calculation"]
+        hmrc_parts = [""]
         if trading_profit > 0:
             add_hmrc_part("Profit from self-employment", trading_profit)
         if property_profit > 0:
@@ -1153,9 +1149,19 @@ class HMRC:
             add_hmrc_part("Total income received", total_income_received)
         hmrc_parts.append("minus")
         add_hmrc_part("Personal Allowance", personal_allowance)
-        if marriage_allowance > 0:
-            add_hmrc_part("lessMarriage Allowance transfer", marriage_allowance)
-            add_hmrc_part("Total", unused_allowance)
+
+        if self.is_married():
+            spouse_hmrc = self.get_spouse_hmrc()
+            spouse_total_income_received = spouse_hmrc.get_hmrc_total_income()
+            if (
+                total_income_received < personal_allowance
+                and spouse_total_income_received > personal_allowance
+            ):
+
+                if marriage_allowance > 0:
+                    add_hmrc_part("lessMarriage Allowance transfer", marriage_allowance)
+                    add_hmrc_part("Total", unused_allowance)
+
         add_hmrc_part("Total income", total_income)
         if pension_payments > 0:
             pension_payments_gbp = self.gbp(pension_payments)
@@ -1337,9 +1343,7 @@ class HMRC:
         return uf.round_up(legal__management_and_other_professional_fees)
 
     def get_legal__management_and_other_professional_fees_gbp(self):
-        return self.gbpb(
-            self.get_legal__management_and_other_professional_fees()
-        )
+        return self.gbpb(self.get_legal__management_and_other_professional_fees())
 
     def get_lifetime_allowance_tax_paid_by_your_pension_scheme(self):
         return self.gbpb(0)
@@ -1403,10 +1407,7 @@ class HMRC:
         self.l.debug("get_marriage_allowance_transferred_amount")
         if not self.is_married():
             return 0
-        spouse_code = self.person.get_spouse_code()
-        tax_year = self.tax_year
-        self.l.debug(f"Getting HMRC instance for spouse: {spouse_code}")
-        spouse_hmrc = HMRC(spouse_code, tax_year)
+        spouse_hmrc = self.get_spouse_hmrc()
         self.l.debug("Disabling debug for spouse HMRC instance")
         spouse_hmrc.disable_debug()
         marriage_allowance_transferred_amount = (
@@ -1418,6 +1419,13 @@ class HMRC:
             f"marriage_allowance_transferred_amount: {marriage_allowance_transferred_amount}"
         )
         return marriage_allowance_transferred_amount
+
+    def get_spouse_hmrc(self):
+        spouse_code = self.get_spouse_code()
+        tax_year = self.tax_year
+        self.l.debug(f"Getting HMRC instance for spouse: {spouse_code}")
+        spouse_hmrc = HMRC(spouse_code, tax_year)
+        return spouse_hmrc
 
     def get_marriage_allowance_transferred_amount_gbp(self) -> str:
         return self.gbpb(self.get_marriage_allowance_transferred_amount())
@@ -1557,7 +1565,6 @@ class HMRC:
     def get_overview_parts(self) -> list:
         self.l.debug("get_overview_parts")
         steps = [
-            "get_hmrc_calculation",
             "get_trading_digest",
             "get_property_digest",
             "get_savings_digest",
@@ -1609,9 +1616,7 @@ class HMRC:
         return payments_to_pension_schemes
 
     def get_payments_to_pension_schemes__relief_at_source__gbp(self):
-        return self.gbpb(
-            self.get_payments_to_pension_schemes__relief_at_source()
-        )
+        return self.gbpb(self.get_payments_to_pension_schemes__relief_at_source())
 
     def get_payments_to_your_employer_s_scheme(self):
         return 0
@@ -1818,9 +1823,7 @@ class HMRC:
         return False
 
     def get_relief_at_source_pension_payments_to_ppr_gbp(self):
-        return self.gbpb(
-            self.get_payments_to_pension_schemes__relief_at_source()
-        )
+        return self.gbpb(self.get_payments_to_pension_schemes__relief_at_source())
 
     def get_relief_claimed_on_a_qualifying_distribution(self):
         return self.gbpb(0)
@@ -2199,9 +2202,7 @@ class HMRC:
             return ""
         trading_income_gbp = self.gbp(self.get_trading_income())
         property_income_gbp = self.gbp(self.get_property_income())
-        t_and_p_gbp = self.gbp(
-            self.get_total_income_excluding_tax_free_savings()
-        )
+        t_and_p_gbp = self.gbp(self.get_total_income_excluding_tax_free_savings())
         return f"{t_and_p_gbp} = {trading_income_gbp} (trading) + {property_income_gbp} (property)"
 
     def get_total_income_excluding_tax_free_savings(self):
