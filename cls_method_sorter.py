@@ -13,13 +13,17 @@ class MethodSorter(ast.NodeVisitor):
         if not self.file_path.is_file():
             raise FileNotFoundError(f"File not found: {self.file_path}")
 
-    def visit_FunctionDef(self, node):
-        """Collects method definitions."""
-        self.methods.append(node)
-        self.generic_visit(node)
+    def visit_ClassDef(self, node):
+        """Collect top-level methods in the specified class."""
+        if node.name == self.class_name:
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef):
+                    self.methods.append(item)
+        # No need to call generic_visit here to avoid traversing nested classes
+        # or further levels within the class.
 
     def sort_methods_in_class(self):
-        """Sorts methods in the specified class alphabetically."""
+        """Sorts top-level methods in the specified class alphabetically."""
         # Read the source file
         try:
             with self.file_path.open("r") as source:
@@ -40,7 +44,8 @@ class MethodSorter(ast.NodeVisitor):
         if not class_node:
             raise ValueError(f"Class '{self.class_name}' not found in {self.file_path}")
 
-        # Visit the class to collect methods
+        # Collect top-level methods
+        self.methods = []
         self.visit(class_node)
 
         if not self.methods:
@@ -50,11 +55,12 @@ class MethodSorter(ast.NodeVisitor):
         # Sort methods alphabetically by name
         sorted_methods = sorted(self.methods, key=lambda x: x.name)
 
-        # Replace the existing methods with sorted ones
+        # Replace the existing methods with sorted ones, preserving other class body items
         class_node.body = [
-            node for node in class_node.body if not isinstance(node, ast.FunctionDef)
-        ]
-        class_node.body.extend(sorted_methods)
+            node
+            for node in class_node.body
+            if not isinstance(node, ast.FunctionDef)
+        ] + sorted_methods
 
         # Write the modified tree back to the file
         backup_path = self.file_path.with_suffix(".bak")

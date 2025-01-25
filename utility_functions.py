@@ -26,7 +26,7 @@ def crop(string, excess) -> str:
     return string
 
 
-def format_as_gbp(amount: float, field_width: int = 10) -> str:
+def format_as_gbp(amount: float, field_width: int = 0) -> str:
     """
     Format a float as GBP.
     """
