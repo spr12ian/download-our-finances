@@ -133,7 +133,7 @@ class HMRC:
     def are_you_claiming_marriage_allowance(self):
         if not self.is_married():
             return False
-        total_income = self.get_total_income()
+        total_income = self.get_hmrc_total_income_received()
         spouse_total_income = self.get_spouse_total_income()
         if total_income > spouse_total_income:
             return False
@@ -1042,13 +1042,11 @@ class HMRC:
                 add_hmrc_part('Dividends from UK companies', dividends_income)
 
         def add_part_marriage_allowance():
-            if self.is_married():
-                spouse_hmrc = self.get_spouse_hmrc()
-                spouse_total_income_received = spouse_hmrc.get_hmrc_total_income_received()
-                if total_income_received < personal_allowance and spouse_total_income_received > personal_allowance:
-                    if marriage_allowance > 0:
-                        add_hmrc_part('lessMarriage Allowance transfer', marriage_allowance)
-                        add_hmrc_part('Total', unused_allowance)
+            if self.are_you_eligible_to_claim_marriage_allowance():
+                marriage_allowance = self.get_marriage_allowance_transfer_amount()
+                if marriage_allowance > 0:
+                    add_hmrc_part('lessMarriage Allowance transfer', marriage_allowance)
+                    add_hmrc_part('Total', unused_allowance)
 
         def add_part_minus():
             add_hmrc_part('minus')
@@ -1298,8 +1296,8 @@ class HMRC:
     def get_marriage_allowance_transfer_amount(self) -> float:
         if not self.is_married():
             return 0
-        total_income = self.get_total_income()
-        spouse_total_income = self.get_spouse_total_income()
+        total_income = self.get_hmrc_total_income_received()
+        spouse_total_income = self.get_spouse_total_income_received()
         if total_income > spouse_total_income:
             return 0
         marriage_allowance = self.constants.get_marriage_allowance()
@@ -1836,15 +1834,12 @@ class HMRC:
         spouse_hmrc = HMRC(spouse_code, tax_year)
         return spouse_hmrc
 
-    def get_spouse_total_income(self) -> float:
-        if not self.is_married():
-            return 0
-        person_code = self.spouse.code
-        tax_year = self.tax_year
-        category_like = f'HMRC {person_code} % income'
-        total_income = self.transactions.fetch_total_by_tax_year_category_like(tax_year, category_like)
-        return total_income
 
+    def get_spouse_total_income_received(self)->float:
+        spouse_hmrc = self.get_spouse_hmrc()
+        spouse_total_income_received = spouse_hmrc.get_hmrc_total_income_received()
+        return spouse_total_income_received
+        
     def get_starting_rate_limit_for_savings(self):
         return self.constants.get_starting_rate_limit_for_savings()
 
@@ -1901,7 +1896,7 @@ class HMRC:
         personal_savings_allowance = self.get_personal_savings_allowance()
         starting_rate_limit_for_savings = self.get_starting_rate_limit_for_savings()
         total_allowances = personal_allowance + personal_savings_allowance + starting_rate_limit_for_savings
-        total_income = self.get_total_income()
+        total_income = self.get_hmrc_total_income_received()
         untaxed_uk_interest = self.get_untaxed_uk_interest()
         non_interest_income = total_income - untaxed_uk_interest
         interest_free_allowance = max(0, total_allowances - non_interest_income)
@@ -2011,13 +2006,6 @@ class HMRC:
     def get_total_construction_industry_scheme__cis__deductions(self):
         return self.gbpb(0)
 
-    def get_total_income(self) -> float:
-        person_code = self.person_code
-        tax_year = self.tax_year
-        category_like = f'HMRC {person_code} % income'
-        total_income = self.transactions.fetch_total_by_tax_year_category_like(tax_year, category_like)
-        return uf.round_down(total_income)
-
     def get_total_income__excluding_tax_free_savings__gbp(self) -> str:
         if not self.are_you_claiming_marriage_allowance():
             return ''
@@ -2027,12 +2015,12 @@ class HMRC:
         return f'{t_and_p_gbp} = {trading_income_gbp} (trading) + {property_income_gbp} (property)'
 
     def get_total_income_excluding_tax_free_savings(self):
-        total_income = self.get_total_income()
+        total_income = self.get_hmrc_total_income_received()
         savings_income = self.get_savings_income()
         return total_income - savings_income
 
     def get_total_income_gbp(self):
-        return self.gbpb(self.get_total_income())
+        return self.gbpb(self.get_hmrc_total_income_received())
 
     def get_total_of_any__one_off__payments_in_box_1(self):
         my_payments = self.transactions.fetch_total_by_tax_year_category(self.tax_year, 'HMRC S pension contribution')
@@ -2389,14 +2377,14 @@ class HMRC:
     def is_box_6_blank_as_tax_inc__in_box_2_of__employment_(self):
         return self.gbpb(0)
 
-    def is_income___pa___spouse_income___higher_rate_cusp(self):
+    def are_you_eligible_to_claim_marriage_allowance(self):
         if not self.is_married():
             return False
-        total_income_excluding_tax_free_savings = self.get_total_income_excluding_tax_free_savings()
-        spouse_total_income = self.get_spouse_total_income()
+        total_income = self.get_hmrc_total_income_received()
+        spouse_total_income = self.get_spouse_total_income_received()
         personal_allowance = self.get_personal_allowance()
-        higher_rate_threshold = self.constants.get_higher_rate_threshold()
-        return total_income_excluding_tax_free_savings < personal_allowance and spouse_total_income < higher_rate_threshold
+        higher_rate_threshold = self.get_higher_rate_threshold()
+        return total_income < personal_allowance and personal_allowance < spouse_total_income and spouse_total_income < higher_rate_threshold
 
     def is_married(self) -> bool:
         return self.person.is_married()
