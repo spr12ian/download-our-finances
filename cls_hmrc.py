@@ -1303,7 +1303,12 @@ class HMRC:
         def add_part_total_income():
             self.l.debug("add_part_total_income")
             hmrc_total_income = self.get_hmrc_total_income()
-            add_hmrc_part("Total income", hmrc_total_income)
+            self.l.debug(f"hmrc_total_income: {hmrc_total_income}")
+            label="Total income"
+            if hmrc_total_income>0:
+                label+=" on which tax is due"
+            self.l.debug(f"label: {label}")
+            add_hmrc_part(label, hmrc_total_income)
 
             hmrc_allowance = self.get_hmrc_allowance()
             self.l.debug(f"hmrc_allowance: {hmrc_allowance}")
