@@ -25,7 +25,7 @@ def main():
     hmrc_people = ["S", "B"]
     hmrc_people = ["B"]
 
-    earliest_year = 2024
+    earliest_year = 2023
 
     tax_years = get_tax_years_from(earliest_year)
 

@@ -28,6 +28,7 @@ install-python-package gspread
 install-python-package pandas
 install-python-package pandas-stubs
 install-python-package pytest
+install-python-package redbaron
 install-python-package SQLAlchemy
 install-python-package sqlalchemy-stubs
 install-python-package sqlacodegen_v2
