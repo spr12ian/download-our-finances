@@ -36,12 +36,12 @@ class MethodSorter:
             raise ValueError(f"Class '{self.class_name}' not found in {self.file_path}")
 
         # Collect and sort top-level methods
-        methods = [node for node in class_node.body if node.type == "def"]
+        methods = [node for node in class_node.find_all("DefNode")]
         sorted_methods = sorted(methods, key=lambda x: x.name)
 
         # Replace the existing methods with sorted ones, preserving other class body items
-        class_node.body = [
-            node for node in class_node.body if node.type != "def"
+        class_node.value = [
+            node for node in class_node.value if node.type != "def"
         ] + sorted_methods
 
         # Write the modified code back to the file
