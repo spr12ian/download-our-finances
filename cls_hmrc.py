@@ -40,7 +40,7 @@ class HMRC:
 
         self.person_code = person_code
         self.tax_year = tax_year
-        
+
         self.categories = Categories()
         self.constants = HMRC_ConstantsByYear(tax_year)
         self.overrides = HMRC_OverridesByYear(person_code, tax_year)
@@ -866,17 +866,24 @@ class HMRC:
         self.l.debug(f"digest_type: {digest_type}")
         if not self.are_there_digest_transactions(digest_type):
             return ""
+        parts = []
         income_gbp = self.get_digest_income_gbp(digest_type)
+
+        if self.use_trading_allowance():
+            parts.append("use_trading_allowance: True")
+        else:
+            parts.append("use_trading_allowance: False")
         deductible_gbp = self.get_digest_deductible_gbp(digest_type)
         deductible_label = self.get_digest_deductible_label(digest_type)
         taxable_gbp = self.get_digest_taxible_gbp(digest_type)
-        parts = [f"{digest_type.upper()} income: {income_gbp}"]
+        parts.append(f"{digest_type.upper()} income: {income_gbp}")
         parts.append(f"{digest_type} {deductible_label}: {deductible_gbp}")
         parts.append(f"taxable {digest_type}: {taxable_gbp}")
         return "\n" + " | ".join(parts)
 
     def get_digest_deductible(self, digest_type):
         self.l.debug("get_digest_deductible")
+
         if self.does_method_exist(f"get_{digest_type}_allowance_actual"):
             allowance = self.call_method(f"get_{digest_type}_allowance_actual")
             if self.does_method_exist(f"get_{digest_type}_expenses_actual"):
@@ -1109,7 +1116,7 @@ class HMRC:
         personal_allowance = self.get_personal_allowance()
         self.l.debug(f"personal_allowance: {personal_allowance}")
         allowance_enlargement = self.get_marriage_allowance_transferred_amount()
-        #allowance_enlargement=0
+        # allowance_enlargement=0
         self.l.debug(f"allowance_enlargement: {allowance_enlargement}")
         allowance_reduction = self.get_marriage_allowance_transfer_amount()
         self.l.debug(f"allowance_reduction: {allowance_reduction}")
@@ -1248,7 +1255,9 @@ class HMRC:
 
                 basic_tax = taxable_amount * dividends_basic_rate
                 taxable_amount_gbp = self.gbp(taxable_amount)
-                label = f"Dividends basic rate {taxable_amount_gbp} x{basic_rate_integer}%"
+                label = (
+                    f"Dividends basic rate {taxable_amount_gbp} x{basic_rate_integer}%"
+                )
                 add_hmrc_part(label, basic_tax)
 
                 unused_allowance = max(0, unused_allowance - dividends_income)
@@ -1307,15 +1316,15 @@ class HMRC:
             self.l.debug("add_part_total_income")
             hmrc_total_income = self.get_hmrc_total_income()
             self.l.debug(f"hmrc_total_income: {hmrc_total_income}")
-            label="Total income"
-            if hmrc_total_income>0:
-                label+=" on which tax is due"
+            label = "Total income"
+            if hmrc_total_income > 0:
+                label += " on which tax is due"
             self.l.debug(f"label: {label}")
             add_hmrc_part(label, hmrc_total_income)
 
             hmrc_allowance = self.get_hmrc_allowance()
             self.l.debug(f"hmrc_allowance: {hmrc_allowance}")
-            
+
             unused_allowance = max(0, hmrc_allowance - hmrc_total_income)
             unused_allowance = hmrc_allowance
             self.l.debug(f"unused_allowance: {unused_allowance}")
@@ -1629,7 +1638,7 @@ class HMRC:
     def get_net_business_profit_for_tax_purposes(self):
         self.l.debug("get_net_business_profit_for_tax_purposes")
         income = self.get_business_income()
-        if self.use_trading_allowance():            
+        if self.use_trading_allowance():
             self.l.debug("Using trading allowance")
             net_business_profit_for_tax_purposes = max(
                 0, income - self.get_trading_allowance_actual()
@@ -1941,6 +1950,7 @@ class HMRC:
     def get_property_income_gbp(self) -> str:
         return self.gbpb(self.get_property_income())
 
+    @lru_cache(maxsize=None)
     def get_property_profit(self):
         self.l.debug("get_property_profit")
         property_allowance = self.get_property_allowance_actual()
@@ -2158,6 +2168,7 @@ class HMRC:
             return ""
         return self.person.get_spouse_code()
 
+    @lru_cache(maxsize=None)
     def get_spouse_hmrc(self):
         spouse_code = self.get_spouse_code()
         tax_year = self.tax_year
@@ -2165,6 +2176,7 @@ class HMRC:
         spouse_hmrc = HMRC(spouse_code, tax_year)
         return spouse_hmrc
 
+    @lru_cache(maxsize=None)
     def get_spouse_total_income_received(self) -> float:
         spouse_hmrc = self.get_spouse_hmrc()
         spouse_total_income_received = spouse_hmrc.get_hmrc_total_income_received()
@@ -2598,6 +2610,7 @@ class HMRC:
     def get_trading_losses_brought_forward_and_set_off_gbp(self):
         return self.gbpb(0)
 
+    @lru_cache(maxsize=None)
     def get_trading_profit(self):
         self.l.debug("get_trading_profit")
         trading_income = self.get_trading_income()
@@ -2877,14 +2890,6 @@ class HMRC:
         self.l.debug(property_expenses)
         return property_allowance > property_expenses
 
-    def use_trading_allowance_override(self):
-        self.l.debug("use_trading_allowance_override")
-        try:
-            return self.overrides.use_trading_allowance()
-        except ValueError as v:
-            self.l.info(v)
-            raise
-
     def use_trading_allowance(self):
         self.l.debug("use_trading_allowance")
         try:
@@ -2893,6 +2898,14 @@ class HMRC:
             trading_allowance = self.get_trading_allowance_actual()
             trading_expenses = self.get_trading_expenses_actual()
             return trading_allowance > trading_expenses
+
+    def use_trading_allowance_override(self):
+        self.l.debug("use_trading_allowance_override")
+        try:
+            return self.overrides.use_trading_allowance()
+        except ValueError as v:
+            self.l.info(v)
+            raise
 
     def were_any_repayments_claimed_for_next_year(self):
         return False
