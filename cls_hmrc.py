@@ -37,16 +37,19 @@ class HMRC:
         self.l.debug(__file__)
         self.l.debug(f"person_code: {person_code}")
         self.l.debug(f"tax_year: {tax_year}")
+
         self.person_code = person_code
         self.tax_year = tax_year
+        
+        self.categories = Categories()
         self.constants = HMRC_ConstantsByYear(tax_year)
+        self.overrides = HMRC_OverridesByYear(person_code, tax_year)
         self.person = HMRC_People(person_code)
         if self.is_married():
             spouse_code = self.person.get_spouse_code()
             self.spouse = HMRC_People(spouse_code)
-        self.categories = Categories()
-        self.transactions = Transactions()
         self.sql = SQL_Helper().select_sql_helper("SQLite")
+        self.transactions = Transactions()
 
     def are_any_of_these_figures_provisional(self):
         return False
@@ -1624,12 +1627,15 @@ class HMRC:
         return self.gbpb(self.get_net_business_loss_for_tax_purposes())
 
     def get_net_business_profit_for_tax_purposes(self):
+        self.l.debug("get_net_business_profit_for_tax_purposes")
         income = self.get_business_income()
-        if self.use_trading_allowance():
+        if self.use_trading_allowance():            
+            self.l.debug("Using trading allowance")
             net_business_profit_for_tax_purposes = max(
                 0, income - self.get_trading_allowance_actual()
             )
         else:
+            self.l.debug("Using expenses")
             net_business_profit_for_tax_purposes = max(
                 0, income - self.get_trading_expenses_actual()
             )
@@ -2871,10 +2877,22 @@ class HMRC:
         self.l.debug(property_expenses)
         return property_allowance > property_expenses
 
+    def use_trading_allowance_override(self):
+        self.l.debug("use_trading_allowance_override")
+        try:
+            return self.overrides.use_trading_allowance()
+        except ValueError as v:
+            self.l.info(v)
+            raise
+
     def use_trading_allowance(self):
-        trading_allowance = self.get_trading_allowance_actual()
-        trading_expenses = self.get_trading_expenses_actual()
-        return trading_allowance > trading_expenses
+        self.l.debug("use_trading_allowance")
+        try:
+            return self.use_trading_allowance_override()
+        except ValueError as v:
+            trading_allowance = self.get_trading_allowance_actual()
+            trading_expenses = self.get_trading_expenses_actual()
+            return trading_allowance > trading_expenses
 
     def were_any_repayments_claimed_for_next_year(self):
         return False
