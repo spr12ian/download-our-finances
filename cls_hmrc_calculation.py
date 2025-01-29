@@ -13,7 +13,7 @@ class HMRC_Calculation:
     def gbp(self, amount):
         return self.hmrc.gbp(amount)
 
-    def append(self,string):
+    def append(self, string):
         self.output_list.append(string)
 
     def add_hmrc_part(self, key: str, amount: Optional[float] = None):
@@ -38,7 +38,7 @@ class HMRC_Calculation:
             taxable_amount_gbp = hmrc.gbp(p_taxable_amount)
             basic_rate = hmrc.get_basic_tax_rate()
             basic_rate_integer = int(basic_rate * 100)
-            label = f"Basic rate {taxable_amount_gbp} x{basic_rate_integer}%"
+            label = f"Basic rate [{combined_taxable_profit} - {unused_allowance}] {taxable_amount_gbp} x{basic_rate_integer}%"
             basic_tax = p_taxable_amount * basic_rate
             self.add_hmrc_part(label, basic_tax)
 
@@ -47,9 +47,11 @@ class HMRC_Calculation:
 
         return unused_allowance
 
-    def add_part_class_2_nics(self):
+    def add_part_class_2_nics(self) -> None:
+        self.l.debug("add_part_class_2_nics")
         hmrc = self.hmrc
         class_2_nics = hmrc.get_class_2_nics_due()
+        self.l.debug(f"class_2_nics: {class_2_nics}")
         self.add_hmrc_part(
             "Total Class 2 National Insurance contributions due", class_2_nics
         )

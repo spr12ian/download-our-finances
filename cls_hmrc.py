@@ -57,8 +57,15 @@ class HMRC:
     def are_computations_provided(self):
         return False
 
-    def are_nics_needed_to_acheive_max_state_pension(self):
-        return self.person.are_nics_needed_to_acheive_max_state_pension()
+    def are_nics_needed_to_acheive_max_state_pension(self)->bool:
+        self.l.debug("are_nics_needed_to_acheive_max_state_pension")
+        are_nics_needed_to_acheive_max_state_pension = self.person.are_nics_needed_to_acheive_max_state_pension()
+        if are_nics_needed_to_acheive_max_state_pension:
+            self.l.debug("nics are needed to acheive max state pension")
+        else:
+            self.l.debug("nics are NOT needed to acheive max state pension")
+
+        return are_nics_needed_to_acheive_max_state_pension
 
     def are_supplementary_pages_enclodsed(self):
         return self.gbpb(0)
@@ -448,6 +455,7 @@ class HMRC:
         return False
 
     def do_you_wish_to_voluntarily_pay_class_2_nics(self) -> bool:
+        self.l.debug("do_you_wish_to_voluntarily_pay_class_2_nics")
         trading_income = self.get_trading_income()
         personal_allowance = self.get_personal_allowance()
         if trading_income > personal_allowance:
@@ -708,6 +716,7 @@ class HMRC:
         return self.gbpb(0)
 
     def get_class_2_nics_due(self):
+        self.l.debug("get_class_2_nics_due")
         weekly_rate_class2 = self.get_class_2_weekly_rate()
         weeks_in_year = self.how_many_nic_weeks_in_year()
         if self.are_nics_needed_to_acheive_max_state_pension():

@@ -28,7 +28,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
     def __init__(self, tax_year):
         self.l = LogHelper("HMRC_ConstantsByYear")
-        # self.l.set_level_debug()
+        self.l.set_level_debug()
         self.l.debug(__file__)
         self.l.debug(f"tax_year: {tax_year}")
         super().__init__("hmrc_constants_by_year")
