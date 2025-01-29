@@ -1,10 +1,16 @@
 from redbaron import RedBaron
 import shutil
 from pathlib import Path
+from cls_helper_log import LogHelper
 
 
 class MethodSorter:
     def __init__(self, file_path, class_name):
+        self.l = LogHelper("MethodSorter")
+        self.l.set_level_debug()
+        self.l.debug(__file__)
+        self.l.debug(f"file_path: {file_path}")
+        self.l.debug(f"class_name: {class_name}")
         self.file_path = Path(file_path)
         self.class_name = class_name
 
@@ -35,18 +41,18 @@ class MethodSorter:
         if not class_node:
             raise ValueError(f"Class '{self.class_name}' not found in {self.file_path}")
 
+        self.l.debug(f"Class '{self.class_name}' found in {self.file_path}")
         # Collect and sort top-level methods
         methods = [
             node for node in class_node.find_all("DefNode") if node.parent == class_node
         ]
+        self.l.debug(f"{len(methods)} methods found in {self.class_name}")
         sorted_methods = sorted(methods, key=lambda x: x.name)
 
-        # Replace the existing methods with sorted ones, preserving other class body items
-        class_node.value = (
-            [node for node in class_node.value if node.type != "def"]
-            + "\n"
-            + sorted_methods
-        )
+
+        # Preserve non-method elements (e.g., attributes, docstrings)
+        class_body = [node for node in class_node.value if node.type != "def"]
+        class_node.value = class_body + sorted_methods
 
         # Write the modified code back to the file
         backup_path = self.file_path.with_suffix(".bak")

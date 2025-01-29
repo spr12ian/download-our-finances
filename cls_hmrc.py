@@ -1,11 +1,11 @@
 from cls_helper_log import LogHelper
 from cls_helper_sql import SQL_Helper
+from cls_hmrc_calculation import HMRC_Calculation
 from cls_hmrc_people import HMRC_People
 from tables import *
 import utility_functions as uf
 from cls_hmrc_output import HMRC_Output
 from functools import lru_cache
-from typing import Optional
 
 
 class HMRC:
@@ -156,7 +156,7 @@ class HMRC:
         spouse_total_income = self.get_spouse_total_income_received()
         if total_income > spouse_total_income:
             return False
-        personal_allowance = self.constants.get_personal_allowance()
+        personal_allowance = self.get_personal_allowance()
         total_income_excluding_tax_free_savings = (
             self.get_total_income_excluding_tax_free_savings()
         )
@@ -766,17 +766,17 @@ class HMRC:
 
     def get_combined_tax_digest(self):
         self.l.debug("get_combined_tax_digest")
-        combined_taxable_profit_gbp = self.get_combined_taxable_profit_gbp().strip()
-        personal_allowance_gbp = self.get_personal_allowance_gbp().strip()
         combined_taxable_profit = self.get_combined_taxable_profit()
+        combined_taxable_profit_gbp = self.gbp(combined_taxable_profit)
         personal_allowance = self.get_personal_allowance()
+        personal_allowance_gbp = self.gbp(personal_allowance)
         taxable_amount = max(0, combined_taxable_profit - personal_allowance)
-        taxable_amount_gbp = self.gbp(taxable_amount).strip()
+        taxable_amount_gbp = self.gbp(taxable_amount)
         (tax, unused_allowance) = self.calculate_tax(
             combined_taxable_profit, personal_allowance
         )
         self.unused_allowance = unused_allowance
-        tax_gbp = self.gbp(tax).strip()
+        tax_gbp = self.gbp(tax)
         class_2_nics_due_gbp = self.get_class_2_nics_due_gbp().strip()
         class_4_nics_due_gbp = self.get_class_4_nics_due_gbp().strip()
         parts = [f"Combined taxable profit: {combined_taxable_profit_gbp}"]
@@ -1115,10 +1115,10 @@ class HMRC:
         self.l.debug("get_hmrc_allowance")
         personal_allowance = self.get_personal_allowance()
         self.l.debug(f"personal_allowance: {personal_allowance}")
-        allowance_enlargement = self.get_marriage_allowance_transferred_amount()
+        allowance_enlargement = self.get_marriage_allowance_recipient_amount()
         # allowance_enlargement=0
         self.l.debug(f"allowance_enlargement: {allowance_enlargement}")
-        allowance_reduction = self.get_marriage_allowance_transfer_amount()
+        allowance_reduction = self.get_marriage_allowance_donor_amount()
         self.l.debug(f"allowance_reduction: {allowance_reduction}")
         hmrc_allowance = (
             personal_allowance + allowance_enlargement - allowance_reduction
@@ -1148,250 +1148,8 @@ class HMRC:
 
     def get_hmrc_calculation(self) -> str:
         self.l.debug("get_hmrc_calculation")
-
-        def get_basic_rate_limit() -> float:
-            basic_rate_threshold = self.constants.get_basic_rate_threshold()
-            personal_allowance = self.get_personal_allowance()
-            basic_rate_limit = basic_rate_threshold - personal_allowance
-            return basic_rate_limit
-
-        def add_hmrc_part(key: str, amount: Optional[float] = None):
-            if amount is None:
-                hmrc_parts.append(key)
-            else:
-                max_key_width = 65
-                max_amount_width = 15
-                amount_gbp = self.gbp(amount)
-                line = (
-                    f"{key.ljust(max_key_width)} {amount_gbp.rjust(max_amount_width)}"
-                )
-                hmrc_parts.append(line)
-
-        def add_part_basic_tax(unused_allowance):
-            self.l.debug(f"add_part_basic_tax: unused_allowance: {unused_allowance}")
-            combined_taxable_profit = self.get_combined_taxable_profit()
-            self.l.debug(f"combined_taxable_profit: {combined_taxable_profit}")
-            p_taxable_amount = max(0, combined_taxable_profit - unused_allowance)
-            self.l.debug(f"p_taxable_amount: {p_taxable_amount}")
-            if p_taxable_amount > 0:
-                taxable_amount_gbp = self.gbp(p_taxable_amount)
-                basic_rate = self.get_basic_tax_rate()
-                basic_rate_integer = int(basic_rate * 100)
-                label = f"Basic rate {taxable_amount_gbp} x{basic_rate_integer}%"
-                basic_tax = p_taxable_amount * basic_rate
-                add_hmrc_part(label, basic_tax)
-
-                unused_allowance = max(0, unused_allowance - combined_taxable_profit)
-                self.l.debug(f"unused_allowance: {unused_allowance}")
-
-            return unused_allowance
-
-        def add_part_dividends():
-            dividends_income = self.get_dividends_income()
-            self.l.debug(f"dividends_income: {dividends_income}")
-            if dividends_income > 0:
-                add_hmrc_part("Dividends from UK companies", dividends_income)
-
-        def add_part_marriage_allowance():
-            if self.are_you_eligible_to_claim_marriage_allowance():
-                marriage_allowance = self.get_marriage_allowance_transfer_amount()
-                if marriage_allowance > 0:
-                    add_hmrc_part("lessMarriage Allowance transfer", marriage_allowance)
-                    hmrc_allowance = self.get_hmrc_allowance()
-                    add_hmrc_part("Total", hmrc_allowance)
-            elif self.are_you_eligible_to_receive_marriage_allowance():
-                marriage_allowance = self.get_marriage_allowance_transferred_amount()
-                if marriage_allowance > 0:
-                    add_hmrc_part("plusMarriage Allowance transfer", marriage_allowance)
-                    hmrc_allowance = self.get_hmrc_allowance()
-                    add_hmrc_part("Total", hmrc_allowance)
-
-        def add_part_minus():
-            add_hmrc_part("minus")
-
-        def add_part_pay_pensions_profit(unused_allowance):
-            combined_taxable_profit = self.get_combined_taxable_profit()
-            p_taxable_amount = max(0, combined_taxable_profit - unused_allowance)
-            self.l.debug(f"p_taxable_amount: {p_taxable_amount}")
-            if p_taxable_amount > 0:
-                add_hmrc_part("Pay, pensions, profit etc.")
-
-        def add_part_pension_payments():
-            pension_payments = self.get_payments_to_pension_schemes__relief_at_source()
-            revised_basic_rate_limit = get_revised_basic_rate_limit(pension_payments)
-            if pension_payments > 0:
-                pension_payments_gbp = self.gbp(pension_payments)
-                part = f"Pension payments of {pension_payments_gbp} increase basic rate limit to"
-                add_hmrc_part(part, revised_basic_rate_limit)
-
-        def add_part_personal_allowance():
-            personal_allowance = self.get_personal_allowance()
-            add_hmrc_part("Personal Allowance", personal_allowance)
-
-        def add_part_property_profit():
-            property_profit = self.get_property_profit()
-            if property_profit > 0:
-                add_hmrc_part("Profit from UK land and property", property_profit)
-
-        def add_part_savings_interest(unused_allowance):
-            savings_income = self.get_savings_income()
-            s_taxable_amount = max(0, savings_income - unused_allowance)
-            self.l.debug(f"s_taxable_amount: {s_taxable_amount}")
-            if s_taxable_amount > 0:
-                add_hmrc_part(
-                    "Savings interest from banks or building societies, securities etc."
-                )
-
-        def add_part_dividends_tax(unused_allowance):
-            dividends_income = self.get_dividends_income()
-            d_taxable_amount = max(0, dividends_income - unused_allowance)
-            self.l.debug(f"d_taxable_amount: {d_taxable_amount}")
-            if d_taxable_amount > 0:
-                dividends_basic_rate = self.get_dividends_basic_rate()
-                dividends_allowance = self.get_dividends_allowance()
-                dividends_income = self.get_dividends_income()
-                taxable_amount = max(0, dividends_income - dividends_allowance)
-                basic_rate_integer = int(dividends_basic_rate * 100)
-
-                basic_tax = taxable_amount * dividends_basic_rate
-                taxable_amount_gbp = self.gbp(taxable_amount)
-                label = (
-                    f"Dividends basic rate {taxable_amount_gbp} x{basic_rate_integer}%"
-                )
-                add_hmrc_part(label, basic_tax)
-
-                unused_allowance = max(0, unused_allowance - dividends_income)
-                self.l.debug(f"unused_allowance: {unused_allowance}")
-
-            return unused_allowance
-
-        def add_part_savings_basic_rate_tax(unused_allowance):
-            savings_income = self.get_savings_income()
-            s_taxable_amount = max(0, savings_income - unused_allowance)
-            self.l.debug(f"s_taxable_amount: {s_taxable_amount}")
-            if s_taxable_amount > 0:
-                savings_basic_rate = self.get_savings_basic_rate()
-                savings_nil_band = self.get_savings_nil_band()
-                savings_income = self.get_savings_income()
-                taxable_amount = max(0, savings_income - savings_nil_band)
-                basic_rate_integer = int(savings_basic_rate * 100)
-
-                basic_tax = taxable_amount * savings_basic_rate
-                taxable_amount_gbp = self.gbp(taxable_amount)
-                label = f"Basic rate {taxable_amount_gbp} x{basic_rate_integer}%"
-                add_hmrc_part(label, basic_tax)
-
-                unused_allowance = max(0, unused_allowance - savings_income)
-                self.l.debug(f"unused_allowance: {unused_allowance}")
-
-            return unused_allowance
-
-        def add_part_savings_nil_rate_tax(unused_allowance):
-            savings_income = self.get_savings_income()
-            s_taxable_amount = max(0, savings_income - unused_allowance)
-            self.l.debug(f"s_taxable_amount: {s_taxable_amount}")
-            if s_taxable_amount > 0:
-                savings_basic_rate = self.get_savings_basic_rate()
-                savings_nil_band = self.get_savings_nil_band()
-                savings_income = self.get_savings_income()
-                savings_nil_rate_amount = min(savings_income, savings_nil_band)
-                taxable_amount = max(0, savings_income - savings_nil_band)
-                basic_rate_integer = int(savings_basic_rate * 100)
-                nil_rate_tax = 0
-                savings_nil_rate_amount_gbp = self.gbp(savings_nil_rate_amount)
-                label = f"Basic rate band at nil rate {savings_nil_rate_amount_gbp} x0%"
-                add_hmrc_part(label, nil_rate_tax)
-
-                unused_allowance = max(0, unused_allowance - savings_income)
-                self.l.debug(f"unused_allowance: {unused_allowance}")
-
-            return unused_allowance
-
-        def add_part_self_employment_profit():
-            trading_profit = self.get_trading_profit()
-            if trading_profit > 0:
-                add_hmrc_part("Profit from self-employment", trading_profit)
-
-        def add_part_total_income():
-            self.l.debug("add_part_total_income")
-            hmrc_total_income = self.get_hmrc_total_income()
-            self.l.debug(f"hmrc_total_income: {hmrc_total_income}")
-            label = "Total income"
-            if hmrc_total_income > 0:
-                label += " on which tax is due"
-            self.l.debug(f"label: {label}")
-            add_hmrc_part(label, hmrc_total_income)
-
-            hmrc_allowance = self.get_hmrc_allowance()
-            self.l.debug(f"hmrc_allowance: {hmrc_allowance}")
-
-            unused_allowance = max(0, hmrc_allowance - hmrc_total_income)
-            unused_allowance = hmrc_allowance
-            self.l.debug(f"unused_allowance: {unused_allowance}")
-
-            return unused_allowance
-
-        def add_part_total_income_received():
-            total_income_received = self.get_hmrc_total_income_received()
-            if total_income_received > 0:
-                add_hmrc_part("Total income received", total_income_received)
-
-        def add_part_uk_interest():
-            savings_income = self.get_savings_income()
-            self.l.debug(f"savings_income: {savings_income}")
-            if savings_income > 0:
-                add_hmrc_part(
-                    "Interest from UK banks, building societies and securities etc",
-                    savings_income,
-                )
-
-        def add_part_income_tax():
-            income_tax = self.get_income_tax()
-            add_hmrc_part("Income tax due", income_tax)
-
-        def add_part_class_2_nics():
-            class_2_nics = self.get_class_2_nics_due()
-            add_hmrc_part(
-                "Total Class 2 National Insurance contributions due", class_2_nics
-            )
-
-        def add_part_total_and_nics():
-            income_tax = self.get_income_tax()
-            class_2_nics = self.get_class_2_nics_due()
-            total_for_this_year = income_tax + class_2_nics
-            add_hmrc_part("Total tax + NICs due for this year", total_for_this_year)
-
-        def get_revised_basic_rate_limit(pension_payments) -> float:
-            basic_rate_limit = get_basic_rate_limit()
-            revised_basic_rate_limit = basic_rate_limit + pension_payments
-            return revised_basic_rate_limit
-
-        hmrc_parts = [""]
-        add_part_self_employment_profit()
-        add_part_property_profit()
-        add_part_uk_interest()
-        add_part_dividends()
-        add_part_total_income_received()
-        add_part_minus()
-        add_part_personal_allowance()
-        add_part_marriage_allowance()
-        unused_allowance = add_part_total_income()
-        self.l.debug(f"1: unused_allowance: {unused_allowance}")
-        add_part_pay_pensions_profit(unused_allowance)
-        unused_allowance = add_part_basic_tax(unused_allowance)
-        self.l.debug(f"2: unused_allowance: {unused_allowance}")
-        add_part_savings_interest(unused_allowance)
-        unused_allowance = add_part_savings_nil_rate_tax(unused_allowance)
-        self.l.debug(f"3: unused_allowance: {unused_allowance}")
-        unused_allowance = add_part_savings_basic_rate_tax(unused_allowance)
-        self.l.debug(f"4: unused_allowance: {unused_allowance}")
-        unused_allowance = add_part_dividends_tax(unused_allowance)
-        self.l.debug(f"5: unused_allowance: {unused_allowance}")
-        add_part_income_tax()
-        add_part_class_2_nics()
-        add_part_total_and_nics()
-
-        return "\n".join(hmrc_parts)
+        hmrc_calculation = HMRC_Calculation(self)
+        return hmrc_calculation.get_output()
 
     def get_hmrc_total_income(self) -> float:
         self.l.debug("get_hmrc_total_income")
@@ -1558,7 +1316,7 @@ class HMRC:
         self.l.debug("get_marriage_allowance_digest")
         if not self.is_married():
             return ""
-        marriage_allowance = self.get_marriage_allowance_transfer_amount()
+        marriage_allowance = self.get_marriage_allowance_donor_amount()
         self.l.debug(f"marriage_allowance: {marriage_allowance}")
         if marriage_allowance == 0:
             return ""
@@ -1568,48 +1326,55 @@ class HMRC:
         parts.append(f"transferred to: {transferred_to}")
         return "\n" + " | ".join(parts)
 
-    def get_marriage_allowance_transfer_amount(self) -> float:
+    def get_marriage_allowance_donor_amount(self) -> float:
         if not self.is_married():
             return 0
+
         total_income = self.get_hmrc_total_income_received()
-        spouse_total_income = self.get_spouse_total_income_received()
-        if total_income > spouse_total_income:
-            return 0
-        marriage_allowance = self.constants.get_marriage_allowance()
+
         personal_allowance = self.get_personal_allowance()
-        total_income_excluding_tax_free_savings = (
-            self.get_total_income_excluding_tax_free_savings()
-        )
-        if total_income_excluding_tax_free_savings > personal_allowance:
+
+        if total_income > personal_allowance:
             return 0
+
+        spouse_total_income = self.get_spouse_total_income_received()
+        if personal_allowance > spouse_total_income:
+            return 0
+
+        higher_rate_threshold = self.get_higher_rate_threshold()
+        if spouse_total_income > higher_rate_threshold:
+            return 0
+
+        max_marriage_allowance = self.constants.get_marriage_allowance()
+
         return min(
-            marriage_allowance,
-            personal_allowance - total_income_excluding_tax_free_savings,
+            max_marriage_allowance,
+            personal_allowance - total_income,
         )
 
-    def get_marriage_allowance_transfer_amount_gbp(self) -> str:
-        return self.gbpb(self.get_marriage_allowance_transfer_amount())
+    def get_marriage_allowance_donor_amount_gbp(self) -> str:
+        return self.gbpb(self.get_marriage_allowance_donor_amount())
 
     @lru_cache(maxsize=None)
-    def get_marriage_allowance_transferred_amount(self) -> float:
-        self.l.debug("get_marriage_allowance_transferred_amount")
+    def get_marriage_allowance_recipient_amount(self) -> float:
+        self.l.debug("get_marriage_allowance_recipient_amount")
         if not self.is_married():
             return 0
         spouse_hmrc = self.get_spouse_hmrc()
         self.l.debug("Disabling debug for spouse HMRC instance")
         spouse_hmrc.disable_debug()
-        marriage_allowance_transferred_amount = (
-            spouse_hmrc.get_marriage_allowance_transfer_amount()
+        marriage_allowance_recipient_amount = (
+            spouse_hmrc.get_marriage_allowance_donor_amount()
         )
         spouse_hmrc.enable_debug()
         self.l.debug("Enabled debug for spouse HMRC instance")
         self.l.debug(
-            f"marriage_allowance_transferred_amount: {marriage_allowance_transferred_amount}"
+            f"marriage_allowance_recipient_amount: {marriage_allowance_recipient_amount}"
         )
-        return marriage_allowance_transferred_amount
+        return marriage_allowance_recipient_amount
 
-    def get_marriage_allowance_transferred_amount_gbp(self) -> str:
-        return self.gbpb(self.get_marriage_allowance_transferred_amount())
+    def get_marriage_allowance_recipient_amount_gbp(self) -> str:
+        return self.gbpb(self.get_marriage_allowance_recipient_amount())
 
     def get_marriage_date(self) -> str:
         if not self.is_married():
@@ -2610,16 +2375,29 @@ class HMRC:
     def get_trading_losses_brought_forward_and_set_off_gbp(self):
         return self.gbpb(0)
 
+    def get_trading_outgo(self):
+        self.l.debug("get_trading_outgo")
+        if self.use_trading_allowance():
+            trading_allowance = self.get_trading_allowance_actual()
+        else:
+            trading_allowance = 0
+        self.l.debug(f"trading_allowance: {trading_allowance}")
+        if self.deduct_trading_expenses():
+            trading_expenses = self.get_trading_expenses_actual()
+        else:
+            trading_expenses = 0
+        self.l.debug(f"trading_expenses: {trading_expenses}")
+        trading_outgo = max(trading_allowance, trading_expenses)
+        self.l.debug(f"trading_outgo: {trading_outgo}")
+
+        return trading_outgo
+
     @lru_cache(maxsize=None)
     def get_trading_profit(self):
         self.l.debug("get_trading_profit")
         trading_income = self.get_trading_income()
         self.l.debug(f"trading_income: {trading_income}")
-        trading_allowance = self.get_trading_allowance_actual()
-        self.l.debug(f"trading_allowance: {trading_allowance}")
-        trading_expenses = self.get_trading_expenses_actual()
-        self.l.debug(f"trading_expenses: {trading_expenses}")
-        trading_outgo = max(trading_allowance, trading_expenses)
+        trading_outgo = self.get_trading_outgo()
         self.l.debug(f"trading_outgo: {trading_outgo}")
         trading_profit = max(0, trading_income - trading_outgo)
         self.l.debug(f"trading_profit: {trading_profit}")
@@ -2890,6 +2668,15 @@ class HMRC:
         self.l.debug(property_expenses)
         return property_allowance > property_expenses
 
+    def deduct_trading_expenses(self):
+        self.l.debug("deduct_trading_expenses")
+        try:
+            return self.deduct_trading_expenses_override()
+        except ValueError as v:
+            trading_allowance = self.get_trading_allowance_actual()
+            trading_expenses = self.get_trading_expenses_actual()
+            return trading_allowance < trading_expenses
+
     def use_trading_allowance(self):
         self.l.debug("use_trading_allowance")
         try:
@@ -2898,6 +2685,14 @@ class HMRC:
             trading_allowance = self.get_trading_allowance_actual()
             trading_expenses = self.get_trading_expenses_actual()
             return trading_allowance > trading_expenses
+
+    def deduct_trading_expenses_override(self):
+        self.l.debug("deduct_trading_expenses_override")
+        try:
+            return self.overrides.deduct_trading_expenses()
+        except ValueError as v:
+            self.l.info(v)
+            raise
 
     def use_trading_allowance_override(self):
         self.l.debug("use_trading_allowance_override")

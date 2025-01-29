@@ -18,7 +18,7 @@ def print_reports(hmrc_people, tax_year):
         l.debug(f"Getting HMRC instance for person: {person}, tax year: {tax_year}")
         hmrc = HMRC(person, tax_year)
         hmrc.print_reports()
-        exit()
+        #exit()
 
 
 def main():

@@ -27,7 +27,7 @@ class HMRC_OverridesByYear(SQLiteTable):
 
         return result
 
-    def __init__(self, person_code,tax_year):
+    def __init__(self, person_code, tax_year):
         self.l = LogHelper("HMRC_OverridesByYear")
         self.l.set_level_debug()
         self.l.debug(__file__)
@@ -38,9 +38,19 @@ class HMRC_OverridesByYear(SQLiteTable):
         self.tax_year = tax_year
 
     @lru_cache(maxsize=None)
+    def deduct_trading_expenses(self) -> bool:
+        deduct_trading_expenses = self.__get_value_by_override(
+            "Deduct trading expenses"
+        )
+
+        self.l.debug(f"deduct_trading_expenses: {deduct_trading_expenses}")
+
+        return deduct_trading_expenses == "Yes"
+
+    @lru_cache(maxsize=None)
     def use_trading_allowance(self) -> bool:
         use_trading_allowance = self.__get_value_by_override("Use trading allowance")
 
         self.l.debug(f"use_trading_allowance: {use_trading_allowance}")
 
-        return use_trading_allowance=="Yes"
+        return use_trading_allowance == "Yes"
