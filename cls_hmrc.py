@@ -1758,10 +1758,21 @@ class HMRC:
         return self.gbpb(0)
 
     def get_questions(self):
-        if self.report_type == HMRC_Output.ONLINE_REPORT:
-            return HMRC_QuestionsByYear(self.tax_year).get_online_questions()
-        else:
-            return HMRC_QuestionsByYear(self.tax_year).get_printed_form_questions()
+        report_type = self.report_type
+        match report_type:
+            case HMRC_Output.HMRC_CALCULATION:
+                questions = HMRC_QuestionsByYear(
+                    self.tax_year
+                ).get_hmrc_calculation_questions()
+            case HMRC_Output.HMRC_ONLINE_ANSWERS:
+                questions = HMRC_QuestionsByYear(self.tax_year).get_online_questions()
+            case HMRC_Output.HMRC_TAX_RETURN:
+                questions = HMRC_QuestionsByYear(
+                    self.tax_year
+                ).get_printed_form_questions()
+            case _:
+                raise ValueError(f"Unexpected report type: {report_type}")
+        return questions
 
     def get_redundancy_payments(self):
         return self.gbpb(0)

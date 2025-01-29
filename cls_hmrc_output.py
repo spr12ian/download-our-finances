@@ -1,16 +1,15 @@
 from cls_helper_log import LogHelper
-from cls_helper_sql import SQL_Helper
-from cls_hmrc_people import HMRC_People
 from tables import *
 import utility_functions as uf
 
 
 class HMRC_Output:
-    ONLINE_REPORT = "Online"
-    PRINTED_REPORT = "Printed Form"
-    REPORT_TYPES = [ONLINE_REPORT, PRINTED_REPORT]
+    HMRC_CALCULATION = "calculation"
+    HMRC_ONLINE_ANSWERS = "online answers"
+    HMRC_TAX_RETURN = "tax return"
+    REPORT_TYPES = [HMRC_CALCULATION, HMRC_ONLINE_ANSWERS, HMRC_TAX_RETURN]
 
-    def __init__(self, output_details:dict):
+    def __init__(self, output_details: dict):
         self.l = LogHelper("HMRC_Output")
         self.l.set_level_debug()
         self.l.debug(__file__)
@@ -24,15 +23,18 @@ class HMRC_Output:
         self.tax_year = output_details["tax_year"]
         self.unique_tax_reference = output_details["unique_tax_reference"]
 
+        self.previous_section = ""
+        self.previous_header = ""
+
     def get_title(self):
         unique_tax_reference = self.unique_tax_reference
         person_name = self.person_name
         report_type = self.report_type
         tax_year = self.tax_year
-        return f"HMRC {tax_year} {report_type} tax return for {person_name} - UTR {unique_tax_reference}\n"
+        return f"HMRC {report_type} {tax_year} for {person_name} - UTR {unique_tax_reference}\n"
 
     def position_answer(self, string_list) -> str:
-        if self.report_type == HMRC_Output.ONLINE_REPORT:
+        if self.report_type == HMRC_Output.HMRC_ONLINE_ANSWERS:
             widths = [55]
         else:
             widths = [5, 60]
@@ -53,7 +55,7 @@ class HMRC_Output:
         self.print(f"\nEnd of {title}")
 
     def print_formatted_answer(
-        self, question, section:str, header:str, box, answer, information
+        self, question, section: str, header: str, box, answer, information
     ):
         self.l.debug("print_formatted_answer")
         self.l.debug(f"\n{question}\n")
@@ -77,7 +79,7 @@ class HMRC_Output:
         else:
             answer = str(answer)
         box = uf.crop(box, " (GBP)")
-        if self.report_type == HMRC_Output.ONLINE_REPORT:
+        if self.report_type == HMRC_Output.HMRC_ONLINE_ANSWERS:
             formatted_answer = self.position_answer([box, answer])
         else:
             formatted_answer = self.position_answer([box, question, answer])
@@ -85,7 +87,7 @@ class HMRC_Output:
             self.print(information)
         self.print(formatted_answer)
 
-    def print_report(self):        
+    def print_report(self):
         report_type = self.report_type
         if not isinstance(report_type, str) or not report_type:
             raise ValueError("Invalid report type provided.")
@@ -109,7 +111,7 @@ class HMRC_Output:
             )
         self.print_end_of_tax_return()
 
-    def print_title(self):
+    def print_title(self) -> None:
         self.print(self.get_title())
         self.previous_section = ""
         self.previous_header = ""
@@ -137,7 +139,9 @@ class HMRC_Output:
         sanitized_report_type = report_type.replace(" ", "_").lower()
         sanitized_tax_year = tax_year.replace(" ", "_")
 
-        report_file_name = f"{sanitized_name}_{sanitized_tax_year}_{sanitized_report_type}_hmrc_tax_return_details.txt"
+        report_file_name = (
+            f"hmrc_{sanitized_report_type}_{sanitized_tax_year}_{sanitized_name}.txt"
+        )
 
         # Log the generated file name
         self.l.info(f"Generated report file name: {report_file_name}")

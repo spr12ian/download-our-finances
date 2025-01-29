@@ -13,6 +13,7 @@ class HMRC_QuestionsByYear(SQLiteTable):
         "Have ",
         "Is ",
         "Should ",
+        "Use ",
         "Was ",
         "Were ",
     ]
@@ -103,6 +104,19 @@ class HMRC_QuestionsByYear(SQLiteTable):
             self.l.debug(query)
             for row in rows:
                 self.l.info(row)
+
+    def get_hmrc_calculation_questions(self):
+        questions = [
+            [
+                '',  # question
+                '',  # section
+                '',  # header
+                '',  # box
+                'get_hmrc_calculation',  # method
+                '',  # additional information
+            ]
+        ]
+        return questions
 
     def get_online_questions(self):
         columns = [
