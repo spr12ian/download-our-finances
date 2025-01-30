@@ -268,6 +268,7 @@ class HMRC_Calculation:
         unused_allowance = self.add_part_total_income()
         self.l.debug(f"1: unused_allowance: {unused_allowance}")
         self.add_part_pay_pensions_profit(unused_allowance)
+        self.add_part_pension_payments()
         unused_allowance = self.add_part_basic_tax(unused_allowance)
         self.l.debug(f"2: unused_allowance: {unused_allowance}")
         self.add_part_savings_interest(unused_allowance)
