@@ -283,11 +283,11 @@ class HMRC_Calculation:
 
         return "\n".join(self.output_list)
 
-    def get_trading_profit(self) -> float:
-        return self.hmrc.get_trading_profit()
-
     def get_revised_basic_rate_limit(self, pension_payments) -> float:
         hmrc = self.hmrc
         basic_rate_limit = self.get_basic_rate_limit()
         revised_basic_rate_limit = basic_rate_limit + pension_payments
         return revised_basic_rate_limit
+
+    def get_trading_profit(self) -> float:
+        return self.hmrc.get_trading_profit()

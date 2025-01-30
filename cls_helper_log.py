@@ -108,6 +108,9 @@ class LogHelper:
         else:
             raise ValueError(f"Unexpected level type: {type(level)} for level: {level}")
 
+    def set_level_debug(self):
+        self.logger.setLevel(logging.DEBUG)
+
     def set_level_int(self, level):
         if level not in LogHelper.LOG_LEVELS:
             raise ValueError(
@@ -147,9 +150,6 @@ class LogHelper:
         self.logger.debug(f"Log level set to {level}.")
 
         self.log_debug_level()
-
-    def set_level_debug(self):
-        self.logger.setLevel(logging.DEBUG)
 
     def tdebug(self, msg):
         dt = self.dt

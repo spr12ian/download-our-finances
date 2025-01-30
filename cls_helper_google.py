@@ -49,9 +49,6 @@ class GoogleHelper:
         self.l.debug(f"credentials_path: {credentials_path}")
         return credentials_path
 
-    def get_spreadsheet_url(self, spreadsheet_id):
-        return f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}"
-
     def get_spreadsheet(self, scopes):
         self.l.debug(f"scopes: {scopes}")
         client = self.get_authorized_client(scopes)
@@ -59,3 +56,6 @@ class GoogleHelper:
         self.l.debug(f"spreadsheet.title: {spreadsheet.title}")
 
         return spreadsheet
+
+    def get_spreadsheet_url(self, spreadsheet_id):
+        return f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}"

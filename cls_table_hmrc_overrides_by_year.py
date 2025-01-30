@@ -6,7 +6,7 @@ from functools import lru_cache
 
 class HMRC_OverridesByYear(SQLiteTable):
 
-    def __get_value_by_override(self, override):
+    def __get_value_by_override(self, override)->str:
         person_code = self.person_code
         tax_year = self.tax_year
         query = (
@@ -27,7 +27,7 @@ class HMRC_OverridesByYear(SQLiteTable):
 
         return result
 
-    def __init__(self, person_code, tax_year):
+    def __init__(self, person_code, tax_year)->None:
         self.l = LogHelper("HMRC_OverridesByYear")
         self.l.set_level_debug()
         self.l.debug(__file__)

@@ -93,11 +93,3 @@ class ClassTransformer(cst.CSTTransformer):
         if original_node.name.value == self.class_name:
             return self.new_class_node
         return updated_node
-
-
-# Example usage:
-file_path = "/home/probity/projects/download-our-finances/cls_test_class.py"
-class_name = "Test_Class"
-
-sorter = MethodSorter(file_path, class_name)
-sorter.sort_methods_in_class()

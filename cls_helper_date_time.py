@@ -5,13 +5,17 @@ class DateTimeHelper:
     ISO_DATE_FORMAT = "%Y-%m-%d"
     UK_DATE_FORMAT = "%d/%m/%Y"
 
-    # Function to determine the ordinal suffix
-    def get_ordinal_suffix(self, day):
-        if 10 <= day % 100 <= 20:
-            suffix = "th"
-        else:
-            suffix = {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
-        return suffix
+    # Function to convert UK date strings (DD/MM/YYYY) to ISO date strings YYYY-MM-DD
+    def ISO_to_UK(self, date_str):
+        return self.reformat_date_str(
+            date_str, DateTimeHelper.ISO_DATE_FORMAT, DateTimeHelper.UK_DATE_FORMAT
+        )
+
+    # Function to convert UK date strings (DD/MM/YYYY) to ISO date strings YYYY-MM-DD
+    def UK_to_ISO(self, date_str):
+        return self.reformat_date_str(
+            date_str, DateTimeHelper.UK_DATE_FORMAT, DateTimeHelper.ISO_DATE_FORMAT
+        )
 
     # Function to format date with ordinal day
     def format_date_with_ordinal(self, date):
@@ -22,6 +26,14 @@ class DateTimeHelper:
     def get_date_today(self):
         now = datetime.now()
         return self.format_date_with_ordinal(now)
+
+    # Function to determine the ordinal suffix
+    def get_ordinal_suffix(self, day):
+        if 10 <= day % 100 <= 20:
+            suffix = "th"
+        else:
+            suffix = {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
+        return suffix
 
     def get_time_now(self):
         now = datetime.now()
@@ -36,15 +48,3 @@ class DateTimeHelper:
 
         # Convert the datetime object back to a string in the desired format
         return date_obj.strftime(to_format)
-
-    # Function to convert UK date strings (DD/MM/YYYY) to ISO date strings YYYY-MM-DD
-    def ISO_to_UK(self, date_str):
-        return self.reformat_date_str(
-            date_str, DateTimeHelper.ISO_DATE_FORMAT, DateTimeHelper.UK_DATE_FORMAT
-        )
-
-    # Function to convert UK date strings (DD/MM/YYYY) to ISO date strings YYYY-MM-DD
-    def UK_to_ISO(self, date_str):
-        return self.reformat_date_str(
-            date_str, DateTimeHelper.UK_DATE_FORMAT, DateTimeHelper.ISO_DATE_FORMAT
-        )
