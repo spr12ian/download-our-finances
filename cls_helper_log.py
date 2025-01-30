@@ -32,7 +32,7 @@ class LogHelper:
         logging.NOTSET: "NOTSET",  # 0
     }
 
-    def __init__(self, name):
+    def __init__(self, name)->None:
         # print(f"LogHelper name: {name}")
         name = os.path.basename(name)
         # print(f"LogHelper basename: {basename}")

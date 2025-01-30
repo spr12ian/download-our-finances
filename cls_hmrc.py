@@ -57,9 +57,11 @@ class HMRC:
     def are_computations_provided(self):
         return False
 
-    def are_nics_needed_to_acheive_max_state_pension(self)->bool:
+    def are_nics_needed_to_acheive_max_state_pension(self) -> bool:
         self.l.debug("are_nics_needed_to_acheive_max_state_pension")
-        are_nics_needed_to_acheive_max_state_pension = self.person.are_nics_needed_to_acheive_max_state_pension()
+        are_nics_needed_to_acheive_max_state_pension = (
+            self.person.are_nics_needed_to_acheive_max_state_pension()
+        )
         if are_nics_needed_to_acheive_max_state_pension:
             self.l.debug("nics are needed to acheive max state pension")
         else:
@@ -513,10 +515,10 @@ class HMRC:
         ]
         return "\n" + "\n".join(formatted_lines) + "\n"
 
-    def gbp(self, amount, field_width: int = 0):
+    def gbp(self, amount:float, field_width: int = 0) -> str:
         return uf.format_as_gbp(amount, field_width)
 
-    def gbpa(self, amount, field_width: int = 10):
+    def gbpa(self, amount, field_width: int = 10)->str:
         return self.gbp(amount, field_width)
 
     def gbpb(self, amount: float) -> str:
@@ -593,7 +595,7 @@ class HMRC:
     def get_annual_payments_made(self):
         return self.gbpb(0)
 
-    def get_answers(self):
+    def get_answers(self)->list:
         questions = self.get_questions()
         answers = []
         for question, section, header, box, method_name, information in questions:
@@ -644,7 +646,7 @@ class HMRC:
     def get_basic_rate_threshold(self):
         return self.constants.get_basic_rate_threshold()
 
-    def get_basic_tax_rate(self):
+    def get_basic_tax_rate(self)->float:
         self.l.debug("get_basic_tax_rate")
         basic_tax_rate = self.constants.get_basic_tax_rate()
         self.l.debug(f"basic_tax_rate: {basic_tax_rate}")
@@ -965,7 +967,7 @@ class HMRC:
         taxible = max(0, income - deductible)
         return self.gbp(taxible).strip()
 
-    def get_digest_type_categories(self):
+    def get_digest_type_categories(self)->dict:
         person_code = self.person_code
         return {
             "savings": " INT ",
@@ -997,7 +999,7 @@ class HMRC:
             tax_year, f"HMRC {person_code} INC Dividends from UK companies"
         )
 
-    def get_dividends_income(self):
+    def get_dividends_income(self)->float:
         person_code = self.person_code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} DIV income: "
@@ -1232,7 +1234,7 @@ class HMRC:
         how_many = self.sql.fetch_one_value(query)
         return how_many
 
-    def get_how_many_self_employed_businesses_did_you_have(self):
+    def get_how_many_self_employed_businesses_did_you_have(self)->int:
         person_code = self.person.code
         tax_year = self.tax_year
         query = (
@@ -1267,7 +1269,7 @@ class HMRC:
         pay_voluntarily_nics = self.do_you_want_to_pay_class_2_nics_voluntarily()
         return trading_income <= trading_allowance and pay_voluntarily_nics
 
-    def get_income_tax(self):
+    def get_income_tax(self)->float:
         self.l.debug("get_income_tax")
         non_savings_income = self.get_non_savings_income()
         self.l.debug(f"non_savings_income: {non_savings_income}")
@@ -1581,7 +1583,7 @@ class HMRC:
     def get_payments_to_overseas_pension_scheme(self):
         return 0
 
-    def get_payments_to_pension_schemes__relief_at_source(self):
+    def get_payments_to_pension_schemes__relief_at_source(self)->float:
         person_code = self.person_code
         payments_to_pension_schemes = (
             self.transactions.fetch_total_by_tax_year_category_like(
@@ -2321,7 +2323,7 @@ class HMRC:
         else:
             return 0
 
-    def get_trading_expenses_actual(self):
+    def get_trading_expenses_actual(self)->float:
         if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
         person_code = self.person_code

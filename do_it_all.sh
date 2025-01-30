@@ -39,6 +39,6 @@ for db in "${databases[@]}"; do
 
         stop_if_module_has_errors "vacuum_${db}"
 
-        stop_if_module_has_errors "hmrc_reports_${db}"
+        stop_if_module_has_errors "create_hmrc_reports_from_${db}"
     fi
 done

@@ -1,16 +1,19 @@
 from cls_helper_log import LogHelper
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cls_hmrc import HMRC
 
 
 class HMRC_Calculation:
-    def __init__(self, hmrc):
+    def __init__(self, hmrc: "HMRC") -> None:
         self.l = LogHelper("HMRC_Calculation")
         self.l.set_level_debug()
         self.l.debug(__file__)
         self.hmrc = hmrc
         self.output_list = [""]
 
-    def add_hmrc_part(self, key: str, amount: Optional[float] = None):
+    def add_hmrc_part(self, key: str, amount: Optional[float] = None) -> None:
         self.l.debug("add_hmrc_part")
         if amount is None:
             self.append(key)
@@ -21,7 +24,7 @@ class HMRC_Calculation:
             line = f"{key.ljust(max_key_width)} {amount_gbp.rjust(max_amount_width)}"
             self.append(line)
 
-    def add_part_basic_tax(self, unused_allowance):
+    def add_part_basic_tax(self, unused_allowance) -> float:
         hmrc = self.hmrc
         self.l.debug(f"add_part_basic_tax: unused_allowance: {unused_allowance}")
         combined_taxable_profit = hmrc.get_combined_taxable_profit()
@@ -50,14 +53,14 @@ class HMRC_Calculation:
             "Total Class 2 National Insurance contributions due", class_2_nics
         )
 
-    def add_part_dividends(self):
+    def add_part_dividends(self) -> None:
         hmrc = self.hmrc
         dividends_income = hmrc.get_dividends_income()
         self.l.debug(f"dividends_income: {dividends_income}")
         if dividends_income > 0:
             self.add_hmrc_part("Dividends from UK companies", dividends_income)
 
-    def add_part_dividends_tax(self, unused_allowance):
+    def add_part_dividends_tax(self, unused_allowance) -> float:
         hmrc = self.hmrc
         dividends_income = hmrc.get_dividends_income()
         d_taxable_amount = max(0, dividends_income - unused_allowance)
@@ -79,12 +82,12 @@ class HMRC_Calculation:
 
         return unused_allowance
 
-    def add_part_income_tax(self):
+    def add_part_income_tax(self) -> None:
         hmrc = self.hmrc
         income_tax = hmrc.get_income_tax()
         self.add_hmrc_part("Income tax due", income_tax)
 
-    def add_part_marriage_allowance(self):
+    def add_part_marriage_allowance(self) -> None:
         hmrc = self.hmrc
         if hmrc.are_you_eligible_to_claim_marriage_allowance():
             marriage_allowance = hmrc.get_marriage_allowance_donor_amount()
@@ -103,11 +106,11 @@ class HMRC_Calculation:
                 hmrc_allowance = hmrc.get_hmrc_allowance()
                 self.add_hmrc_part("Total", hmrc_allowance)
 
-    def add_part_minus(self):
+    def add_part_minus(self) -> None:
         hmrc = self.hmrc
         self.add_hmrc_part("minus")
 
-    def add_part_pay_pensions_profit(self, unused_allowance):
+    def add_part_pay_pensions_profit(self, unused_allowance) -> None:
         hmrc = self.hmrc
         combined_taxable_profit = hmrc.get_combined_taxable_profit()
         p_taxable_amount = max(0, combined_taxable_profit - unused_allowance)
@@ -115,7 +118,7 @@ class HMRC_Calculation:
         if p_taxable_amount > 0:
             self.add_hmrc_part("Pay, pensions, profit etc.")
 
-    def add_part_pension_payments(self):
+    def add_part_pension_payments(self) -> None:
         hmrc = self.hmrc
         pension_payments = hmrc.get_payments_to_pension_schemes__relief_at_source()
         revised_basic_rate_limit = self.get_revised_basic_rate_limit(pension_payments)
@@ -124,18 +127,18 @@ class HMRC_Calculation:
             part = f"Pension payments of {pension_payments_gbp} increase basic rate limit to"
             self.add_hmrc_part(part, revised_basic_rate_limit)
 
-    def add_part_personal_allowance(self):
+    def add_part_personal_allowance(self) -> None:
         hmrc = self.hmrc
         personal_allowance = hmrc.get_personal_allowance()
         self.add_hmrc_part("Personal Allowance", personal_allowance)
 
-    def add_part_property_profit(self):
+    def add_part_property_profit(self) -> None:
         hmrc = self.hmrc
         property_profit = hmrc.get_property_profit()
         if property_profit > 0:
             self.add_hmrc_part("Profit from UK land and property", property_profit)
 
-    def add_part_savings_basic_rate_tax(self, unused_allowance):
+    def add_part_savings_basic_rate_tax(self, unused_allowance) -> float:
         hmrc = self.hmrc
         savings_income = hmrc.get_savings_income()
         s_taxable_amount = max(0, savings_income - unused_allowance)
@@ -157,7 +160,7 @@ class HMRC_Calculation:
 
         return unused_allowance
 
-    def add_part_savings_interest(self, unused_allowance):
+    def add_part_savings_interest(self, unused_allowance) -> None:
         hmrc = self.hmrc
         savings_income = hmrc.get_savings_income()
         s_taxable_amount = max(0, savings_income - unused_allowance)
@@ -167,7 +170,7 @@ class HMRC_Calculation:
                 "Savings interest from banks or building societies, securities etc."
             )
 
-    def add_part_savings_nil_rate_tax(self, unused_allowance):
+    def add_part_savings_nil_rate_tax(self, unused_allowance) -> float:
         hmrc = self.hmrc
         savings_income = hmrc.get_savings_income()
         s_taxable_amount = max(0, savings_income - unused_allowance)
@@ -189,20 +192,20 @@ class HMRC_Calculation:
 
         return unused_allowance
 
-    def add_part_self_employment_profit(self):
+    def add_part_self_employment_profit(self) -> None:
         self.l.debug("add_part_self_employment_profit")
         trading_profit = self.get_trading_profit()
         if trading_profit > 0:
             self.add_hmrc_part("Profit from self-employment", trading_profit)
 
-    def add_part_total_and_nics(self):
+    def add_part_total_and_nics(self) -> None:
         hmrc = self.hmrc
         income_tax = hmrc.get_income_tax()
         class_2_nics = hmrc.get_class_2_nics_due()
         total_for_this_year = income_tax + class_2_nics
         self.add_hmrc_part("Total tax + NICs due for this year", total_for_this_year)
 
-    def add_part_total_income(self):
+    def add_part_total_income(self) -> float:
         hmrc = self.hmrc
         self.l.debug("add_part_total_income")
         hmrc_total_income = hmrc.get_hmrc_total_income()
@@ -222,13 +225,13 @@ class HMRC_Calculation:
 
         return unused_allowance
 
-    def add_part_total_income_received(self):
+    def add_part_total_income_received(self) -> None:
         hmrc = self.hmrc
         total_income_received = hmrc.get_hmrc_total_income_received()
         if total_income_received > 0:
             self.add_hmrc_part("Total income received", total_income_received)
 
-    def add_part_uk_interest(self):
+    def add_part_uk_interest(self) -> None:
         hmrc = self.hmrc
         savings_income = hmrc.get_savings_income()
         self.l.debug(f"savings_income: {savings_income}")
@@ -238,10 +241,10 @@ class HMRC_Calculation:
                 savings_income,
             )
 
-    def append(self, string):
+    def append(self, string) -> None:
         self.output_list.append(string)
 
-    def gbp(self, amount):
+    def gbp(self, amount) -> str:
         return self.hmrc.gbp(amount)
 
     def get_basic_rate_limit(self) -> float:
@@ -280,12 +283,11 @@ class HMRC_Calculation:
 
         return "\n".join(self.output_list)
 
-    def get_trading_profit(self):
+    def get_trading_profit(self) -> float:
         return self.hmrc.get_trading_profit()
 
-
-def get_revised_basic_rate_limit(self, pension_payments) -> float:
-    hmrc = self.hmrc
-    basic_rate_limit = self.get_basic_rate_limit()
-    revised_basic_rate_limit = basic_rate_limit + pension_payments
-    return revised_basic_rate_limit
+    def get_revised_basic_rate_limit(self, pension_payments) -> float:
+        hmrc = self.hmrc
+        basic_rate_limit = self.get_basic_rate_limit()
+        revised_basic_rate_limit = basic_rate_limit + pension_payments
+        return revised_basic_rate_limit
