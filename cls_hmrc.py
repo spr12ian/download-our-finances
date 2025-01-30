@@ -733,19 +733,21 @@ class HMRC:
 
     def get_capital_gains_tax_due(self):
         return self.gbpb(0)
+    
+    def get_class_2_annual_amount(self):
+        return self.constants.get_class_2_annual_amount()
 
     def get_class_2_nics_due(self):
         self.l.debug("get_class_2_nics_due")
-        weekly_rate_class2 = self.get_class_2_weekly_rate()
-        weeks_in_year = self.how_many_nic_weeks_in_year()
+        class_2_annual_amount=self.get_class_2_annual_amount()
         if self.are_nics_needed_to_acheive_max_state_pension():
-            return weekly_rate_class2 * weeks_in_year
+            return class_2_annual_amount
         small_profits_threshold = self.get_small_profits_threshold()
         trading_profit = self.get_trading_profit()
         if trading_profit < small_profits_threshold:
             return 0.0
         else:
-            return weekly_rate_class2 * weeks_in_year
+            return class_2_annual_amount
 
     def get_class_2_nics_due_gbp(self):
         return self.gbpa(self.get_class_2_nics_due())

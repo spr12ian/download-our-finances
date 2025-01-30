@@ -20,6 +20,7 @@ if __name__ == "__main__":
         ["cls_method_sorter", "ClassTransformer"],
         ["cls_method_sorter", "MethodCollector"],
         ["cls_method_sorter", "MethodSorter"],
+        ["cls_table_hmrc_constants_by_year", "HMRC_ConstantsByYear"],
         ["cls_table_hmrc_overrides_by_year", "HMRC_OverridesByYear"],
     ]
 

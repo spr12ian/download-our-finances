@@ -82,6 +82,17 @@ class HMRC_ConstantsByYear(SQLiteTable):
         return basic_tax_rate
 
     @lru_cache(maxsize=None)
+    def get_class_2_annual_amount(self) -> float:
+        class_2_nics_weekly_rate = self.get_class_2_weekly_rate()
+        how_many_nic_weeks_in_year = self.how_many_nic_weeks_in_year()
+
+        class_2_annual_amount = how_many_nic_weeks_in_year * class_2_nics_weekly_rate
+
+        self.l.debug(f"class_2_annual_amount: {class_2_annual_amount}")
+
+        return class_2_annual_amount
+
+    @lru_cache(maxsize=None)
     def get_class_2_weekly_rate(self) -> float:
         class_2_nics_weekly_rate = string_to_float(
             self.__get_value_by_hmrc_constant("NIC Class 2 weekly rate")
@@ -182,16 +193,6 @@ class HMRC_ConstantsByYear(SQLiteTable):
         return marriage_allowance
 
     @lru_cache(maxsize=None)
-    def how_many_nic_weeks_in_year(self) -> float:
-        nic_weeks_in_year = string_to_float(
-            self.__get_value_by_hmrc_constant("NIC weeks in year")
-        )
-
-        self.l.debug(f"nic_weeks_in_year: {nic_weeks_in_year}")
-
-        return nic_weeks_in_year
-
-    @lru_cache(maxsize=None)
     def get_personal_allowance(self) -> float:
         personal_allowance = string_to_float(
             self.__get_value_by_hmrc_constant("Personal allowance")
@@ -284,3 +285,13 @@ class HMRC_ConstantsByYear(SQLiteTable):
         self.l.debug(f"vat_registration_threshold: {vat_registration_threshold}")
 
         return vat_registration_threshold
+
+    @lru_cache(maxsize=None)
+    def how_many_nic_weeks_in_year(self) -> float:
+        nic_weeks_in_year = string_to_float(
+            self.__get_value_by_hmrc_constant("NIC weeks in year")
+        )
+
+        self.l.debug(f"nic_weeks_in_year: {nic_weeks_in_year}")
+
+        return nic_weeks_in_year
