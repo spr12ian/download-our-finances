@@ -10,12 +10,6 @@ class HMRC_Calculation:
         self.hmrc = hmrc
         self.output_list = [""]
 
-    def gbp(self, amount):
-        return self.hmrc.gbp(amount)
-
-    def append(self, string):
-        self.output_list.append(string)
-
     def add_hmrc_part(self, key: str, amount: Optional[float] = None):
         self.l.debug("add_hmrc_part")
         if amount is None:
@@ -195,9 +189,6 @@ class HMRC_Calculation:
 
         return unused_allowance
 
-    def get_trading_profit(self):
-        return self.hmrc.get_trading_profit()
-
     def add_part_self_employment_profit(self):
         self.l.debug("add_part_self_employment_profit")
         trading_profit = self.get_trading_profit()
@@ -247,6 +238,12 @@ class HMRC_Calculation:
                 savings_income,
             )
 
+    def append(self, string):
+        self.output_list.append(string)
+
+    def gbp(self, amount):
+        return self.hmrc.gbp(amount)
+
     def get_basic_rate_limit(self) -> float:
         hmrc = self.hmrc
         basic_rate_threshold = hmrc.get_basic_rate_threshold()
@@ -282,6 +279,9 @@ class HMRC_Calculation:
         self.add_part_total_and_nics()
 
         return "\n".join(self.output_list)
+
+    def get_trading_profit(self):
+        return self.hmrc.get_trading_profit()
 
 
 def get_revised_basic_rate_limit(self, pension_payments) -> float:

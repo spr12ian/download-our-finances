@@ -304,6 +304,23 @@ class HMRC:
     def ceased_renting__consider_cgt(self):
         return self.gbpb(0)
 
+    def deduct_trading_expenses(self):
+        self.l.debug("deduct_trading_expenses")
+        try:
+            return self.deduct_trading_expenses_override()
+        except ValueError as v:
+            trading_allowance = self.get_trading_allowance_actual()
+            trading_expenses = self.get_trading_expenses_actual()
+            return trading_allowance < trading_expenses
+
+    def deduct_trading_expenses_override(self):
+        self.l.debug("deduct_trading_expenses_override")
+        try:
+            return self.overrides.deduct_trading_expenses()
+        except ValueError as v:
+            self.l.info(v)
+            raise
+
     def did_business_details_change(self):
         return False
 
@@ -2688,15 +2705,6 @@ class HMRC:
         self.l.debug(property_expenses)
         return property_allowance > property_expenses
 
-    def deduct_trading_expenses(self):
-        self.l.debug("deduct_trading_expenses")
-        try:
-            return self.deduct_trading_expenses_override()
-        except ValueError as v:
-            trading_allowance = self.get_trading_allowance_actual()
-            trading_expenses = self.get_trading_expenses_actual()
-            return trading_allowance < trading_expenses
-
     def use_trading_allowance(self):
         self.l.debug("use_trading_allowance")
         try:
@@ -2705,14 +2713,6 @@ class HMRC:
             trading_allowance = self.get_trading_allowance_actual()
             trading_expenses = self.get_trading_expenses_actual()
             return trading_allowance > trading_expenses
-
-    def deduct_trading_expenses_override(self):
-        self.l.debug("deduct_trading_expenses_override")
-        try:
-            return self.overrides.deduct_trading_expenses()
-        except ValueError as v:
-            self.l.info(v)
-            raise
 
     def use_trading_allowance_override(self):
         self.l.debug("use_trading_allowance_override")
