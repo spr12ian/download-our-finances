@@ -1,16 +1,9 @@
-from redbaron import RedBaron
+import libcst as cst
 import shutil
 from pathlib import Path
-from cls_helper_log import LogHelper
-
 
 class MethodSorter:
     def __init__(self, file_path, class_name):
-        self.l = LogHelper("MethodSorter")
-        self.l.set_level_debug()
-        self.l.debug(__file__)
-        self.l.debug(f"file_path: {file_path}")
-        self.l.debug(f"class_name: {class_name}")
         self.file_path = Path(file_path)
         self.class_name = class_name
 
@@ -24,43 +17,87 @@ class MethodSorter:
         try:
             with self.file_path.open("r") as source:
                 code = source.read()
-                red = RedBaron(code)
+                module = cst.parse_module(code)
         except Exception as e:
             raise RuntimeError(f"Failed to parse the file: {e}")
 
         # Locate the target class
-        class_node = next(
-            (
-                node
-                for node in red.find_all("ClassNode")
-                if node.name == self.class_name
-            ),
-            None,
-        )
+        class_finder = ClassFinder(self.class_name)
+        module.visit(class_finder)
 
-        if not class_node:
+        if not class_finder.class_node:
             raise ValueError(f"Class '{self.class_name}' not found in {self.file_path}")
 
-        self.l.debug(f"Class '{self.class_name}' found in {self.file_path}")
         # Collect and sort top-level methods
-        methods = [
-            node for node in class_node.find_all("DefNode") if node.parent == class_node
-        ]
-        self.l.debug(f"{len(methods)} methods found in {self.class_name}")
-        sorted_methods = sorted(methods, key=lambda x: x.name)
+        method_collector = MethodCollector()
+        class_finder.class_node.visit(method_collector)
 
+        if not method_collector.methods:
+            print(f"No methods found in class '{self.class_name}'. No changes made.")
+            return
 
-        # Preserve non-method elements (e.g., attributes, docstrings)
-        class_body = [node for node in class_node.value if node.type != "def"]
-        class_node.value = class_body + sorted_methods
+        sorted_methods = sorted(method_collector.methods, key=lambda x: x.name.value)
+
+        # Replace the existing methods with sorted ones, preserving other class body items
+        new_class_body = [
+            node
+            for node in class_finder.class_node.body.body
+            if not isinstance(node, cst.FunctionDef)
+        ] + sorted_methods
+
+        # Create a new class node with the sorted methods
+        new_class_node = class_finder.class_node.with_changes(
+            body=cst.IndentedBlock(body=new_class_body)
+        )
+
+        # Replace the old class node with the new one in the module
+        transformer = ClassTransformer(self.class_name, new_class_node)
+        modified_module = module.visit(transformer)
 
         # Write the modified code back to the file
         backup_path = self.file_path.with_suffix(".bak")
         try:
             shutil.copy(self.file_path, backup_path)  # Create a backup
             with self.file_path.open("w") as source:
-                source.write(red.dumps())
+                source.write(modified_module.code)
             print(f"Methods in class '{self.class_name}' sorted successfully.")
             print(f"A backup of the original file has been saved as: {backup_path}")
         except Exception as e:
             raise RuntimeError(f"Failed to write the sorted class to the file: {e}")
+
+
+class ClassFinder(cst.CSTVisitor):
+    def __init__(self, class_name):
+        self.class_name = class_name
+        self.class_node = None
+
+    def visit_ClassDef(self, node):
+        if node.name.value == self.class_name:
+            self.class_node = node
+
+
+class MethodCollector(cst.CSTVisitor):
+    def __init__(self):
+        self.methods = []
+
+    def visit_FunctionDef(self, node):
+        self.methods.append(node)
+
+
+class ClassTransformer(cst.CSTTransformer):
+    def __init__(self, class_name, new_class_node):
+        self.class_name = class_name
+        self.new_class_node = new_class_node
+
+    def leave_ClassDef(self, original_node, updated_node):
+        if original_node.name.value == self.class_name:
+            return self.new_class_node
+        return updated_node
+
+
+# Example usage:
+file_path = "/home/probity/projects/download-our-finances/cls_test_class.py"
+class_name = "Test_Class"
+
+sorter = MethodSorter(file_path, class_name)
+sorter.sort_methods_in_class()
