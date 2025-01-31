@@ -515,10 +515,10 @@ class HMRC:
         ]
         return "\n" + "\n".join(formatted_lines) + "\n"
 
-    def gbp(self, amount:float, field_width: int = 0) -> str:
+    def gbp(self, amount: float, field_width: int = 0) -> str:
         return uf.format_as_gbp(amount, field_width)
 
-    def gbpa(self, amount, field_width: int = 10)->str:
+    def gbpa(self, amount, field_width: int = 10) -> str:
         return self.gbp(amount, field_width)
 
     def gbpb(self, amount: float) -> str:
@@ -595,7 +595,7 @@ class HMRC:
     def get_annual_payments_made(self):
         return self.gbpb(0)
 
-    def get_answers(self)->list:
+    def get_answers(self) -> list:
         questions = self.get_questions()
         answers = []
         for question, section, header, box, method_name, information in questions:
@@ -646,7 +646,7 @@ class HMRC:
     def get_basic_rate_threshold(self):
         return self.constants.get_basic_rate_threshold()
 
-    def get_basic_tax_rate(self)->float:
+    def get_basic_tax_rate(self) -> float:
         self.l.debug("get_basic_tax_rate")
         basic_tax_rate = self.constants.get_basic_tax_rate()
         self.l.debug(f"basic_tax_rate: {basic_tax_rate}")
@@ -733,21 +733,36 @@ class HMRC:
 
     def get_capital_gains_tax_due(self):
         return self.gbpb(0)
-    
+
     def get_class_2_annual_amount(self):
         return self.constants.get_class_2_annual_amount()
 
     def get_class_2_nics_due(self):
         self.l.debug("get_class_2_nics_due")
-        class_2_annual_amount=self.get_class_2_annual_amount()
+        class_2_annual_amount = self.get_class_2_annual_amount()
+        
+        # If trading profits exceed the personal allowance
+        # then class 2 nics payments are required.
+        personal_allowance = self.get_personal_allowance()
+        trading_profit = self.get_trading_profit()
+        if trading_profit >= personal_allowance:
+            return class_2_annual_amount
+
+        # If trading profits between small profits threshold and personal allowance
+        # then class 2 nics are deemed to have been paid.
+        # This rule may be year dependednt.
+        small_profits_threshold = self.get_small_profits_threshold()
+        if trading_profit >= small_profits_threshold:
+            return 0
+        
+        
+        # If trading profits less than small profits threshold
+        # then class 2 nics are voluntary.
+        # Pay voluntarily if neccesary to acheive max state pension.
         if self.are_nics_needed_to_acheive_max_state_pension():
             return class_2_annual_amount
-        small_profits_threshold = self.get_small_profits_threshold()
-        trading_profit = self.get_trading_profit()
-        if trading_profit < small_profits_threshold:
-            return 0.0
-        else:
-            return class_2_annual_amount
+       
+        return 0
 
     def get_class_2_nics_due_gbp(self):
         return self.gbpa(self.get_class_2_nics_due())
@@ -969,7 +984,7 @@ class HMRC:
         taxible = max(0, income - deductible)
         return self.gbp(taxible).strip()
 
-    def get_digest_type_categories(self)->dict:
+    def get_digest_type_categories(self) -> dict:
         person_code = self.person_code
         return {
             "savings": " INT ",
@@ -1001,7 +1016,7 @@ class HMRC:
             tax_year, f"HMRC {person_code} INC Dividends from UK companies"
         )
 
-    def get_dividends_income(self)->float:
+    def get_dividends_income(self) -> float:
         person_code = self.person_code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} DIV income: "
@@ -1236,7 +1251,7 @@ class HMRC:
         how_many = self.sql.fetch_one_value(query)
         return how_many
 
-    def get_how_many_self_employed_businesses_did_you_have(self)->int:
+    def get_how_many_self_employed_businesses_did_you_have(self) -> int:
         person_code = self.person.code
         tax_year = self.tax_year
         query = (
@@ -1271,7 +1286,7 @@ class HMRC:
         pay_voluntarily_nics = self.do_you_want_to_pay_class_2_nics_voluntarily()
         return trading_income <= trading_allowance and pay_voluntarily_nics
 
-    def get_income_tax(self)->float:
+    def get_income_tax(self) -> float:
         self.l.debug("get_income_tax")
         non_savings_income = self.get_non_savings_income()
         self.l.debug(f"non_savings_income: {non_savings_income}")
@@ -1585,7 +1600,7 @@ class HMRC:
     def get_payments_to_overseas_pension_scheme(self):
         return 0
 
-    def get_payments_to_pension_schemes__relief_at_source(self)->float:
+    def get_payments_to_pension_schemes__relief_at_source(self) -> float:
         person_code = self.person_code
         payments_to_pension_schemes = (
             self.transactions.fetch_total_by_tax_year_category_like(
@@ -2325,7 +2340,7 @@ class HMRC:
         else:
             return 0
 
-    def get_trading_expenses_actual(self)->float:
+    def get_trading_expenses_actual(self) -> float:
         if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
         person_code = self.person_code

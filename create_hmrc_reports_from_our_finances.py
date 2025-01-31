@@ -24,7 +24,6 @@ def print_reports(hmrc_people, tax_year):
 def main():
     # List of people to generate reports for
     hmrc_people = ["S", "B"]
-    hmrc_people = ["B"]
 
     earliest_year = 2023
 
