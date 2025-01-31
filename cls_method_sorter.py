@@ -1,5 +1,4 @@
 import libcst as cst
-import shutil
 from pathlib import Path
 
 class MethodSorter:
@@ -55,13 +54,10 @@ class MethodSorter:
         modified_module = module.visit(transformer)
 
         # Write the modified code back to the file
-        backup_path = self.file_path.with_suffix(".bak")
         try:
-            shutil.copy(self.file_path, backup_path)  # Create a backup
             with self.file_path.open("w") as source:
                 source.write(modified_module.code)
             print(f"Methods in class '{self.class_name}' sorted successfully.")
-            print(f"A backup of the original file has been saved as: {backup_path}")
         except Exception as e:
             raise RuntimeError(f"Failed to write the sorted class to the file: {e}")
 
