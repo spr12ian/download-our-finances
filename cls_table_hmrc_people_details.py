@@ -3,9 +3,6 @@ from cls_sqlite_table import SQLiteTable
 
 
 class HMRC_PeopleDetails(SQLiteTable):
-    def __init__(self, code=None):
-        super().__init__("hmrc_people_details")
-        self.code = code
 
     def __get_value_by_code_column(self, column_name):
         if self.code:
@@ -20,6 +17,10 @@ class HMRC_PeopleDetails(SQLiteTable):
             result = None
 
         return result
+    
+    def __init__(self, code=None):
+        super().__init__("hmrc_people_details")
+        self.code = code
 
     def are_nics_needed_to_acheive_max_state_pension(self) -> bool:
         return (
@@ -64,6 +65,9 @@ class HMRC_PeopleDetails(SQLiteTable):
         if not utr_check_digit:
             utr_check_digit = ""
         return utr_check_digit
+    
+    def get_weekly_state_pension_forecast(self)->float:
+        return float(self.__get_value_by_code_column("Weekly state pension forecast"))
 
     def is_married(self) -> bool:
         return self.get_marital_status() == "Married"

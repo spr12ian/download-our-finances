@@ -45,4 +45,5 @@ class RealColumns:
             "Total credit",
             "Total debit",
             "Weekly",
+            "Weekly state pension forecast",
         ]

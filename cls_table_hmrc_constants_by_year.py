@@ -287,6 +287,16 @@ class HMRC_ConstantsByYear(SQLiteTable):
         return vat_registration_threshold
 
     @lru_cache(maxsize=None)
+    def get_weekly_state_pension(self):
+        weekly_state_pension = string_to_float(
+            self.__get_value_by_hmrc_constant("Weekly state pension")
+        )
+
+        self.l.debug(f"weekly_state_pension: {weekly_state_pension}")
+
+        return weekly_state_pension
+
+    @lru_cache(maxsize=None)
     def how_many_nic_weeks_in_year(self) -> float:
         nic_weeks_in_year = string_to_float(
             self.__get_value_by_hmrc_constant("NIC weeks in year")

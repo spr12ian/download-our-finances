@@ -1,8 +1,13 @@
+from cls_helper_log import LogHelper
 from tables import *
 
 
 class HMRC_People(People):
     def __init__(self, code):
+        self.l = LogHelper("HMRC_HMRC_PeopleCalculation")
+        self.l.set_level_debug()
+        self.l.debug(__file__)
+        self.l.debug(f"code: {code}")
         super().__init__(code)
 
         self.hmrc_person_details = HMRC_PeopleDetails(code)
@@ -46,6 +51,11 @@ class HMRC_People(People):
 
     def get_utr_check_digit(self) -> str:
         return self.hmrc_person_details.get_utr_check_digit()
+    
+    def get_weekly_state_pension_forecast(self)->float:
+        weekly_state_pension_forecast = self.hmrc_person_details.get_weekly_state_pension_forecast()
+        self.l.debug(f"weekly_state_pension_forecast: {weekly_state_pension_forecast}")
+        return weekly_state_pension_forecast
 
     def is_married(self) -> bool:
         return self.hmrc_person_details.is_married()

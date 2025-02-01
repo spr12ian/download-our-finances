@@ -1,4 +1,6 @@
 from cls_helper_log import LogHelper
+
+from datetime import datetime
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -109,6 +111,42 @@ class HMRC_Calculation:
     def add_part_minus(self) -> None:
         hmrc = self.hmrc
         self.add_hmrc_part("minus")
+
+    def get_current_tax_year_dates(self):
+        today = datetime.today()
+        current_year = today.year
+        tax_year_start = datetime(current_year, 4, 6)
+        tax_year_end = datetime(current_year + 1, 4, 5)
+
+        if today < tax_year_start:
+            tax_year_start = datetime(current_year - 1, 4, 6)
+            tax_year_end = datetime(current_year, 4, 5)
+
+        return tax_year_start, tax_year_end
+
+    def add_extra_info(self) -> None:
+        extra_info = ""
+        start_date, end_date = self.get_current_tax_year_dates()
+        # print(f"Tax Year Start Date: {start_date.strftime('%Y-%m-%d')}")
+        # print(f"Tax Year End Date: {end_date.strftime('%Y-%m-%d')}")
+        current_tax_year = f"Current Tax Year: {start_date.strftime('%Y')} to {end_date.strftime('%Y')}"
+        hmrc = self.hmrc
+        tax_year = hmrc.tax_year
+        if tax_year == current_tax_year:
+            weekly_state_pension = hmrc.get_weekly_state_pension()
+            weekly_state_pension_gbp = self.gbp(weekly_state_pension)
+            weekly_state_pension_forecast = hmrc.get_weekly_state_pension_forecast()
+            weekly_state_pension_forecast_gbp = self.gbp(weekly_state_pension_forecast)
+
+            extra_info += f"\nWeekly state pension: {weekly_state_pension_gbp}"
+            extra_info += (
+                f"\nWeekly state pension forecast: {weekly_state_pension_forecast_gbp}"
+            )
+
+        if extra_info:
+            extra_info = "\n\n\nEXTRA INFO" + extra_info
+
+        self.add_hmrc_part(extra_info)
 
     def add_part_pay_pensions_profit(self, unused_allowance) -> None:
         hmrc = self.hmrc
@@ -281,6 +319,7 @@ class HMRC_Calculation:
         self.add_part_income_tax()
         self.add_part_class_2_nics()
         self.add_part_total_and_nics()
+        self.add_extra_info()
 
         return "\n".join(self.output_list)
 

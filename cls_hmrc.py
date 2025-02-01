@@ -770,6 +770,14 @@ class HMRC:
     def get_class_2_weekly_rate(self):
         return self.constants.get_class_2_weekly_rate()
 
+    def get_weekly_state_pension(self):
+        return self.constants.get_weekly_state_pension()
+
+    def get_weekly_state_pension_forecast(self)->float:
+        weekly_state_pension_forecast = self.person.get_weekly_state_pension_forecast()
+        self.l.debug(f"weekly_state_pension_forecast: {weekly_state_pension_forecast}")
+        return weekly_state_pension_forecast
+
     def get_class_4_lower_profits_limit(self):
         return self.constants.get_class_4_lower_profits_limit()
 
