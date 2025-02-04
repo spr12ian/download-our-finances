@@ -45,5 +45,5 @@ def vacuum_database(db_file_path):
 
 
 if __name__ == "__main__":
-    db_file_path="our_finances.db"
+    db_file_path="our_finances.sqlite"
     vacuum_database(db_file_path)

@@ -3,13 +3,13 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
-engine = create_engine("sqlite:///our_finances.db", echo=True)
+engine = create_engine("sqlite:///our_finances.sqlite", echo=True)
 
 
 def get_engine():
     from sqlalchemy import create_engine
 
-    return create_engine("sqlite:///our_finances.db", echo=True)
+    return create_engine("sqlite:///our_finances.sqlite", echo=True)
 
 
 def print_version():

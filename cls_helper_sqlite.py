@@ -6,7 +6,7 @@ class SQLiteHelper:
     def __init__(self):
         config = ConfigHelper()
 
-        self.db_path = config["SQLite"]["database_name"] + ".db"
+        self.db_path = config["SQLite"]["database_name"]
 
         self.db_connection = None
 

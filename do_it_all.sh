@@ -29,19 +29,15 @@ databases=("our_finances")
 
 # Loop through each database
 for db in "${databases[@]}"; do
-    db_filename="${db}.db"
+    db_filename="${db}.sqlite"
 
     stop_if_module_has_errors "spreadsheet_to_${db}"
 
     if [ -f "${db_filename}" ]; then
-        echo sqlacodegen_v2 "sqlite:///${db_filename}" --outfile "sqlalchemy_models.py" --generator declarative
-        sqlacodegen_v2 "sqlite:///${db_filename}" --outfile "sqlalchemy_models.py" --generator declarative
-        
-        echo sqlacodegen_v2 "sqlite:///${db_filename}" --outfile "sqlalchemy_tables.py"
-        sqlacodegen_v2 "sqlite:///${db_filename}" --outfile "sqlalchemy_tables.py"
-
         stop_if_module_has_errors "vacuum_${db}"
 
         stop_if_module_has_errors "create_hmrc_reports_from_${db}"
+
+        stop_if_module_has_errors "generate_sqlalchemy_models"
     fi
 done

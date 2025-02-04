@@ -7,7 +7,7 @@ databases = [
 ]
 
 for database in databases:
-    db_filename = f"{database}.db"
+    db_filename = f"{database}.sqlite"
     file_path = Path(f"{db_filename}")
     if file_path.exists():
         print(f"File '{file_path}' exists.")

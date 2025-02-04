@@ -57,6 +57,10 @@ class SpreadsheetToSqliteDb:
 
         self.sql.close_connection()
 
+    def clean_column_names(self,df):
+        df.columns = df.columns.str.replace(' ', '_')
+        return df
+
     @debug_function_call
     def convert_worksheet(self, worksheet):
         self.log.info(f"Converting {worksheet.title}")
@@ -71,6 +75,7 @@ class SpreadsheetToSqliteDb:
             df = DateColumns().convert(df)
             df = IntColumns().convert(df)
             df = RealColumns().convert(df)
+            df = self.clean_column_names(df)
         except:
             print(table_name)
             raise

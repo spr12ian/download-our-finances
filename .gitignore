@@ -1,6 +1,6 @@
 *.bak
 *.csv
-*.db
+*.sqlite
 *.txt
 config.ini
 scratch.sql

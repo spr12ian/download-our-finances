@@ -11,7 +11,7 @@ from models import Base, t_bank_accounts as BankAccount, t_transactions as Trans
 Base = declarative_base()
 
 # Replace with your actual database URL
-DATABASE_URL = "sqlite:///our_finances.db"
+DATABASE_URL = "sqlite:///our_finances.sqlite"
 
 # Create an engine
 engine = create_engine(DATABASE_URL)

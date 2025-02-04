@@ -1,22 +1,12 @@
 #!/bin/bash
 
-# List of databases
-databases=("our_finances" "our_finances_orm")
 
-# Loop through each database
-for db in "${databases[@]}"; do
-    db_filename="${db}.db"
-    if [ -f "${db_filename}" ]; then
-        echo rm "${db_filename}"
-        rm "${db_filename}"
-    fi
+db_filename="our_finances.sqlite"
+if [ -f "${db_filename}" ]; then
+    echo rm "${db_filename}"
+    rm "${db_filename}"
+fi
 
-    text_only_db_filename="${db}_text_only.db"
-    if [ -f "${text_only_db_filename}" ]; then
-        echo rm "${text_only_db_filename}"
-        rm "${text_only_db_filename}"
-    fi
-done
 
 rm -fv ./*.log
 
