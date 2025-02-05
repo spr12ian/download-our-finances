@@ -1,23 +1,18 @@
 from cls_helper_log import LogHelper
 from cls_helper_sqlalchemy import SQLAlchemyHelper
+from models import Base, AccountBalances
+from sqlalchemy import create_engine, func, text
 from sqlalchemy.ext.declarative import declarative_base
-
-# filepath: /home/probity/projects/download-our-finances/execute_sqls.py
-from sqlalchemy import create_engine, text
-from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
-from models import Base, t_bank_accounts as BankAccount, t_transactions as Transaction
 
-Base = declarative_base()
-
-# Replace with your actual database URL
 DATABASE_URL = "sqlite:///our_finances.sqlite"
 
 # Create an engine
 engine = create_engine(DATABASE_URL)
 
+Base = declarative_base()
+
 queries = [
-    [
         """
 SELECT strftime('%Y-%m', t.Date) as month, 
 SUM(Credit) as money_in, 
@@ -30,7 +25,7 @@ AND t.Description LIKE "X%"
 GROUP BY month
 ORDER BY month
     """
-    ],
+    ,
     """
 SELECT t.key, SUM(Credit) as money_in, SUM(Debit) as money_out, SUM(Credit - Debit)
 FROM bank_accounts b JOIN transactions t
@@ -50,15 +45,8 @@ with engine.connect() as connection:
             print(row)
 
 
-from sqlalchemy import create_engine, func
-from sqlalchemy.orm import sessionmaker
-from models import Base, BankAccount, Transaction
 
-# Replace with your actual database URL
-DATABASE_URL = "sqlite:///your_database.db"
 
-# Create an engine
-engine = create_engine(DATABASE_URL)
 Base.metadata.create_all(engine)
 
 # Create a session
