@@ -1,4 +1,5 @@
 from cls_helper_log import LogHelper
+from cls_helper_sqlalchemy import valid_sqlalchemy_name
 from cls_sqlite_table import SQLiteTable
 from utility_functions import string_to_float
 from functools import lru_cache
@@ -8,13 +9,14 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
     def __get_value_by_hmrc_constant(self, hmrc_constant):
         tax_year = self.tax_year
+        tax_year_col = valid_sqlalchemy_name(tax_year)
         query = (
             self.query_builder()
-            .select(tax_year)
-            .where(f'"HMRC constant" = "{hmrc_constant}"')
+            .select(tax_year_col)
+            .where(f'"hmrc_constant" = "{hmrc_constant}"')
             .build()
         )
-
+        self.l.debug(query)
         result = self.sql.fetch_one_value(
             query
         )  # Could be formatted as a float, a ccy, etc.
@@ -266,8 +268,9 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
         return starting_rate_limit_for_savings
 
-    @lru_cache(maxsize=None)
+    #@lru_cache(maxsize=None)
     def get_trading_income_allowance(self):
+        self.l.debug("get_trading_income_allowance")
         trading_income_allowance = string_to_float(
             self.__get_value_by_hmrc_constant("Trading income allowance")
         )

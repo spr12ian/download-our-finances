@@ -1,4 +1,5 @@
 from cls_helper_log import LogHelper
+from cls_helper_sqlalchemy import valid_sqlalchemy_name
 from cls_sqlite_table import SQLiteTable
 from utility_functions import string_to_float
 from functools import lru_cache
@@ -6,16 +7,18 @@ from functools import lru_cache
 
 class HMRC_OverridesByYear(SQLiteTable):
 
-    def __get_value_by_override(self, override)->str:
+    def __get_value_by_override(self, override) -> str:
+        self.l.debug("__get_value_by_override")
         person_code = self.person_code
         tax_year = self.tax_year
+        tax_year_col = valid_sqlalchemy_name(tax_year)
         query = (
             self.query_builder()
-            .select(tax_year)
-            .where(f'"Person code" = "{person_code}" AND "Override" = "{override}"')
+            .select(tax_year_col)
+            .where(f'"person_code" = "{person_code}" AND "override" = "{override}"')
             .build()
         )
-
+        self.l.debug(query)
         result = self.sql.fetch_one_value(
             query
         )  # Could be formatted as a float, a ccy, etc.
@@ -27,7 +30,7 @@ class HMRC_OverridesByYear(SQLiteTable):
 
         return result
 
-    def __init__(self, person_code, tax_year)->None:
+    def __init__(self, person_code, tax_year) -> None:
         self.l = LogHelper("HMRC_OverridesByYear")
         self.l.set_level_debug()
         self.l.debug(__file__)
@@ -49,8 +52,19 @@ class HMRC_OverridesByYear(SQLiteTable):
 
     @lru_cache(maxsize=None)
     def use_trading_allowance(self) -> bool:
-        use_trading_allowance = self.__get_value_by_override("Use trading allowance")
+        self.l.debug("use_trading_allowance")
+        try:
+            value = self.__get_value_by_override("Use trading allowance")
+        except ValueError as e:
+            self.l.error(f"ValueError: {e}")
+            raise
+        else:
+            self.l.debug("ELSE")
 
-        self.l.debug(f"use_trading_allowance: {use_trading_allowance}")
+            use_trading_allowance = value.lower() == "yes"
 
-        return use_trading_allowance == "Yes"
+            self.l.debug(f"use_trading_allowance: {use_trading_allowance}")
+        finally:
+            self.l.debug("FINALLY")
+
+        return use_trading_allowance

@@ -59,7 +59,6 @@ class SpreadsheetToSqliteDb:
                 self.convert_worksheet(worksheet)
 
                 time.sleep(1.1)  # Prevent Google API rate limiting
-                raise
 
         self.sql.close_connection()
 
@@ -69,7 +68,6 @@ class SpreadsheetToSqliteDb:
 
         table_name = valid_sqlalchemy_name(worksheet.title)
         self.log.info(f"table_name: {table_name}")
-
 
         pdh = self.pdh
 
@@ -89,7 +87,6 @@ class SpreadsheetToSqliteDb:
         except:
             print(table_name)
             raise
-
 
         # Write DataFrame to SQLite table (sheet name becomes table name)
         df.to_sql(

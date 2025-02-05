@@ -38,9 +38,9 @@ class HMRC_QuestionsByYear(SQLiteTable):
         columns_as_string = self.convert_columns_to_string(columns)
 
         query = (
-            f'SELECT {columns_as_string}, q2."Additional information"'
+            f'SELECT {columns_as_string}, q2."additional_information"'
             + " FROM hmrc_questions_2023_to_2024 q1 JOIN hmrc_questions q2"
-            + " ON q1.Question = q2.Question"
+            + " ON q1.question = q2.question"
             + f' WHERE q1."{order_column}" > 0'
             + f' ORDER BY q1."{order_column}" ASC'
         )
@@ -74,11 +74,11 @@ class HMRC_QuestionsByYear(SQLiteTable):
     def list_online_questions_not_in_printed_form(self):
         self.l.debug("list_online_questions_not_in_printed_form")
         query = (
-            'SELECT q1.Question, q1."Online order", q2."Printed order"'
+            'SELECT q1.question, q1."online_order", q2."printed_order"'
             + f" FROM {self.table_name} q1 JOIN {self.table_name} q2"
-            + " WHERE q1.Question=q2.Question"
-            + ' AND q1."Online order" > 0'
-            + ' AND q2."Online order" = 0'
+            + " WHERE q1.question = q2.question"
+            + ' AND q1."online_order" > 0'
+            + ' AND q2."online_order" = 0'
         )
         rows = self.sql.fetch_all(query)
         how_many_rows = len(rows)
@@ -92,10 +92,10 @@ class HMRC_QuestionsByYear(SQLiteTable):
         self.l.debug("list_unused_questions")
         core_questions = "hmrc_questions"
         query = (
-            "SELECT q1.Question"
+            "SELECT q1.question"
             + f" FROM {core_questions} q1 LEFT JOIN {self.table_name} q2"
-            + " ON q1.Question=q2.Question"
-            + " WHERE q2.Question IS NULL"
+            + " ON q1.question = q2.question"
+            + " WHERE q2.question IS NULL"
         )
         rows = self.sql.fetch_all(query)
         how_many_rows = len(rows)
@@ -120,18 +120,18 @@ class HMRC_QuestionsByYear(SQLiteTable):
 
     def get_online_questions(self):
         columns = [
-            "Question",
-            "Online section",
-            "Online header",
-            "Online box",
+            "question",
+            "qnline_section",
+            "qnline_header",
+            "qnline_box",
         ]
-        order_column = "Online order"
+        order_column = "online_order"
         return self.__get_questions(columns, order_column)
 
     def get_printed_form_questions(self):
         self.l.debug("get_printed_form_questions")
-        columns = ["Question", "Printed section", "Printed header", "Printed box"]
-        order_column = "Printed order"
+        columns = ["question", "printed_section", "printed_header", "printed_box"]
+        order_column = "printed_order"
         return self.__get_questions(columns, order_column)
 
     def is_it_a_yes_no_question(self, question):

@@ -2321,6 +2321,7 @@ class HMRC:
             return 0
 
     def get_trading_allowance_actual(self):
+        self.l.debug("get_trading_allowance_actual")
         return self.constants.get_trading_income_allowance()
 
     def get_trading_allowance_actual_gbp(self):
@@ -2349,15 +2350,17 @@ class HMRC:
             return 0
 
     def get_trading_expenses_actual(self) -> float:
+        self.l.debug("get_trading_expenses_actual")
         if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
         person_code = self.person_code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} SES expense"
-        trading_expenses = self.transactions.fetch_total_by_tax_year_category_like(
+        trading_expenses_actual = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
-        return uf.round_up(trading_expenses)
+        self.l.debug(f"trading_expenses_actual: {trading_expenses_actual}")
+        return uf.round_up(trading_expenses_actual)
 
     def get_trading_expenses_actual_gbp(self):
         return self.gbpb(self.get_trading_expenses_actual())
@@ -2735,11 +2738,22 @@ class HMRC:
     def use_trading_allowance(self):
         self.l.debug("use_trading_allowance")
         try:
-            return self.use_trading_allowance_override()
+            value = self.use_trading_allowance_override()
+            self.l.debug(f"1 value: {value}")
         except ValueError as v:
+            self.l.debug("use_trading_allowance: caught ValueError")
+            self.l.exception(v)
+            self.l.debug("use_trading_allowance: after v hs been logged")
             trading_allowance = self.get_trading_allowance_actual()
+            self.l.debug(f"trading_allowance: {trading_allowance}")
             trading_expenses = self.get_trading_expenses_actual()
-            return trading_allowance > trading_expenses
+            self.l.debug(f"trading_expenses: {trading_expenses}")
+            value = trading_allowance > trading_expenses
+            self.l.debug(f"2 value: {value}")
+        finally:
+            self.l.debug("Should always get here")
+
+        return value
 
     def use_trading_allowance_override(self):
         self.l.debug("use_trading_allowance_override")
