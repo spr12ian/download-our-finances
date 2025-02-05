@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
 from pathlib import Path
+import re
 
 
 class SQLAlchemyHelper:
@@ -83,3 +84,42 @@ class SQLAlchemyHelper:
 
             self.drop_column(table_name, column_name)
             self.rename_column(table_name, f"{column_name}_real", column_name)
+
+
+def valid_sqlalchemy_name(name):
+    # Remove any invalid characters and convert to lowercase
+    name = re.sub(r"[^a-zA-Z0-9_]", "_", name).lower()
+
+    # Ensure the name does not start with a number
+    if re.match(r"^\d", name):
+        name = "_" + name
+
+    return name
+
+def clean_column_names(df):
+
+    df.columns = [valid_sqlalchemy_name(col) for col in df.columns]
+    return df
+
+# print(len(metadata.tables))
+# for table in metadata.tables.values():
+#     print(table.name)
+
+#     if not table.primary_key.columns:
+#         table.append_column(Column('id', Integer, primary_key=True))  # Add a primary key manually
+
+#     for column in table.columns.values():
+#         print(f'    {column.name}')
+
+
+
+# def examine_model(model):
+#     result = session.query(model).all()
+
+#     # Print the actual data contained in the objects
+#     for row in result:
+#         print({column.name: getattr(row, column.name) for column in model.__table__.columns})
+
+
+# model = Base.classes["account_balances"]
+# examine_model(model)

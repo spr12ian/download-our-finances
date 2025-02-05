@@ -14,9 +14,9 @@ class IntColumns:
 
     def get_int_columns(self):
         return [
-            "Online order",
-            "Order by",
-            "Printed order",
+            "online_order",
+            "order_by",
+            "printed_order",
         ]
 
     # Function to convert number strings to int

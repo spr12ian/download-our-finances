@@ -3,9 +3,12 @@ from cls_helper_config import ConfigHelper
 from cls_helper_google import GoogleHelper
 from cls_helper_pandas import PandasHelper
 from cls_helper_sql import SQL_Helper
+from cls_helper_sqlalchemy import valid_sqlalchemy_name
 from cls_int_columns import IntColumns
 from cls_real_columns import RealColumns
 import time
+from sqlalchemy import Column
+from sqlalchemy import Integer
 
 from cls_helper_log import LogHelper
 from cls_helper_log import debug_function_call
@@ -31,6 +34,8 @@ class SpreadsheetToSqliteDb:
             self.convert_underscore_tables = True
 
         self.log = LogHelper("SpreadsheetToSqliteDb")
+        pdh = PandasHelper()
+        self.pdh = pdh
 
         # Define the required scopes
         scopes = [
@@ -54,34 +59,46 @@ class SpreadsheetToSqliteDb:
                 self.convert_worksheet(worksheet)
 
                 time.sleep(1.1)  # Prevent Google API rate limiting
+                raise
 
         self.sql.close_connection()
-
-    def clean_column_names(self,df):
-        df.columns = df.columns.str.replace(' ', '_')
-        return df
 
     @debug_function_call
     def convert_worksheet(self, worksheet):
         self.log.info(f"Converting {worksheet.title}")
 
-        table_name = worksheet.title.replace(" ", "_").lower()
+        table_name = valid_sqlalchemy_name(worksheet.title)
+        self.log.info(f"table_name: {table_name}")
+
+
+        pdh = self.pdh
 
         # Get worksheet data as a DataFrame
         data = worksheet.get_all_values()
 
         try:
-            df = PandasHelper().worksheet_values_to_dataframe(data)
+            # Split columns and rows
+            df = pdh.worksheet_values_to_dataframe(data)
+            df.columns = [valid_sqlalchemy_name(col) for col in df.columns]
             df = DateColumns().convert(df)
             df = IntColumns().convert(df)
             df = RealColumns().convert(df)
-            df = self.clean_column_names(df)
+            # Add 'id' column and populate with values
+            df.insert(0, "id", range(1, len(df) + 1))
+
         except:
             print(table_name)
             raise
 
+
         # Write DataFrame to SQLite table (sheet name becomes table name)
-        df.to_sql(table_name, self.sql.db_connection, if_exists="replace", index=False)
+        df.to_sql(
+            table_name,
+            self.sql.db_connection,
+            if_exists="replace",
+            index=False,
+            dtype={"id": "INTEGER PRIMARY KEY AUTOINCREMENT"},
+        )
 
 
 @debug_function_call

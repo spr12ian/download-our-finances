@@ -14,17 +14,17 @@ class DateColumns:
 
     def get_date_columns(self):
         return [
-            "As at",
-            "CPTY date",
-            "CPTY date 2",
-            "Date",
-            "Date 2",
-            "Date of birth",
-            "End date",
-            "Fixed until",
-            "Last updated",
-            "Marriage date",
-            "Start date",
+            "as_at",
+            "cpty_date",
+            "cpty_date_2",
+            "date",
+            "date_2",
+            "date_of_birth",
+            "end_date",
+            "fixed_until",
+            "last_updated",
+            "marriage_date",
+            "start_date",
         ]
 
     # Function to convert Google sheets date strings (DD/MM/YYYY) to Sqlite date strings YYYY-MM-DD
