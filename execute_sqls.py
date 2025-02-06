@@ -1,38 +1,34 @@
 from cls_helper_log import LogHelper
 from cls_helper_sqlalchemy import SQLAlchemyHelper
-from models import Base, AccountBalances
+from models import Base, BankAccounts, Transactions
 from sqlalchemy import create_engine, func, text
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 DATABASE_URL = "sqlite:///our_finances.sqlite"
 
 # Create an engine
-engine = create_engine(DATABASE_URL)
-
-Base = declarative_base()
+engine = create_engine(DATABASE_URL, echo=True)
 
 queries = [
-        """
-SELECT strftime('%Y-%m', t.Date) as month, 
-SUM(Credit) as money_in, 
-SUM(Debit) as money_out, 
-SUM(Credit - Debit) as net_amount
+    """
+SELECT strftime('%Y-%m', t.date) as month, 
+SUM(credit) as money_in, 
+SUM(debit) as money_out, 
+SUM(credit - debit) as net_amount
 FROM bank_accounts b 
 JOIN transactions t ON b.key = t.key
-WHERE "Our money" = "TRUE"
-AND t.Description LIKE "X%"
+WHERE b."our_money" = "TRUE"
+AND t.description LIKE "X%"
 GROUP BY month
 ORDER BY month
+    """,
     """
-    ,
-    """
-SELECT t.key, SUM(Credit) as money_in, SUM(Debit) as money_out, SUM(Credit - Debit)
+SELECT t.key, SUM(credit) as money_in, SUM(debit) as money_out, SUM(credit - debit)
 FROM bank_accounts b JOIN transactions t
 ON b.key = t.key
-WHERE "Our money"="TRUE"
-AND t.Date BETWEEN "2025-01-01" AND "2025-01-31"
-AND t.Description LIKE "X%"
+WHERE "our_money"="TRUE"
+AND t.date BETWEEN "2025-01-01" AND "2025-01-31"
+AND t.description LIKE "X%"
 GROUP BY t.key
     """,
 ]
@@ -45,10 +41,6 @@ with engine.connect() as connection:
             print(row)
 
 
-
-
-Base.metadata.create_all(engine)
-
 # Create a session
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -56,24 +48,28 @@ session = Session()
 # Perform the query
 results = (
     session.query(
-        func.strftime("%Y-%m", Transaction.Date).label("month"),
-        func.sum(Transaction.Credit).label("money_in"),
-        func.sum(Transaction.Debit).label("money_out"),
-        func.sum(Transaction.Credit - Transaction.Debit).label("net_amount"),
+        func.strftime("%Y-%m", Transactions.date).label("month"),
+        func.sum(Transactions.credit).label("money_in"),
+        func.sum(Transactions.debit).label("money_out"),
+        func.sum(Transactions.credit - Transactions.debit).label("net_amount"),
     )
-    .join(BankAccount, BankAccount.key == Transaction.key)
+    .join(BankAccounts, BankAccounts.key == Transactions.key)
     .filter(
-        Transaction.Our_money == True,
-        Transaction.Description.like("X%"),
-        Transaction.Date.between("2025-01-01", "2025-01-31"),
+        BankAccounts.our_money == "TRUE",
+        Transactions.description.like("X%"),
+        Transactions.date.between("2025-01-01", "2025-01-31"),
     )
-    .group_by(func.strftime("%Y-%m", Transaction.Date))
+    .group_by(func.strftime("%Y-%m", Transactions.date))
     .order_by("month")
     .all()
 )
 
-# Print the results
-for result in results:
-    print(
-        f"Month: {result.month}, Money In: {result.money_in}, Money Out: {result.money_out}, Net Amount: {result.net_amount}"
-    )
+if len(results):
+    # Print the results
+    for result in results:
+        print(
+            f"Month: {result.month}"
+            + f", Money In: {result.money_in}"
+            + f", Money Out: {result.money_out}"
+            + f", Net Amount: {result.net_amount}"
+        )

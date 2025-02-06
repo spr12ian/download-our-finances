@@ -85,6 +85,12 @@ def sum_values(lst) -> float:
         total += value
     return total
 
+def to_camel_case(text):
+    if type(text) != str:
+        raise ValueError(f"Only strings allowed, not {type(text)}")
+    
+    words = re.split(r'[^a-zA-Z0-9]', text)  # Split on non-alphanumeric characters
+    return ''.join(word.capitalize() for word in words if word)  # Capitalize each word and join
 
 def to_valid_method_name(s) -> str:
     """
