@@ -1,4 +1,6 @@
 from cls_helper_log import LogHelper
+from cls_helper_sqlalchemy import valid_sqlalchemy_name
+from cls_helper_sqlalchemy import validate_sqlalchemy_name
 from cls_sqlite_table import SQLiteTable
 import utility_functions as uf
 
@@ -18,6 +20,13 @@ class HMRC_QuestionsByYear(SQLiteTable):
         "Were ",
     ]
 
+    def __get_table_name(self, tax_year):
+        sanitised_tax_year = valid_sqlalchemy_name(tax_year)
+
+        table_name = f"hmrc_questions{sanitised_tax_year}"
+
+        return table_name
+
     def __init__(self, tax_year):
         self.l = LogHelper("HMRC_QuestionsByYear")
         # self.l.set_level_debug()
@@ -25,7 +34,8 @@ class HMRC_QuestionsByYear(SQLiteTable):
         self.l.debug(__class__)
         self.l.debug(__name__)
 
-        table_name = f"hmrc_questions_{tax_year.replace(' ', '_')}"
+        table_name = self.__get_table_name(tax_year)
+
         super().__init__(table_name)
 
         self.l.debug(f"table_name: {table_name}")
@@ -34,12 +44,15 @@ class HMRC_QuestionsByYear(SQLiteTable):
     def __get_questions(self, columns, order_column):
         self.l.debug(f"columns: {columns}")
         self.l.debug(f"order_column: {order_column}")
+        [validate_sqlalchemy_name(col) for col in columns]
+        validate_sqlalchemy_name(order_column)
+        table_name = self.table_name
 
         columns_as_string = self.convert_columns_to_string(columns)
 
         query = (
             f'SELECT {columns_as_string}, q2."additional_information"'
-            + " FROM hmrc_questions_2023_to_2024 q1 JOIN hmrc_questions q2"
+            + f" FROM {table_name} q1 JOIN hmrc_questions q2"
             + " ON q1.question = q2.question"
             + f' WHERE q1."{order_column}" > 0'
             + f' ORDER BY q1."{order_column}" ASC'
@@ -73,9 +86,10 @@ class HMRC_QuestionsByYear(SQLiteTable):
 
     def list_online_questions_not_in_printed_form(self):
         self.l.debug("list_online_questions_not_in_printed_form")
+        table_name = self.table_name
         query = (
             'SELECT q1.question, q1."online_order", q2."printed_order"'
-            + f" FROM {self.table_name} q1 JOIN {self.table_name} q2"
+            + f" FROM {table_name} q1 JOIN {table_name} q2"
             + " WHERE q1.question = q2.question"
             + ' AND q1."online_order" > 0'
             + ' AND q2."online_order" = 0'
@@ -90,10 +104,11 @@ class HMRC_QuestionsByYear(SQLiteTable):
 
     def list_unused_questions(self):
         self.l.debug("list_unused_questions")
+        table_name = self.table_name
         core_questions = "hmrc_questions"
         query = (
             "SELECT q1.question"
-            + f" FROM {core_questions} q1 LEFT JOIN {self.table_name} q2"
+            + f" FROM {core_questions} q1 LEFT JOIN {table_name} q2"
             + " ON q1.question = q2.question"
             + " WHERE q2.question IS NULL"
         )
@@ -108,12 +123,12 @@ class HMRC_QuestionsByYear(SQLiteTable):
     def get_hmrc_calculation_questions(self):
         questions = [
             [
-                '',  # question
-                '',  # section
-                '',  # header
-                '',  # box
-                'get_hmrc_calculation',  # method
-                '',  # additional information
+                "",  # question
+                "",  # section
+                "",  # header
+                "",  # box
+                "get_hmrc_calculation",  # method
+                "",  # additional information
             ]
         ]
         return questions
@@ -121,9 +136,9 @@ class HMRC_QuestionsByYear(SQLiteTable):
     def get_online_questions(self):
         columns = [
             "question",
-            "qnline_section",
-            "qnline_header",
-            "qnline_box",
+            "online_section",
+            "online_header",
+            "online_box",
         ]
         order_column = "online_order"
         return self.__get_questions(columns, order_column)

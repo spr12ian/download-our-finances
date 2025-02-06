@@ -1,5 +1,6 @@
 from cls_helper_log import LogHelper
 from cls_helper_sql import SQL_Helper
+from cls_helper_sqlalchemy import valid_sqlalchemy_name
 from cls_hmrc_calculation import HMRC_Calculation
 from cls_hmrc_people import HMRC_People
 from tables import *
@@ -13,9 +14,9 @@ class HMRC:
         tax_year = self.tax_year
         query = (
             self.transactions.query_builder()
-            .select("Date", "Key", "Description", "Note", "Nett", "Category")
-            .where(f'"Tax year"="{tax_year}" AND "Category" LIKE "{category_like}%"')
-            .order("Date")
+            .select("date", "key", "description", "note", "nett", "category")
+            .where(f'"tax_year"="{tax_year}" AND "category" LIKE "{category_like}%"')
+            .order("date")
             .build()
         )
         self.l.debug(query)
@@ -40,6 +41,7 @@ class HMRC:
 
         self.person_code = person_code
         self.tax_year = tax_year
+        self.tax_year_col = valid_sqlalchemy_name(tax_year)
 
         self.categories = Categories()
         self.constants = HMRC_ConstantsByYear(tax_year)
@@ -83,10 +85,10 @@ class HMRC:
         tax_year = self.tax_year
         query = (
             self.transactions.query_builder()
-            .select_raw("COUNT(DISTINCT Category)")
+            .select_raw("COUNT(DISTINCT category)")
             .where(
-                f'"Tax year"="{tax_year}"'
-                + f' AND "Category" LIKE "HMRC {person_code}{digest_category_like}%"'
+                f'"tax_year"="{tax_year}"'
+                + f' AND "category" LIKE "HMRC {person_code}{digest_category_like}%"'
             )
             .build()
         )

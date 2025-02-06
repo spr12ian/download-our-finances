@@ -8,9 +8,9 @@ class OurFinances:
 
     def account_balances(self):
         query = """
-            SELECT Key, Balance 
+            SELECT key, balance 
             FROM account_balances
-            WHERE Balance NOT BETWEEN -1 AND 1
+            WHERE balance NOT BETWEEN -1 AND 1
         """
 
         for row in self.sql.fetch_all(query):
@@ -29,12 +29,12 @@ class OurFinances:
 
     def transactions(self):
         query = """
-            SELECT Category, SUM(Nett) 
+            SELECT category, SUM(nett) 
             FROM transactions
-            WHERE Key <> ''
-            AND "Tax year" = '2023 to 2024'
-            AND Category LIKE 'HMRC%'
-            GROUP BY Category
+            WHERE key <> ''
+            AND "tax_year" = '2023 to 2024'
+            AND category LIKE 'HMRC%'
+            GROUP BY category
         """
 
         for row in self.sql.fetch_all(query):

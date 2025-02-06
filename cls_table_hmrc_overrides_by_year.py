@@ -11,7 +11,7 @@ class HMRC_OverridesByYear(SQLiteTable):
         self.l.debug("__get_value_by_override")
         person_code = self.person_code
         tax_year = self.tax_year
-        tax_year_col = valid_sqlalchemy_name(tax_year)
+        tax_year_col = self.tax_year_col
         query = (
             self.query_builder()
             .select(tax_year_col)
@@ -39,6 +39,7 @@ class HMRC_OverridesByYear(SQLiteTable):
         super().__init__("hmrc_overrides_by_year")
         self.person_code = person_code
         self.tax_year = tax_year
+        self.tax_year_col = valid_sqlalchemy_name(tax_year)
 
     @lru_cache(maxsize=None)
     def deduct_trading_expenses(self) -> bool:

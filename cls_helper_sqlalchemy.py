@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
 from pathlib import Path
+import utility_functions as uf
 import re
 
 
@@ -87,14 +88,11 @@ class SQLAlchemyHelper:
 
 
 def valid_sqlalchemy_name(name):
-    # Remove any invalid characters and convert to lowercase
-    name = re.sub(r"[^a-zA-Z0-9_]", "_", name).lower()
+    return uf.to_valid_method_name(name)
 
-    # Ensure the name does not start with a number
-    if re.match(r"^\d", name):
-        name = "_" + name
-
-    return name
+def validate_sqlalchemy_name(name):
+    if name != valid_sqlalchemy_name(name):
+        raise ValueError(f"Invalid SQLAlchemy name: {name}")
 
 def clean_column_names(df):
 

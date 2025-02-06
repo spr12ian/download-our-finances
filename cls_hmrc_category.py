@@ -14,7 +14,7 @@ class HMRC_Category(Categories):
             return f"HMRC {person_code} {category}"
 
     def get_hmrc_page(self):
-        return self.get_value_by_category("HMRC page")
+        return self.get_value_by_category("hmrc_page")
 
     def get_hmrc_question_id(self):
-        return self.get_value_by_category("HMRC question id")
+        return self.get_value_by_category("hmrc_question_id")

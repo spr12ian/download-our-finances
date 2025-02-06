@@ -98,7 +98,9 @@ def to_valid_method_name(s) -> str:
 
     # Remove invalid characters and ensure lowercase
     s = re.sub(r"\W|^(?=\d)", "_", s).lower()
-    # Prefix with an underscore if the first character is a digit
-    if s and s[0].isdigit():
+    
+    # Ensure the string does not start with a number
+    if re.match(r"^\d", s):
         s = "_" + s
+
     return s

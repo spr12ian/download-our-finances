@@ -11,7 +11,7 @@ class HMRC_Property(SQLiteTable):
             query = (
                 self.query_builder()
                 .select(column_name)
-                .where(f'"Property postcode" = "{postcode}"')
+                .where(f'"property_postcode" = "{postcode}"')
                 .build()
             )
             self.l.debug(f"query: {query}")
@@ -37,14 +37,14 @@ class HMRC_Property(SQLiteTable):
         return self.postcode
 
     def get_property_owner_code(self) -> str:
-        return self.__get_value_by_postcode_column("Property owner code")
+        return self.__get_value_by_postcode_column("property_owner_code")
 
     def get_property_ownership_share(self) -> float:
-        return self.__get_value_by_postcode_column("Property ownership share")
+        return self.__get_value_by_postcode_column("property_ownership_share")
 
     def get_property_joint_owner_code(self) -> str:
         property_joint_owner_code = self.__get_value_by_postcode_column(
-            "Property joint owner code"
+            "property_joint_owner_code"
         )
         self.l.debug(f'property_joint_owner_code: "{property_joint_owner_code}"')
         return property_joint_owner_code

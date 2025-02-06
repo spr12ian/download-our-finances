@@ -9,7 +9,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
     def __get_value_by_hmrc_constant(self, hmrc_constant):
         tax_year = self.tax_year
-        tax_year_col = valid_sqlalchemy_name(tax_year)
+        tax_year_col = self.tax_year_col
         query = (
             self.query_builder()
             .select(tax_year_col)
@@ -35,6 +35,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
         self.l.debug(f"tax_year: {tax_year}")
         super().__init__("hmrc_constants_by_year")
         self.tax_year = tax_year
+        self.tax_year_col = valid_sqlalchemy_name(tax_year)
 
     @lru_cache(maxsize=None)
     def get_additional_rate_threshold(self) -> float:

@@ -1,3 +1,5 @@
+from cls_helper_sqlalchemy import validate_sqlalchemy_name
+
 class QueryBuilder:
     def __init__(self, table_name):
         self.table_name = table_name
@@ -8,6 +10,7 @@ class QueryBuilder:
         self.limit = None
 
     def select(self, *columns):
+        [validate_sqlalchemy_name(col) for col in columns]
         self.columns = [f'"{col}"' for col in columns]
         return self
 
@@ -16,6 +19,7 @@ class QueryBuilder:
         return self
 
     def total(self, column):
+        validate_sqlalchemy_name(column)
         self.columns = [f'COALESCE(SUM("{column}"), 0)']
         return self
 
@@ -24,6 +28,7 @@ class QueryBuilder:
         return self
 
     def order(self, column, direction="ASC"):
+        validate_sqlalchemy_name(column)
         self.order_by = f'"{column}" {direction}'
         return self
 
