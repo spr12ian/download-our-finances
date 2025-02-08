@@ -34,7 +34,7 @@ for db in "${databases[@]}"; do
     stop_if_module_has_errors "spreadsheet_to_${db}"
 
     if [ -f "${db_filename}" ]; then
-        stop_if_module_has_errors "vacuum_${db}"
+        stop_if_module_has_errors "vacuum ${db_filename}"
 
         stop_if_module_has_errors "create_hmrc_reports_from_${db}"
 

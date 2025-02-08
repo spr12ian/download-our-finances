@@ -5,13 +5,16 @@ from cls_helper_sqlalchemy import SQLAlchemyHelper
 from cls_helper_log import LogHelper
 from cls_helper_log import debug_function_call
 import os
+import sys
 
 l = LogHelper(__file__)
 # l.set_level_debug()
 l.debug(__file__)
 
+
 def get_file_size(file_path):
     return os.path.getsize(file_path)
+
 
 @debug_function_call
 def vacuum_database(db_file_path):
@@ -33,7 +36,7 @@ def vacuum_database(db_file_path):
         # Print the size of the database file after vacuuming
         after_size = get_file_size(db_file_path)
         print(f"Database size after vacuuming: {after_size} bytes")
-    
+
     except Exception as e:
         l.error(f"An error occurred: {e}")
         session.rollback()
@@ -44,6 +47,20 @@ def vacuum_database(db_file_path):
     l.print("Database has been vacuumed")
 
 
-if __name__ == "__main__":
-    db_file_path="our_finances.sqlite"
+def main():
+    # Check if the correct number of arguments is provided
+    print(len(sys.argv))
+    if len(sys.argv) != 2:
+        print('Usage: pwl vacuum "database_file"')
+        sys.exit(1)
+
+    # Get the command line arguments
+    args = sys.argv[1:]  # Exclude the script name
+
+    db_file_path = args[0]
+    print(f"Database file: {db_file_path}")
     vacuum_database(db_file_path)
+
+
+if __name__ == "__main__":
+    main()

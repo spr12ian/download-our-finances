@@ -5,6 +5,7 @@ from cls_helper_pandas import PandasHelper
 from cls_helper_sql import SQL_Helper
 from cls_helper_sqlalchemy import valid_sqlalchemy_name
 from cls_int_columns import IntColumns
+from cls_financial_columns import FinancialColumns
 from cls_real_columns import RealColumns
 import time
 from sqlalchemy import Column
@@ -34,8 +35,7 @@ class SpreadsheetToSqliteDb:
             self.convert_underscore_tables = True
 
         self.log = LogHelper("SpreadsheetToSqliteDb")
-        pdh = PandasHelper()
-        self.pdh = pdh
+        self.pdh = PandasHelper()
 
         # Define the required scopes
         scopes = [
@@ -81,6 +81,7 @@ class SpreadsheetToSqliteDb:
             df = DateColumns().convert(df)
             df = IntColumns().convert(df)
             df = RealColumns().convert(df)
+            df = FinancialColumns().convert(df)
             # Add 'id' column and populate with values
             df.insert(0, "id", range(1, len(df) + 1))
 
