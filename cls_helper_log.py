@@ -32,11 +32,15 @@ class LogHelper:
         logging.NOTSET: "NOTSET",  # 0
     }
 
-    def __init__(self, name)->None:
+    def __init__(self, name) -> None:
         # print(f"LogHelper name: {name}")
         name = os.path.basename(name)
         # print(f"LogHelper basename: {basename}")
-        self.logger = logging.getLogger(name)
+        if name == "SQLAlchemyHelper":
+            self.logger = logging.getLogger("sqlalchemy.engine")
+            self.logger.setLevel(logging.INFO)
+        else:
+            self.logger = logging.getLogger(name)
         self.saved_level = self.get_level()
 
         self.dt = DateTimeHelper()

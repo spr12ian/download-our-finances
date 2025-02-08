@@ -1,13 +1,16 @@
 from cls_helper_sqlalchemy import SQLAlchemyHelper
+from cls_helper_date_time import DateTimeHelper
 from models import BankAccounts, Transactions
 from sqlalchemy import func, not_, text
 import utility_functions as uf
+from sqlalchemy.dialects import sqlite
+
 
 sql = SQLAlchemyHelper()
 session = sql.get_session()
 
-# Perform the query
-results = (
+
+query = (
     session.query(
         func.strftime("%Y-%m", Transactions.date).label("month"),
         func.sum(Transactions.credit).label("money_in"),
@@ -22,9 +25,12 @@ results = (
     )
     .group_by(func.strftime("%Y-%m", Transactions.date))
     .order_by("month")
-    .all()
 )
 
+print(query.statement.compile(compile_kwargs={"literal_binds": True}))
+
+# Perform the query
+results = query.all()
 if len(results):
     # Print the results
     for result in results:
@@ -35,9 +41,7 @@ if len(results):
             + f", Amount: {uf.format_as_gbp(result.net_amount, 11)}"
         )
 
-
-# Perform the query
-results = (
+query = (
     session.query(
         Transactions.date.label("d"),
         Transactions.credit.label("plus"),
@@ -52,14 +56,18 @@ results = (
         Transactions.date.between("2025-01-01", "2025-01-31"),
     )
     .order_by("d")
-    .all()
 )
 
+print(query.statement.compile(compile_kwargs={"literal_binds": True}))
+
+# Perform the query
+results = query.all()
 if len(results):
+    dth = DateTimeHelper()
     print("Date           Credit      Debit        Net Description")
     # Print the results
     for result in results:
-        date = result.d
+        date = dth.ISO_to_UK(result.d)
         plus = uf.format_as_gbp(result.plus, 11)
         minus = uf.format_as_gbp(result.minus, 11)
         net = uf.format_as_gbp(result.net, 11)

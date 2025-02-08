@@ -2,24 +2,25 @@ import locale
 import math
 import re
 from cls_helper_log import LogHelper
+from decimal import Decimal, InvalidOperation
 
 l = LogHelper("utility_functions")
 l.set_level_debug()
 l.debug(__file__)
 
 
-def all_conditions_are_false(conditions) -> bool:
+def all_conditions_are_false(conditions:list) -> bool:
     if not all_items_are_boolean(conditions):
         raise ValueError("Not all conditions are boolean")
 
     return not any(conditions)
 
 
-def all_items_are_boolean(lst) -> bool:
+def all_items_are_boolean(lst:list) -> bool:
     return all(isinstance(item, bool) for item in lst)
 
 
-def crop(string, excess) -> str:
+def crop(string:str, excess:str) -> str:
     excess_length = len(excess)
     if string[-excess_length:] == excess:
         string = string[:-excess_length]
@@ -40,7 +41,7 @@ def format_as_gbp(amount: float, field_width: int = 0) -> str:
     return f"{formatted_amount:>{field_width}}"
 
 
-def format_as_gbp_or_blank(amount) -> str:
+def format_as_gbp_or_blank(amount:float) -> str:
     """
     Format a float as GBP or blank if zero.
     """
@@ -61,6 +62,29 @@ def round_up(number: float) -> int:
 
 
 # Function to convert currency/percent strings to float
+def string_to_financial(string:str) -> Decimal:
+    if string.strip() == "":  # Check if the string is empty or whitespace
+        return Decimal('0.00')
+
+    # Remove any currency symbols and thousand separators
+    string = re.sub(r"[^\d.,%]", "", string)
+    string = string.replace(",", "")
+
+    # Check if the string has a percentage symbol
+    if "%" in string:
+        string = string.replace("%", "")
+        try:
+            return Decimal(string) / Decimal('100')
+        except InvalidOperation:
+            return Decimal('0.00')
+
+    try:
+        return Decimal(string)
+    except InvalidOperation:
+        return Decimal('0.00')
+
+
+# Function to convert currency/percent strings to float
 def string_to_float(string) -> float:
     if string.strip() == "":  # Check if the string is empty or whitespace
         return 0.0
@@ -77,7 +101,7 @@ def string_to_float(string) -> float:
     return float(string)
 
 
-def sum_values(lst) -> float:
+def sum_values(lst:list) -> float:
     l.debug("sum_values")
     l.debug(lst)
     total = 0
@@ -85,14 +109,14 @@ def sum_values(lst) -> float:
         total += value
     return total
 
-def to_camel_case(text):
+def to_camel_case(text:str):
     if type(text) != str:
         raise ValueError(f"Only strings allowed, not {type(text)}")
     
     words = re.split(r'[^a-zA-Z0-9]', text)  # Split on non-alphanumeric characters
     return ''.join(word.capitalize() for word in words if word)  # Capitalize each word and join
 
-def to_valid_method_name(s) -> str:
+def to_valid_method_name(s:str) -> str:
     """
     Convert a string to be a valid variable name:
     - Replace all characters that are not letters, numbers, or underscores with underscores.
