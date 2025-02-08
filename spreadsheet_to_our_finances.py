@@ -15,7 +15,7 @@ from cls_helper_log import LogHelper
 from cls_helper_log import debug_function_call
 
 l = LogHelper(__file__)
-# l.set_level_debug()
+l.set_level_debug()
 l.debug(__file__)
 
 
@@ -28,6 +28,8 @@ class SpreadsheetToSqliteDb:
             credentials_path (str): Path to your Google Cloud service account JSON
             spreadsheet_name (str): Name of the Google Spreadsheet
         """
+        self.l = LogHelper("SpreadsheetToSqliteDb")
+        self.l.set_level_debug()
         config = ConfigHelper()
         if config["Google"]["convert_underscore_tables"] == "No":
             self.convert_underscore_tables = False
@@ -60,6 +62,8 @@ class SpreadsheetToSqliteDb:
 
                 time.sleep(1.1)  # Prevent Google API rate limiting
 
+                raise
+
         self.sql.close_connection()
 
     @debug_function_call
@@ -75,6 +79,7 @@ class SpreadsheetToSqliteDb:
         data = worksheet.get_all_values()
 
         try:
+            self.l.debug("In the try block")
             # Split columns and rows
             df = pdh.worksheet_values_to_dataframe(data)
             df.columns = [valid_sqlalchemy_name(col) for col in df.columns]
@@ -82,13 +87,27 @@ class SpreadsheetToSqliteDb:
             df = IntColumns().convert(df)
             df = RealColumns().convert(df)
             df = FinancialColumns().convert(df)
+            self.l.debug("Add 'id' column and populate with values")
             # Add 'id' column and populate with values
             df.insert(0, "id", range(1, len(df) + 1))
 
-        except:
-            print(table_name)
+            # Ensure all columns have appropriate data types
+            for col in df.columns:
+                self.l.debug(f'df[col].dtype: {df[col].dtype}')
+                if df[col].dtype == 'object':
+                    df[col] = df[col].astype(str)
+                elif df[col].dtype == 'int64':
+                    df[col] = df[col].astype(int)
+                elif df[col].dtype == 'float64':
+                    df[col] = df[col].astype(float)
+                elif pdh.pd.api.types.is_datetime64_any_dtype(df[col]):
+                    df[col] = df[col].astype(str)  # Convert datetime to string
+
+        except Exception as e:
+            self.l.error(f"Error converting worksheet {worksheet.title}: {e}")
             raise
 
+        self.l.debug(f'Writing {table_name}')
         # Write DataFrame to SQLite table (sheet name becomes table name)
         df.to_sql(
             table_name,
@@ -97,6 +116,7 @@ class SpreadsheetToSqliteDb:
             index=False,
             dtype={"id": "INTEGER PRIMARY KEY AUTOINCREMENT"},
         )
+        self.l.debug(f'Written {table_name}')
 
 
 @debug_function_call

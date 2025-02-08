@@ -1,12 +1,18 @@
 from cls_helper_date_time import DateTimeHelper
-
+from cls_helper_log import LogHelper
 
 class DateColumns:
+    def __init__(self):
+        self.l = LogHelper("DateColumns")
+        self.l.set_level_debug()
+
     def convert(self, df):
+        self.l.debug("convert")
         for date_column in DateColumns().get_date_columns():
             if date_column in df.columns:
                 try:
                     df[date_column] = df[date_column].apply(self.reverse_date_string)
+                    self.l.debug(f'df[date_column].dtype: {df[date_column].dtype}')
                 except:
                     print(date_column)
                     raise

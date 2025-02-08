@@ -7,6 +7,10 @@ from pathlib import Path
 import utility_functions as uf
 import re
 
+l = LogHelper(__file__)
+l.set_level_debug()
+l.debug(__file__)
+
 
 class SQLAlchemyHelper:
     def __init__(self):
@@ -88,16 +92,20 @@ class SQLAlchemyHelper:
 
 
 def valid_sqlalchemy_name(name):
+    l.debug(f"valid_sqlalchemy_name name: {name}")
     return uf.to_valid_method_name(name)
+
 
 def validate_sqlalchemy_name(name):
     if name != valid_sqlalchemy_name(name):
         raise ValueError(f"Invalid SQLAlchemy name: {name}")
 
+
 def clean_column_names(df):
 
     df.columns = [valid_sqlalchemy_name(col) for col in df.columns]
     return df
+
 
 # print(len(metadata.tables))
 # for table in metadata.tables.values():
@@ -108,7 +116,6 @@ def clean_column_names(df):
 
 #     for column in table.columns.values():
 #         print(f'    {column.name}')
-
 
 
 # def examine_model(model):
