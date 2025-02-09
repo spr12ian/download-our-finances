@@ -86,28 +86,29 @@ class SpreadsheetToSqliteDb:
             df = DateColumns().convert(df)
             df = IntColumns().convert(df)
             df = RealColumns().convert(df)
-            df = FinancialColumns().convert(df)
+            #df = FinancialColumns().convert(df)
             self.l.debug("Add 'id' column and populate with values")
             # Add 'id' column and populate with values
             df.insert(0, "id", range(1, len(df) + 1))
 
-            # Ensure all columns have appropriate data types
-            for col in df.columns:
-                self.l.debug(f'df[col].dtype: {df[col].dtype}')
-                if df[col].dtype == 'object':
-                    df[col] = df[col].astype(str)
-                elif df[col].dtype == 'int64':
-                    df[col] = df[col].astype(int)
-                elif df[col].dtype == 'float64':
-                    df[col] = df[col].astype(float)
-                elif pdh.pd.api.types.is_datetime64_any_dtype(df[col]):
-                    df[col] = df[col].astype(str)  # Convert datetime to string
+            # # Ensure all columns have appropriate data types
+            # for col in df.columns:
+            #     self.l.debug(f'df[col].dtype: {df[col].dtype}')
+            #     if df[col].dtype == 'object':
+            #         df[col] = df[col].astype(str)
+            #     elif df[col].dtype == 'int64':
+            #         df[col] = df[col].astype(int)
+            #     elif df[col].dtype == 'float64':
+            #         df[col] = df[col].astype(float)
+            #     elif pdh.pd.api.types.is_datetime64_any_dtype(df[col]):
+            #         df[col] = df[col].astype(str)  # Convert datetime to string
 
         except Exception as e:
             self.l.error(f"Error converting worksheet {worksheet.title}: {e}")
             raise
 
         self.l.debug(f'Writing {table_name}')
+        self.l.debug(f'df: {df}')
         # Write DataFrame to SQLite table (sheet name becomes table name)
         df.to_sql(
             table_name,
