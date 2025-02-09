@@ -5,7 +5,7 @@ from cls_helper_log import LogHelper
 class PandasHelper:
     def __init__(self):
         self.l = LogHelper("PandasHelper")
-        self.l.set_level_debug()
+        #self.l.set_level_debug()
 
     def pd(self):
         return pd

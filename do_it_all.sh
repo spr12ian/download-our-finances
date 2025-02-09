@@ -24,6 +24,8 @@ stop_if_module_has_errors() {
 
 stop_if_module_has_errors key_check
 
+stop_if_module_has_errors analyze_spreadsheet
+
 # List of databases
 databases=("our_finances")
 

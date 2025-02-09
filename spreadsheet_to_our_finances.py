@@ -36,7 +36,6 @@ class SpreadsheetToSqliteDb:
         else:
             self.convert_underscore_tables = True
 
-        self.log = LogHelper("SpreadsheetToSqliteDb")
         self.pdh = PandasHelper()
 
         # Define the required scopes
@@ -48,6 +47,9 @@ class SpreadsheetToSqliteDb:
         self.spreadsheet = GoogleHelper().get_spreadsheet(scopes)
 
         self.sql = SQL_Helper().select_sql_helper("SQLite")
+
+        # List of list items which are table_name, column_name
+        self.fields = []
 
     def convert_to_sqlite(self):
         """
@@ -62,16 +64,30 @@ class SpreadsheetToSqliteDb:
 
                 time.sleep(1.1)  # Prevent Google API rate limiting
 
+                self.l.debug(self.fields)
+
                 raise
 
         self.sql.close_connection()
 
+    def get_sqlite_type(self, table_name, column_name):
+        if column_name.endswith("(£)"):
+            sqlite_type = "text"
+        elif column_name.endswith("(%)"):
+            sqlite_type = "text"
+        elif column_name.endswith("(Y/N)"):
+            sqlite_type = "integer"
+        else:
+            sqlite_type = "text"
+
+        return sqlite_type
+
     @debug_function_call
     def convert_worksheet(self, worksheet):
-        self.log.info(f"Converting {worksheet.title}")
+        self.l.info(f"Converting {worksheet.title}")
 
         table_name = valid_sqlalchemy_name(worksheet.title)
-        self.log.info(f"table_name: {table_name}")
+        self.l.info(f"table_name: {table_name}")
 
         pdh = self.pdh
 
@@ -79,16 +95,20 @@ class SpreadsheetToSqliteDb:
         data = worksheet.get_all_values()
 
         try:
-            self.l.debug("In the try block")
             # Split columns and rows
             df = pdh.worksheet_values_to_dataframe(data)
+            [
+                self.fields.append(
+                    [table_name, col, self.get_sqlite_type(table_name, col)]
+                )
+                for col in df.columns
+            ]
             df.columns = [valid_sqlalchemy_name(col) for col in df.columns]
-            df = DateColumns().convert(df)
-            df = IntColumns().convert(df)
-            df = RealColumns().convert(df)
-            #df = FinancialColumns().convert(df)
-            self.l.debug("Add 'id' column and populate with values")
-            # Add 'id' column and populate with values
+            # df = DateColumns().convert(df)
+            # df = IntColumns().convert(df)
+            # df = RealColumns().convert(df)
+            # df = FinancialColumns().convert(df)
+            # self.l.debug("Add 'id' column and populate with values")
             df.insert(0, "id", range(1, len(df) + 1))
 
             # # Ensure all columns have appropriate data types
@@ -107,8 +127,8 @@ class SpreadsheetToSqliteDb:
             self.l.error(f"Error converting worksheet {worksheet.title}: {e}")
             raise
 
-        self.l.debug(f'Writing {table_name}')
-        self.l.debug(f'df: {df}')
+        # self.l.debug(f'Writing {table_name}')
+        # self.l.debug(f'df: {df}')
         # Write DataFrame to SQLite table (sheet name becomes table name)
         df.to_sql(
             table_name,
@@ -117,7 +137,7 @@ class SpreadsheetToSqliteDb:
             index=False,
             dtype={"id": "INTEGER PRIMARY KEY AUTOINCREMENT"},
         )
-        self.l.debug(f'Written {table_name}')
+        # self.l.debug(f'Written {table_name}')
 
 
 @debug_function_call

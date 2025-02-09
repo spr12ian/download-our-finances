@@ -12,10 +12,7 @@ class FinancialColumns:
         for financial_column in self.get_financial_columns():
             if financial_column in df.columns:
                 try:
-                    df[financial_column] = df[financial_column].apply(string_to_financial)                    
-                    self.l.debug(f'df[financial_column].dtype: {df[financial_column].dtype}')                    
-                    self.l.debug(f'df[financial_column].head: {df[financial_column].head}')                    
-                    self.l.debug(f'df[financial_column].describe: {df[financial_column].describe}')
+                    df[financial_column] = df[financial_column].apply(string_to_financial)
                 except:
                     print(financial_column)
                     raise

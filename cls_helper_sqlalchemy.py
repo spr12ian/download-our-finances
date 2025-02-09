@@ -8,7 +8,7 @@ import utility_functions as uf
 import re
 
 l = LogHelper(__file__)
-l.set_level_debug()
+#l.set_level_debug()
 l.debug(__file__)
 
 
@@ -92,8 +92,11 @@ class SQLAlchemyHelper:
 
 
 def valid_sqlalchemy_name(name):
-    l.debug(f"valid_sqlalchemy_name name: {name}")
-    return uf.to_valid_method_name(name)
+    l.debug(f"valid_sqlalchemy_name")
+    l.debug(f"name: {name}")
+    valid_method_name = uf.to_valid_method_name(name)
+    l.debug(f"valid_method_name: {valid_method_name}")
+    return valid_method_name
 
 
 def validate_sqlalchemy_name(name):
