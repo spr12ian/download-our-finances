@@ -44,8 +44,6 @@ class SpreadsheetAnalyzer:
 
             time.sleep(1.1)  # Prevent Google API rate limiting
 
-            return
-
         self.l.debug(self.fields)
 
     @debug_function_call
