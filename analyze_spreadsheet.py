@@ -97,7 +97,7 @@ class SpreadsheetAnalyzer:
             sqlite_column_name=sqlite_column_name.strip('_')
             sqlite_type = "integer"
             python_type = "boolean"
-            to_db="unchanged"
+            to_db="to_boolean"
             from_db="to_boolean"
         elif spreadsheet_column_name.startswith("Date"):
             sqlite_type = "text"

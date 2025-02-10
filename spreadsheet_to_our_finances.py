@@ -1,3 +1,4 @@
+from cls_boolean_columns import BooleanColumns
 from cls_date_columns import DateColumns
 from cls_helper_config import ConfigHelper
 from cls_helper_google import GoogleHelper
@@ -8,8 +9,6 @@ from cls_int_columns import IntColumns
 from cls_financial_columns import FinancialColumns
 from cls_real_columns import RealColumns
 import time
-from sqlalchemy import Column
-from sqlalchemy import Integer
 import spreadsheet_fields
 import utility_functions as uf
 
@@ -69,11 +68,15 @@ class SpreadsheetToSqliteDb:
         to_db = self.get_to_db(table_name, column_name)
         self.l.debug(f"to_db: {to_db}")
         match to_db:
+            case 'to_boolean':
+                df = BooleanColumns().convert_column(df, column_name)
             case 'to_date':
                 df = DateColumns().convert_column(df, column_name)
-            case _:
+            case 'unchanged':
                 pass
-            # df = DateColumns().convert(df)
+            case _:
+                raise
+            
         return df
 
     def convert_to_sqlite(self):
@@ -88,8 +91,6 @@ class SpreadsheetToSqliteDb:
                 self.convert_worksheet(worksheet)
 
                 time.sleep(1.1)  # Prevent Google API rate limiting
-
-                raise
 
         self.sql.close_connection()
 
