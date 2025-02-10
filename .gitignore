@@ -5,6 +5,7 @@
 config.ini
 scratch.sql
 models.py
+spreadsheet_fields.py
 .logs/
 
 # Byte-compiled / optimized / DLL files
