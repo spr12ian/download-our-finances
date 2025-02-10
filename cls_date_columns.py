@@ -18,6 +18,17 @@ class DateColumns:
                     raise
         return df
 
+    def convert_column(self, df, date_column):
+        self.l.debug("convert_column")
+        self.l.debug(f'date_column: {date_column}')
+        try:
+            df[date_column] = df[date_column].apply(self.reverse_date_string)
+            self.l.debug(f'df[date_column].dtype: {df[date_column].dtype}')
+        except:
+            self.l.error(f'date_column: {date_column}')
+            raise
+        return df
+
     def get_date_columns(self):
         return [
             "as_at",

@@ -10,6 +10,12 @@ class PandasHelper:
     def pd(self):
         return pd
 
+    def header_to_dataframe(self, values):
+        self.l.debug("values_to_dataframe")
+        # Create a DataFrame
+        columns = values
+        return pd.DataFrame(columns=columns)
+
     def worksheet_values_to_dataframe(self, worksheet_values):
         self.l.debug("worksheet_values_to_dataframe")
         # Create a DataFrame

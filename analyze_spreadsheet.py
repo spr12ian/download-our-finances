@@ -56,14 +56,16 @@ class SpreadsheetAnalyzer:
         pdh = self.pdh
 
         # Get worksheet data as a DataFrame
-        data = worksheet.get_all_values()
+        #data = worksheet.get_all_values()
+        first_row = worksheet.row_values(1)
+        self.l.debug(f'first_row: {first_row}')
 
         try:
             # Split columns and rows
-            df = pdh.worksheet_values_to_dataframe(data)
+            df = pdh.header_to_dataframe(first_row)
             [
                 self.fields.append(
-                    [table_name, col, self.get_column_types(table_name, col)]
+                    self.get_column_types(table_name, col)
                 )
                 for col in df.columns
             ]
@@ -83,31 +85,71 @@ class SpreadsheetAnalyzer:
             sqlite_column_name=uf.crop(sqlite_column_name, '____')
             sqlite_type = "text"
             python_type = "Decimal"
+            to_db="unchanged"
+            from_db="to_decimal"
         elif spreadsheet_column_name.endswith(" (%)"):
             sqlite_column_name=uf.crop(sqlite_column_name, '____')
             sqlite_type = "text"
-            python_type = "Decimal"
-        elif spreadsheet_column_name.endswith(" (Y/N)"):
-            sqlite_column_name=uf.crop(sqlite_column_name, '__y_n_')
+            python_type = "text"
+            to_db="unchanged"
+            from_db="to_decimal"
+        elif spreadsheet_column_name.endswith("?"):
+            sqlite_column_name=sqlite_column_name.strip('_')
             sqlite_type = "integer"
             python_type = "boolean"
+            to_db="unchanged"
+            from_db="to_boolean"
         elif spreadsheet_column_name.startswith("Date"):
-            sqlite_type = "integer"
-            python_type = "Decimal"
+            sqlite_type = "text"
+            python_type = "text"
+            to_db="to_date"
+            from_db="unchanged"
         else:
             sqlite_type = "text"
-            python_type = "Decimal"
+            python_type = "text"
+            to_db="unchanged"
+            from_db="unchanged"
 
-        return {
-            "sqlite_column_name": sqlite_column_name,
-            "sqlite_type": sqlite_type,
-            "python_type": python_type,
-        }
+        return [
+            table_name,
+            spreadsheet_column_name,
+            sqlite_column_name,
+            sqlite_type,
+            python_type,
+            to_db,
+            from_db,
+        ]
 
     def write_output(self):
         file_path = Path("spreadsheet_fields.py")
         with file_path.open("w") as output:
-            output.write("fields = " + str(self.fields))
+            prefix=self.get_prefix()
+            fields_output=self.get_fields_output()
+            output.write(prefix + fields_output)
+
+    def get_fields_output(self):
+        for field in self.fields:
+            self.l.debug(f'field: {field}')
+        return str(self.fields)
+
+    def get_prefix(self):
+        prefix='''# spreadsheet_fields.py
+def get_field_by_spreadsheet_column_name(table_name, spreadsheet_column_name):
+    for field in fields:
+        if field[1] == spreadsheet_column_name and field[0] == table_name:
+            return field
+    return None
+
+def get_field_by_sqlite_column_name(table_name, sqlite_column_name):
+    for field in fields:
+        if field[2] == sqlite_column_name and field[0] == table_name:
+            return field
+    return None
+        
+
+# table_name, spreadsheet_column_name, sqlite_column_name, sqlite_type, python_type, to_db, from_db
+fields = '''
+        return prefix
 
 
 @debug_function_call
