@@ -27,6 +27,7 @@ class HMRC:
         max_category_width = max_description_width
         breakdown = ["Date | Account | Description | Note | Nett | Category"]
         for row in rows:
+            self.l.debug(f'row: {row}')
             breakdown.append(
                 f"{row[0]} | {row[1]} | {row[2][:max_description_width]} | {row[3]} | {row[4]:>10.2f} | {row[5][:max_category_width]}"
             )

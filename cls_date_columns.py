@@ -8,7 +8,7 @@ class DateColumns:
 
     def convert(self, df):
         self.l.debug("convert")
-        for date_column in DateColumns().get_date_columns():
+        for date_column in self.get_date_columns():
             if date_column in df.columns:
                 try:
                     df[date_column] = df[date_column].apply(self.reverse_date_string)

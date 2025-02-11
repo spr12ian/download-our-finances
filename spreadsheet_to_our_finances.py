@@ -1,5 +1,6 @@
 from cls_boolean_columns import BooleanColumns
 from cls_date_columns import DateColumns
+from cls_decimal_columns import DecimalColumns
 from cls_helper_config import ConfigHelper
 from cls_helper_google import GoogleHelper
 from cls_helper_pandas import PandasHelper
@@ -68,14 +69,14 @@ class SpreadsheetToSqliteDb:
         to_db = self.get_to_db(table_name, column_name)
         self.l.debug(f"to_db: {to_db}")
         match to_db:
-            case 'to_boolean':
+            case 'to_boolean_integer':
                 df = BooleanColumns().convert_column(df, column_name)
             case 'to_date':
                 df = DateColumns().convert_column(df, column_name)
-            case 'unchanged':
+            case 'to_str':
                 pass
             case _:
-                raise
+                raise ValueError(f'Unexpected to_db value: {to_db}')
             
         return df
 
@@ -145,13 +146,13 @@ class SpreadsheetToSqliteDb:
             table_name, column_name
         )
         self.l.debug(f"field: {field}")
-        return field[3]
+        return field[3] # sqlite_type
 
     def get_to_db(self, table_name, column_name):
         field = spreadsheet_fields.get_field_by_sqlite_column_name(
             table_name, column_name
         )
-        return field[5]
+        return field[5] # to_db
 
 
 @debug_function_call

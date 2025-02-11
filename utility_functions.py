@@ -52,6 +52,14 @@ def format_as_gbp_or_blank(amount:float) -> str:
         # Format the float as currency
         return format_as_gbp(amount)
 
+import re
+
+def remove_non_numeric(string: str) -> str:
+    """
+    Remove all characters from a string except digits or decimal points.
+    """
+    return re.sub(r"[^\d.]", "", string)
+
 
 def round_down(number: float) -> int:
     return math.floor(number)

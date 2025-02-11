@@ -11,6 +11,12 @@ l = LogHelper(__file__)
 l.set_level_debug()
 l.debug(__file__)
 
+TYPE_MAPPING = {
+    " (£)": {"to_db": "to_str", "sqlite_type": "TEXT", "from_db": "from_decimal_2", "python_type": "Decimal"},
+    " (%)": {"to_db": "to_str", "sqlite_type": "TEXT", "from_db": "from_decimal", "python_type": "Decimal"},
+    "?": {"to_db": "to_boolean_integer", "sqlite_type": "INTEGER", "from_db": "from_boolean_integer", "python_type": "bool"},
+    "Date": {"to_db": "to_date", "sqlite_type": "TEXT", "from_db": "unchanged", "python_type": "str"},
+}
 
 class SpreadsheetAnalyzer:
     def __init__(self):
@@ -54,13 +60,10 @@ class SpreadsheetAnalyzer:
         self.l.info(f"table_name: {table_name}")
 
         pdh = self.pdh
-
-        # Get worksheet data as a DataFrame
-        #data = worksheet.get_all_values()
-        first_row = worksheet.row_values(1)
-        self.l.debug(f'first_row: {first_row}')
-
         try:
+            first_row = worksheet.row_values(1)
+            self.l.debug(f'first_row: {first_row}')
+            
             # Split columns and rows
             df = pdh.header_to_dataframe(first_row)
             [
@@ -75,50 +78,47 @@ class SpreadsheetAnalyzer:
             raise
 
     def get_column_types(self, table_name, spreadsheet_column_name):
-        
-        sqlite_column_name=valid_sqlalchemy_name(spreadsheet_column_name)
+        self.l.debug("get_column_types")
+        self.l.debug(f'spreadsheet_column_name: {spreadsheet_column_name}')
+
         # sqlite_type is used to write the spreadsheet column value to the database
         # The sqlite_type may cause the spreadsheet string to be transformed
+
         # python_type is used when reading the database column value from the database
         # i.e. read the sqlite value and format as python type 
-        if spreadsheet_column_name.endswith(" (£)"):
-            sqlite_column_name=uf.crop(sqlite_column_name, '____')
-            sqlite_type = "text"
-            python_type = "Decimal"
-            to_db="unchanged"
-            from_db="to_decimal"
-        elif spreadsheet_column_name.endswith(" (%)"):
-            sqlite_column_name=uf.crop(sqlite_column_name, '____')
-            sqlite_type = "text"
-            python_type = "text"
-            to_db="unchanged"
-            from_db="to_decimal"
-        elif spreadsheet_column_name.endswith("?"):
-            sqlite_column_name=sqlite_column_name.strip('_')
-            sqlite_type = "integer"
-            python_type = "boolean"
-            to_db="to_boolean"
-            from_db="to_boolean"
-        elif spreadsheet_column_name.startswith("Date"):
-            sqlite_type = "text"
-            python_type = "text"
-            to_db="to_date"
-            from_db="unchanged"
-        else:
-            sqlite_type = "text"
-            python_type = "text"
-            to_db="unchanged"
-            from_db="unchanged"
+        
+        sqlite_column_name = valid_sqlalchemy_name(spreadsheet_column_name)
+        for suffix, type_info in TYPE_MAPPING.items():
+            if spreadsheet_column_name.endswith(suffix):
+                if suffix == "?":  # Only for boolean columns
+                    sqlite_column_name = sqlite_column_name.strip('_')
+                elif suffix != "?":  # For the other special cases
+                    sqlite_column_name = uf.crop(sqlite_column_name, '____')
+
+                self.l.debug(f'type_info["sqlite_type"]:{type_info["sqlite_type"]}')
+                return [
+                    table_name,
+                    spreadsheet_column_name,
+                    sqlite_column_name,
+                    type_info["to_db"],
+                    type_info["sqlite_type"],
+                    type_info["from_db"],
+                    type_info["python_type"],
+                ]
+        
+        sqlite_type = "TEXT"  # Default
+        python_type = "str"  # Default
 
         return [
             table_name,
             spreadsheet_column_name,
             sqlite_column_name,
+            "to_str",
             sqlite_type,
+            "to_str",
             python_type,
-            to_db,
-            from_db,
         ]
+
 
     def write_output(self):
         file_path = Path("spreadsheet_fields.py")
