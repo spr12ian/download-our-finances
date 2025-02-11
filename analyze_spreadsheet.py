@@ -12,8 +12,8 @@ l.set_level_debug()
 l.debug(__file__)
 
 TYPE_MAPPING = {
-    " (£)": {"to_db": "to_str", "sqlite_type": "TEXT", "from_db": "from_decimal_2", "python_type": "Decimal"},
-    " (%)": {"to_db": "to_str", "sqlite_type": "TEXT", "from_db": "from_decimal", "python_type": "Decimal"},
+    " (£)": {"to_db": "to_numeric_str", "sqlite_type": "TEXT", "from_db": "from_decimal_2", "python_type": "Decimal"},
+    " (%)": {"to_db": "to_numeric_str", "sqlite_type": "TEXT", "from_db": "from_decimal", "python_type": "Decimal"},
     "?": {"to_db": "to_boolean_integer", "sqlite_type": "INTEGER", "from_db": "from_boolean_integer", "python_type": "bool"},
     "Date": {"to_db": "to_date", "sqlite_type": "TEXT", "from_db": "from_str", "python_type": "str"},
 }
@@ -147,7 +147,31 @@ def get_field_by_sqlite_column_name(table_name, sqlite_column_name):
         if field[2] == sqlite_column_name and field[0] == table_name:
             return field
     return None
-        
+
+def get_from_db(table_name, column_name):
+    field = get_field_by_sqlite_column_name(
+        table_name, column_name
+    )
+    return field[5] # from_db
+
+def get_python_type(table_name, column_name):
+    field = get_field_by_sqlite_column_name(
+        table_name, column_name
+    )
+    return field[6] # python_type
+
+def get_sqlite_type(table_name, column_name):
+    field = get_field_by_sqlite_column_name(
+        table_name, column_name
+    )
+    return field[4] # sqlite_type
+
+def get_to_db(table_name, column_name):
+    field = get_field_by_sqlite_column_name(
+        table_name, column_name
+    )
+    return field[3] # to_db
+
 # table_name, spreadsheet_column_name, sqlite_column_name, to_db, sqlite_type, from_db, python_type
 fields = '''
         return prefix

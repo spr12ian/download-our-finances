@@ -4,6 +4,7 @@ from cls_helper_sqlalchemy import valid_sqlalchemy_name
 from cls_hmrc_calculation import HMRC_Calculation
 from cls_hmrc_people import HMRC_People
 from tables import *
+import spreadsheet_fields
 import utility_functions as uf
 from cls_hmrc_output import HMRC_Output
 from functools import lru_cache
