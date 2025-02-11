@@ -15,7 +15,7 @@ TYPE_MAPPING = {
     " (£)": {"to_db": "to_str", "sqlite_type": "TEXT", "from_db": "from_decimal_2", "python_type": "Decimal"},
     " (%)": {"to_db": "to_str", "sqlite_type": "TEXT", "from_db": "from_decimal", "python_type": "Decimal"},
     "?": {"to_db": "to_boolean_integer", "sqlite_type": "INTEGER", "from_db": "from_boolean_integer", "python_type": "bool"},
-    "Date": {"to_db": "to_date", "sqlite_type": "TEXT", "from_db": "unchanged", "python_type": "str"},
+    "Date": {"to_db": "to_date", "sqlite_type": "TEXT", "from_db": "from_str", "python_type": "str"},
 }
 
 class SpreadsheetAnalyzer:
@@ -106,16 +106,18 @@ class SpreadsheetAnalyzer:
                     type_info["python_type"],
                 ]
         
-        sqlite_type = "TEXT"  # Default
-        python_type = "str"  # Default
+        sqlite_type = "TEXT"
+        python_type = "str"
+        to_db = "to_str"
+        from_db = "from_str"
 
         return [
             table_name,
             spreadsheet_column_name,
             sqlite_column_name,
-            "to_str",
+            to_db,
             sqlite_type,
-            "to_str",
+            from_db,
             python_type,
         ]
 
@@ -146,8 +148,7 @@ def get_field_by_sqlite_column_name(table_name, sqlite_column_name):
             return field
     return None
         
-
-# table_name, spreadsheet_column_name, sqlite_column_name, sqlite_type, python_type, to_db, from_db
+# table_name, spreadsheet_column_name, sqlite_column_name, to_db, sqlite_type, from_db, python_type
 fields = '''
         return prefix
 

@@ -146,13 +146,13 @@ class SpreadsheetToSqliteDb:
             table_name, column_name
         )
         self.l.debug(f"field: {field}")
-        return field[3] # sqlite_type
+        return field[4] # sqlite_type
 
     def get_to_db(self, table_name, column_name):
         field = spreadsheet_fields.get_field_by_sqlite_column_name(
             table_name, column_name
         )
-        return field[5] # to_db
+        return field[3] # to_db
 
 
 @debug_function_call
