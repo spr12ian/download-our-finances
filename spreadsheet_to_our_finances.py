@@ -1,5 +1,4 @@
 from cls_boolean_columns import BooleanColumns
-from cls_date_columns import DateColumns
 from cls_helper_config import ConfigHelper
 from cls_helper_google import GoogleHelper
 from cls_helper_pandas import PandasHelper
@@ -68,7 +67,7 @@ class SpreadsheetToSqliteDb:
             case 'to_boolean_integer':
                 df = BooleanColumns().convert_column(df, column_name)
             case 'to_date':
-                df = DateColumns().convert_column(df, column_name)
+                df[column_name] = df[column_name].apply(uf.UK_to_ISO)
             case 'to_numeric_str':
                 df[column_name] = df[column_name].apply(uf.remove_non_numeric)
             case 'to_str':

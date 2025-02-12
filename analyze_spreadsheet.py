@@ -95,6 +95,7 @@ class SpreadsheetAnalyzer:
                 elif type_map_key != "?":  # For the other special cases
                     sqlite_column_name = uf.crop(sqlite_column_name, '____')
 
+                self.l.debug(f'type_info["to_db"]:{type_info["to_db"]}')
                 self.l.debug(f'type_info["sqlite_type"]:{type_info["sqlite_type"]}')
                 return [
                     table_name,
@@ -107,6 +108,8 @@ class SpreadsheetAnalyzer:
                 ]
         
             if spreadsheet_column_name.startswith(type_map_key):
+                self.l.debug(f'type_info["to_db"]:{type_info["to_db"]}')
+                self.l.debug(f'type_info["sqlite_type"]:{type_info["sqlite_type"]}')
                 return [
                     table_name,
                     spreadsheet_column_name,
