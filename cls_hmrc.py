@@ -8,6 +8,7 @@ import spreadsheet_fields
 import utility_functions as uf
 from cls_hmrc_output import HMRC_Output
 from functools import lru_cache
+from decimal import Decimal
 
 
 class HMRC:
@@ -29,8 +30,10 @@ class HMRC:
         breakdown = ["Date | Account | Description | Note | Nett | Category"]
         for row in rows:
             self.l.debug(f'row: {row}')
+            nett_decimal=Decimal(row[4])
+            self.l.debug(f'nett_decimal: {nett_decimal:>10.2f}')
             breakdown.append(
-                f"{row[0]} | {row[1]} | {row[2][:max_description_width]} | {row[3]} | {row[4]:>10.2f} | {row[5][:max_category_width]}"
+                f"{row[0]} | {row[1]} | {row[2][:max_description_width]} | {row[3]} | {nett_decimal:>10.2f} | {row[5][:max_category_width]}"
             )
         return self.format_breakdown(breakdown)
 

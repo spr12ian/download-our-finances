@@ -15,7 +15,7 @@ TYPE_MAPPING = {
     " (£)": {"to_db": "to_numeric_str", "sqlite_type": "TEXT", "from_db": "from_decimal_2", "python_type": "Decimal"},
     " (%)": {"to_db": "to_numeric_str", "sqlite_type": "TEXT", "from_db": "from_decimal", "python_type": "Decimal"},
     "?": {"to_db": "to_boolean_integer", "sqlite_type": "INTEGER", "from_db": "from_boolean_integer", "python_type": "bool"},
-    "Date": {"to_db": "to_date", "sqlite_type": "TEXT", "from_db": "from_str", "python_type": "str"},
+    "Date ": {"to_db": "to_date", "sqlite_type": "TEXT", "from_db": "from_str", "python_type": "str"},
 }
 
 class SpreadsheetAnalyzer:
@@ -88,11 +88,11 @@ class SpreadsheetAnalyzer:
         # i.e. read the sqlite value and format as python type 
         
         sqlite_column_name = valid_sqlalchemy_name(spreadsheet_column_name)
-        for suffix, type_info in TYPE_MAPPING.items():
-            if spreadsheet_column_name.endswith(suffix):
-                if suffix == "?":  # Only for boolean columns
+        for type_map_key, type_info in TYPE_MAPPING.items():
+            if spreadsheet_column_name.endswith(type_map_key):
+                if type_map_key == "?":  # Only for boolean columns
                     sqlite_column_name = sqlite_column_name.strip('_')
-                elif suffix != "?":  # For the other special cases
+                elif type_map_key != "?":  # For the other special cases
                     sqlite_column_name = uf.crop(sqlite_column_name, '____')
 
                 self.l.debug(f'type_info["sqlite_type"]:{type_info["sqlite_type"]}')
@@ -106,6 +106,17 @@ class SpreadsheetAnalyzer:
                     type_info["python_type"],
                 ]
         
+            if spreadsheet_column_name.startswith(type_map_key):
+                return [
+                    table_name,
+                    spreadsheet_column_name,
+                    sqlite_column_name,
+                    type_info["to_db"],
+                    type_info["sqlite_type"],
+                    type_info["from_db"],
+                    type_info["python_type"],
+                ]
+
         sqlite_type = "TEXT"
         python_type = "str"
         to_db = "to_str"
