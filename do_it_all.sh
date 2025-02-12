@@ -40,6 +40,8 @@ for db in "${databases[@]}"; do
 
         stop_if_module_has_errors "create_hmrc_reports_from_${db}"
 
+        stop_if_module_has_errors "first_normal_form"
+
         stop_if_module_has_errors "generate_sqlalchemy_models"
 
         stop_if_module_has_errors "execute_sqlite_queries"
