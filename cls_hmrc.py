@@ -27,7 +27,7 @@ class HMRC:
             return ""
         max_description_width = 40
         max_category_width = max_description_width
-        breakdown = ["Date | Account | Description | Note | Nett | Category"]
+        breakdown = ["Date | Account | Description | Note | Nett (£) | Category"]
         for row in rows:
             self.l.debug(f'row: {row}')
             nett_decimal=Decimal(row[4])
