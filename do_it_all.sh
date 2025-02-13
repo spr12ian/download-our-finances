@@ -38,6 +38,8 @@ for db in "${databases[@]}"; do
     if [ -f "${db_filename}" ]; then
         stop_if_module_has_errors "vacuum ${db_filename}"
 
+        sqlitebrowser "${db_filename}" &
+
         stop_if_module_has_errors "first_normal_form"
 
         stop_if_module_has_errors "execute_sqlite_queries"
