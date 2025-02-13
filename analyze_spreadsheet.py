@@ -12,10 +12,10 @@ l.set_level_debug()
 l.debug(__file__)
 
 TYPE_MAPPING = {
-    " (£)": {"to_db": "to_numeric_str", "sqlite_type": "TEXT", "from_db": "from_decimal_2", "python_type": "Decimal"},
-    " (%)": {"to_db": "to_numeric_str", "sqlite_type": "TEXT", "from_db": "from_decimal", "python_type": "Decimal"},
-    "?": {"to_db": "to_boolean_integer", "sqlite_type": "INTEGER", "from_db": "from_boolean_integer", "python_type": "bool"},
-    "Date": {"to_db": "to_date", "sqlite_type": "TEXT", "from_db": "from_str", "python_type": "str"},
+    " (£)": {"to_db": "to_numeric_str", "sqlite_type": "TEXT", "from_db": "from_decimal_2", "python_type": "Decimal", "sqlalchemy_type": "DECIMAL"},
+    " (%)": {"to_db": "to_numeric_str", "sqlite_type": "TEXT", "from_db": "from_decimal", "python_type": "Decimal", "sqlalchemy_type": "DECIMAL"},
+    "?": {"to_db": "to_boolean_integer", "sqlite_type": "INTEGER", "from_db": "from_boolean_integer", "python_type": "bool", "sqlalchemy_type": "Integer"},
+    "Date": {"to_db": "to_date", "sqlite_type": "TEXT", "from_db": "from_str", "python_type": "str", "sqlalchemy_type": "Date"},
 }
 
 class SpreadsheetAnalyzer:
@@ -61,6 +61,10 @@ class SpreadsheetAnalyzer:
 
         pdh = self.pdh
         try:
+            self.fields.append(
+                    self.get_column_types(table_name, 'id')
+                )
+            
             first_row = worksheet.row_values(1)
             self.l.debug(f'first_row: {first_row}')
             
@@ -105,6 +109,7 @@ class SpreadsheetAnalyzer:
                     type_info["sqlite_type"],
                     type_info["from_db"],
                     type_info["python_type"],
+                    type_info["sqlalchemy_type"],
                 ]
         
             if spreadsheet_column_name.startswith(type_map_key):
@@ -118,12 +123,14 @@ class SpreadsheetAnalyzer:
                     type_info["sqlite_type"],
                     type_info["from_db"],
                     type_info["python_type"],
+                    type_info["sqlalchemy_type"],
                 ]
 
         sqlite_type = "TEXT"
         python_type = "str"
         to_db = "to_str"
         from_db = "from_str"
+        sqlalchemy_type = "String"
 
         return [
             table_name,
@@ -133,6 +140,7 @@ class SpreadsheetAnalyzer:
             sqlite_type,
             from_db,
             python_type,
+            sqlalchemy_type,
         ]
 
 
@@ -174,6 +182,12 @@ def get_python_type(table_name, column_name):
     )
     return field[6] # python_type
 
+def get_sqlalchemy_type(table_name, column_name):
+    field = get_field_by_sqlite_column_name(
+        table_name, column_name
+    )
+    return field[7] # sqlalchemy_type
+
 def get_sqlite_type(table_name, column_name):
     field = get_field_by_sqlite_column_name(
         table_name, column_name
@@ -186,7 +200,8 @@ def get_to_db(table_name, column_name):
     )
     return field[3] # to_db
 
-# table_name, spreadsheet_column_name, sqlite_column_name, to_db, sqlite_type, from_db, python_type
+# table_name, spreadsheet_column_name, sqlite_column_name, to_db, sqlite_type, from_db, python_type, sqlalchemy_type
+# id is NOT on the spreadsheet but is added as the database is generated to enable reverse engineering for sqlalchemy 
 fields = '''
         return prefix
 
