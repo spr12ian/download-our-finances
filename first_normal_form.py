@@ -55,6 +55,11 @@ def check_repeating_columns(table_name: str, column_names: List[str], violations
     """
     Identifies potential repeating column patterns like field1, field2, etc.
     """
+    ignore_composites_with=[
+        'description'
+        'note'
+    ]
+
     patterns = [
         r'^(.+)[\d]+$',  # Matches field1, field2, etc.
         r'^(.+)_[\d]+$', # Matches field_1, field_2, etc.
@@ -63,6 +68,10 @@ def check_repeating_columns(table_name: str, column_names: List[str], violations
     for pattern in patterns:
         seen_prefixes = set()
         for col_name in column_names:
+            for starts_with in ignore_composites_with:
+                if  col_name.lower().startswith(starts_with):
+                    return
+                
             match = re.match(pattern, col_name)
             if match:
                 prefix = match.group(1)
