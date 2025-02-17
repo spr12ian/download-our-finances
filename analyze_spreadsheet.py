@@ -12,11 +12,36 @@ l.set_level_debug()
 l.debug(__file__)
 
 TYPE_MAPPING = {
-    " (£)": {"to_db": "to_numeric_str", "sqlite_type": "TEXT", "from_db": "from_decimal_2", "python_type": "Decimal", "sqlalchemy_type": "DECIMAL"},
-    " (%)": {"to_db": "to_numeric_str", "sqlite_type": "TEXT", "from_db": "from_decimal", "python_type": "Decimal", "sqlalchemy_type": "DECIMAL"},
-    "?": {"to_db": "to_boolean_integer", "sqlite_type": "INTEGER", "from_db": "from_boolean_integer", "python_type": "bool", "sqlalchemy_type": "Integer"},
-    "Date": {"to_db": "to_date", "sqlite_type": "TEXT", "from_db": "from_str", "python_type": "str", "sqlalchemy_type": "Date"},
+    " (£)": {
+        "to_db": "to_numeric_str",
+        "sqlite_type": "TEXT",
+        "from_db": "from_decimal_2",
+        "python_type": "Decimal",
+        "sqlalchemy_type": "DECIMAL",
+    },
+    " (%)": {
+        "to_db": "to_numeric_str",
+        "sqlite_type": "TEXT",
+        "from_db": "from_decimal",
+        "python_type": "Decimal",
+        "sqlalchemy_type": "DECIMAL",
+    },
+    "?": {
+        "to_db": "to_boolean_integer",
+        "sqlite_type": "INTEGER",
+        "from_db": "from_boolean_integer",
+        "python_type": "bool",
+        "sqlalchemy_type": "Integer",
+    },
+    "Date": {
+        "to_db": "to_date",
+        "sqlite_type": "TEXT",
+        "from_db": "from_str",
+        "python_type": "str",
+        "sqlalchemy_type": "Date",
+    },
 }
+
 
 class SpreadsheetAnalyzer:
     def __init__(self):
@@ -39,6 +64,9 @@ class SpreadsheetAnalyzer:
         # List of list items which are table_name, column_name
         self.fields = []
 
+        
+        self.tables = []
+
     def analyze_spreadsheet(self):
         """
         Analyze all sheets in the Google Spreadsheet
@@ -55,25 +83,23 @@ class SpreadsheetAnalyzer:
     @debug_function_call
     def analyze_worksheet(self, worksheet):
         self.l.info(f"Analyzing {worksheet.title}")
+        if worksheet.title.startswith("_"):
+            self.tables.append(worksheet.title)
 
         table_name = valid_sqlalchemy_name(worksheet.title)
         self.l.info(f"table_name: {table_name}")
 
         pdh = self.pdh
         try:
-            self.fields.append(
-                    self.get_column_types(table_name, 'id')
-                )
-            
+            self.fields.append(self.get_column_types(table_name, "id"))
+
             first_row = worksheet.row_values(1)
-            self.l.debug(f'first_row: {first_row}')
-            
+            self.l.debug(f"first_row: {first_row}")
+
             # Split columns and rows
             df = pdh.header_to_dataframe(first_row)
             [
-                self.fields.append(
-                    self.get_column_types(table_name, col)
-                )
+                self.fields.append(self.get_column_types(table_name, col))
                 for col in df.columns
             ]
 
@@ -83,21 +109,21 @@ class SpreadsheetAnalyzer:
 
     def get_column_types(self, table_name, spreadsheet_column_name):
         self.l.debug("get_column_types")
-        self.l.debug(f'spreadsheet_column_name: {spreadsheet_column_name}')
+        self.l.debug(f"spreadsheet_column_name: {spreadsheet_column_name}")
 
         # sqlite_type is used to write the spreadsheet column value to the database
         # The sqlite_type may cause the spreadsheet string to be transformed
 
         # python_type is used when reading the database column value from the database
-        # i.e. read the sqlite value and format as python type 
-        
+        # i.e. read the sqlite value and format as python type
+
         sqlite_column_name = valid_sqlalchemy_name(spreadsheet_column_name)
         for type_map_key, type_info in TYPE_MAPPING.items():
             if spreadsheet_column_name.endswith(type_map_key):
                 if type_map_key == "?":  # Only for boolean columns
-                    sqlite_column_name = sqlite_column_name.strip('_')
+                    sqlite_column_name = sqlite_column_name.strip("_")
                 elif type_map_key != "?":  # For the other special cases
-                    sqlite_column_name = uf.crop(sqlite_column_name, '____')
+                    sqlite_column_name = uf.crop(sqlite_column_name, "____")
 
                 self.l.debug(f'type_info["to_db"]:{type_info["to_db"]}')
                 self.l.debug(f'type_info["sqlite_type"]:{type_info["sqlite_type"]}')
@@ -111,7 +137,7 @@ class SpreadsheetAnalyzer:
                     type_info["python_type"],
                     type_info["sqlalchemy_type"],
                 ]
-        
+
             if spreadsheet_column_name.startswith(type_map_key):
                 self.l.debug(f'type_info["to_db"]:{type_info["to_db"]}')
                 self.l.debug(f'type_info["sqlite_type"]:{type_info["sqlite_type"]}')
@@ -143,21 +169,26 @@ class SpreadsheetAnalyzer:
             sqlalchemy_type,
         ]
 
+    def write_tables(self):
+        file_path = Path("account_tables.js")
+        with file_path.open("w") as output:
+            tables_output = str(self.tables)
+            output.write(tables_output)
 
     def write_output(self):
         file_path = Path("spreadsheet_fields.py")
         with file_path.open("w") as output:
-            prefix=self.get_prefix()
-            fields_output=self.get_fields_output()
+            prefix = self.get_prefix()
+            fields_output = self.get_fields_output()
             output.write(prefix + fields_output)
 
     def get_fields_output(self):
         for field in self.fields:
-            self.l.debug(f'field: {field}')
+            self.l.debug(f"field: {field}")
         return str(self.fields)
 
     def get_prefix(self):
-        prefix='''# spreadsheet_fields.py
+        prefix = """# spreadsheet_fields.py
 def get_field_by_spreadsheet_column_name(table_name, spreadsheet_column_name):
     for field in fields:
         if field[1] == spreadsheet_column_name and field[0] == table_name:
@@ -202,7 +233,7 @@ def get_to_db(table_name, column_name):
 
 # table_name, spreadsheet_column_name, sqlite_column_name, to_db, sqlite_type, from_db, python_type, sqlalchemy_type
 # id is NOT on the spreadsheet but is added as the database is generated to enable reverse engineering for sqlalchemy 
-fields = '''
+fields = """
         return prefix
 
 
@@ -215,6 +246,7 @@ def main():
     # Analyze spreadsheet
     analyzer.analyze_spreadsheet()
 
+    analyzer.write_tables()
     analyzer.write_output()
 
 
