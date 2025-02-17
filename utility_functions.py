@@ -5,6 +5,18 @@ from cls_helper_date_time import DateTimeHelper
 from cls_helper_log import LogHelper
 from decimal import Decimal, InvalidOperation
 
+
+BOOLEAN_MAP = {
+    "0": 0,
+    "1": 1,
+    "false": 0,
+    "n": 0,
+    "no": 0,
+    "true": 1,
+    "y": 1,
+    "yes": 1,
+}
+
 l = LogHelper("utility_functions")
 l.set_level_debug()
 l.debug(__file__)
@@ -21,10 +33,25 @@ def all_items_are_boolean(lst: list) -> bool:
     return all(isinstance(item, bool) for item in lst)
 
 
+# Function to convert boolean strings to int
+def boolean_string_to_int(string: str) -> int:
+    if not isinstance(string, str):
+        raise TypeError(f"{string} has unexpected type: {type(string)}")
+
+    string = string.strip().lower()
+
+    if string == "":
+        return 0  # Default to 0 --> false for empty values
+
+    if string in BOOLEAN_MAP:
+        return BOOLEAN_MAP[string]
+    else:
+        raise ValueError(f"Unexpected boolean value: {string}")
+
+
 def crop(string: str, excess: str) -> str:
-    excess_length = len(excess)
-    if string[-excess_length:] == excess:
-        string = string[:-excess_length]
+    if string.endswith(excess):
+        return string[: -len(excess)]
     return string
 
 
@@ -52,9 +79,6 @@ def format_as_gbp_or_blank(amount: Decimal) -> str:
     else:
         # Format the float as currency
         return format_as_gbp(amount)
-
-
-import re
 
 
 def remove_non_numeric(string: str) -> str:
