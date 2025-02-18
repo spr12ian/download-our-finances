@@ -97,7 +97,7 @@ def check_composite_values(
     l.debug("check_composite_values")
     l.debug(f"table-Name: {table_name}")
     l.debug(f"column_name: {column_name}")
-    ignore_composites_with = ["description", "note"]
+    ignore_composites_with = ["description", "note", "query"]
 
     for starts_with in ignore_composites_with:
         l.debug(f"starts_with: {starts_with}")

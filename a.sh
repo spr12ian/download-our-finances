@@ -8,7 +8,7 @@ if [ -f "${db_filename}" ]; then
 fi
 
 
-rm -fv ./*.log
+rm -fv ./*.log >/dev/null
 
 ./do_it_all.sh >do_it_all.log 2>do_it_all_error.log
 
