@@ -9,7 +9,6 @@ from sqlalchemy import (
     Float,
 )
 from sqlalchemy.ext.automap import automap_base
-from sqlalchemy.orm import Session
 from utility_functions import to_camel_case
 from spreadsheet_fields import get_sqlalchemy_type
 
@@ -57,7 +56,11 @@ for table_name in metadata.tables.keys():
             print(f"column.name: {column.name}")
             col_type = column.type
             print(f"col_type: {col_type}")
-            col_type_str = get_sqlalchemy_type(table_name, column.name)
+            if column.name == "id":
+                col_type_str = "Integer"
+            else:
+                col_type_str = get_sqlalchemy_type(table_name, column.name)
+
             if col_type_str == "DECIMAL":
                 column_parts = ["String"]
             else:

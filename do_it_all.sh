@@ -26,28 +26,22 @@ stop_if_module_has_errors key_check
 
 stop_if_module_has_errors analyze_spreadsheet
 
-# List of databases
-databases=("our_finances")
+stop_if_module_has_errors google_sheets_to_sqlite
 
-# Loop through each database
-for db in "${databases[@]}"; do
-    db_filename="${db}.sqlite"
+db_filename="our_finances.sqlite"
 
-    stop_if_module_has_errors "spreadsheet_to_${db}"
+if [ -f "${db_filename}" ]; then
+    stop_if_module_has_errors vacuum_sqlite_database
 
-    if [ -f "${db_filename}" ]; then
-        stop_if_module_has_errors "vacuum ${db_filename}"
+    sqlitebrowser "${db_filename}" &
 
-        sqlitebrowser "${db_filename}" &
+    stop_if_module_has_errors first_normal_form
 
-        stop_if_module_has_errors "first_normal_form"
+    stop_if_module_has_errors execute_sqlite_queries
 
-        stop_if_module_has_errors "execute_sqlite_queries"
+    stop_if_module_has_errors generate_sqlalchemy_models
 
-        stop_if_module_has_errors "generate_sqlalchemy_models"
+    stop_if_module_has_errors execute_sqlalchemy_queries
 
-        stop_if_module_has_errors "execute_sqlalchemy_queries"
-
-        stop_if_module_has_errors "create_hmrc_reports_from_${db}"
-    fi
-done
+    stop_if_module_has_errors create_reports
+fi

@@ -13,9 +13,9 @@ class GoogleHelper:
         config = ConfigHelper()
 
         # Google Cloud Service credentials
-        self.credentials_file_name = config["Google"]["credentials_file_name"]
+        self.credentials_file_name = config["Google.Cloud"]["credentials_file_name"]
 
-        self.spreadsheet_key = config["Google"]["source_spreadsheet_key"]
+        self.spreadsheet_key = config["Google.Sheets"]["spreadsheet_key"]
 
     def get_authorized_client(self, scopes):
         # from_service_account_file requires scopes to be passed as a keyword arguement
@@ -45,7 +45,7 @@ class GoogleHelper:
     def get_credentials_path(self):
         home_directory = OsHelper().get_home_directory()
 
-        credentials_path = f"{home_directory}/{self.credentials_file_name}.json"
+        credentials_path = f"{home_directory}/{self.credentials_file_name}"
         self.l.debug(f"credentials_path: {credentials_path}")
         return credentials_path
 

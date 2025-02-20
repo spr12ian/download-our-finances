@@ -3,6 +3,7 @@ from cls_helper_log import LogHelper
 from cls_helper_log import debug_function_call
 from cls_helper_pandas import PandasHelper
 from cls_helper_sqlalchemy import valid_sqlalchemy_name
+from database_keys import database_keys
 from pathlib import Path
 import time
 import utility_functions as uf
@@ -65,7 +66,7 @@ class SpreadsheetAnalyzer:
         self.fields = []
 
         
-        self.tables = []
+        self.account_tables = []
 
     def analyze_spreadsheet(self):
         """
@@ -84,14 +85,14 @@ class SpreadsheetAnalyzer:
     def analyze_worksheet(self, worksheet):
         self.l.info(f"Analyzing {worksheet.title}")
         if worksheet.title.startswith("_"):
-            self.tables.append(worksheet.title)
+            self.account_tables.append(worksheet.title)
 
         table_name = valid_sqlalchemy_name(worksheet.title)
         self.l.info(f"table_name: {table_name}")
 
         pdh = self.pdh
         try:
-            self.fields.append(self.get_column_types(table_name, "id"))
+            # self.fields.append(self.get_column_types(table_name, "id"))
 
             first_row = worksheet.row_values(1)
             self.l.debug(f"first_row: {first_row}")
@@ -169,11 +170,11 @@ class SpreadsheetAnalyzer:
             sqlalchemy_type,
         ]
 
-    def write_tables(self):
+    def write_account_tables(self):
         file_path = Path("account_tables.js")
         with file_path.open("w") as output:
-            tables_output = str(self.tables)
-            output.write(tables_output)
+            account_tables_output = str(self.account_tables)
+            output.write(account_tables_output)
 
     def write_output(self):
         file_path = Path("spreadsheet_fields.py")
@@ -232,7 +233,6 @@ def get_to_db(table_name, column_name):
     return field[3] # to_db
 
 # table_name, spreadsheet_column_name, sqlite_column_name, to_db, sqlite_type, from_db, python_type, sqlalchemy_type
-# id is NOT on the spreadsheet but is added as the database is generated to enable reverse engineering for sqlalchemy 
 fields = """
         return prefix
 
@@ -246,7 +246,7 @@ def main():
     # Analyze spreadsheet
     analyzer.analyze_spreadsheet()
 
-    analyzer.write_tables()
+    analyzer.write_account_tables()
     analyzer.write_output()
 
 

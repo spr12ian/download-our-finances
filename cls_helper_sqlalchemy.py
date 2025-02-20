@@ -51,6 +51,9 @@ class SQLAlchemyHelper:
             session.close()
 
         return value
+    
+    def get_db_filename(self):
+        return self.engine.url.database
 
     def get_session(self):
         return Session(self.engine)

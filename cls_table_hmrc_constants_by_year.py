@@ -131,7 +131,13 @@ class HMRC_ConstantsByYear(SQLiteTable):
     
     def get_trading_income_allowance(self) -> Decimal:
         self.l.debug("get_trading_income_allowance")
-        return self.amount_constants.get_trading_income_allowance()
+        try:
+            trading_income_allowance = self.amount_constants.get_trading_income_allowance()
+            self.l.debug(f"trading_income_allowance: {trading_income_allowance}")
+        except ValueError as v:
+            self.l.error(f"Error in get_trading_income_allowance: {v}")
+            raise
+        return trading_income_allowance
     
     @lru_cache(maxsize=None)
     def get_vat_registration_threshold(self) -> Decimal:

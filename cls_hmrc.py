@@ -29,9 +29,9 @@ class HMRC:
         max_category_width = max_description_width
         breakdown = ["Date | Account | Description | Note | Nett (£) | Category"]
         for row in rows:
-            self.l.debug(f'row: {row}')
-            nett_decimal=Decimal(row[4])
-            self.l.debug(f'nett_decimal: {nett_decimal:>10.2f}')
+            self.l.debug(f"row: {row}")
+            nett_decimal = Decimal(row[4])
+            self.l.debug(f"nett_decimal: {nett_decimal:>10.2f}")
             breakdown.append(
                 f"{row[0]} | {row[1]} | {row[2][:max_description_width]} | {row[3]} | {nett_decimal:>10.2f} | {row[5][:max_category_width]}"
             )
@@ -747,7 +747,7 @@ class HMRC:
     def get_class_2_nics_due(self):
         self.l.debug("get_class_2_nics_due")
         class_2_annual_amount = self.get_class_2_annual_amount()
-        
+
         # If trading profits exceed the personal allowance
         # then class 2 nics payments are required.
         personal_allowance = self.get_personal_allowance()
@@ -761,14 +761,13 @@ class HMRC:
         small_profits_threshold = self.get_small_profits_threshold()
         if trading_profit >= small_profits_threshold:
             return 0
-        
-        
+
         # If trading profits less than small profits threshold
         # then class 2 nics are voluntary.
         # Pay voluntarily if neccesary to acheive max state pension.
         if self.are_nics_needed_to_acheive_max_state_pension():
             return class_2_annual_amount
-       
+
         return 0
 
     def get_class_2_nics_due_gbp(self):
@@ -780,7 +779,7 @@ class HMRC:
     def get_weekly_state_pension(self):
         return self.constants.get_weekly_state_pension()
 
-    def get_weekly_state_pension_forecast(self)->float:
+    def get_weekly_state_pension_forecast(self) -> float:
         weekly_state_pension_forecast = self.person.get_weekly_state_pension_forecast()
         self.l.debug(f"weekly_state_pension_forecast: {weekly_state_pension_forecast}")
         return weekly_state_pension_forecast
@@ -2329,7 +2328,9 @@ class HMRC:
 
     def get_trading_allowance_actual(self):
         self.l.debug("get_trading_allowance_actual")
-        return self.constants.get_trading_income_allowance()
+        trading_income_allowance = self.constants.get_trading_income_allowance()
+        self.l.debug(f"trading_income_allowance: {trading_income_allowance}")
+        return trading_income_allowance
 
     def get_trading_allowance_actual_gbp(self):
         return self.gbpb(self.get_trading_allowance_actual())
@@ -2363,8 +2364,10 @@ class HMRC:
         person_code = self.person_code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} SES expense"
-        trading_expenses_actual = self.transactions.fetch_total_by_tax_year_category_like(
-            tax_year, category_like
+        trading_expenses_actual = (
+            self.transactions.fetch_total_by_tax_year_category_like(
+                tax_year, category_like
+            )
         )
         self.l.debug(f"trading_expenses_actual: {trading_expenses_actual}")
         return uf.round_up(trading_expenses_actual)
@@ -2742,7 +2745,7 @@ class HMRC:
         self.l.debug(property_expenses)
         return property_allowance > property_expenses
 
-    def use_trading_allowance(self):
+    def use_trading_allowance(self) -> bool:
         self.l.debug("use_trading_allowance")
         try:
             value = self.use_trading_allowance_override()
@@ -2762,7 +2765,7 @@ class HMRC:
 
         return value
 
-    def use_trading_allowance_override(self):
+    def use_trading_allowance_override(self) -> bool:
         self.l.debug("use_trading_allowance_override")
         try:
             return self.overrides.use_trading_allowance()

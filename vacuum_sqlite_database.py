@@ -1,11 +1,10 @@
 from pathlib import Path
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
 from cls_helper_sqlalchemy import SQLAlchemyHelper
 from cls_helper_log import LogHelper
 from cls_helper_log import debug_function_call
 import os
-import sys
+# import sys
 
 l = LogHelper(__file__)
 # l.set_level_debug()
@@ -17,8 +16,10 @@ def get_file_size(file_path):
 
 
 @debug_function_call
-def vacuum_database(db_file_path):
+def vacuum_database():
     alchemy = SQLAlchemyHelper()
+    db_file_path = alchemy.get_db_filename()
+    print(f"Database file path: {db_file_path}")
 
     vacuum_statement = text("VACUUM;")
 
@@ -48,18 +49,19 @@ def vacuum_database(db_file_path):
 
 
 def main():
-    # Check if the correct number of arguments is provided
-    print(len(sys.argv))
-    if len(sys.argv) != 2:
-        print('Usage: pwl vacuum "database_file"')
-        sys.exit(1)
+    # # Check if the correct number of arguments is provided
+    # print(len(sys.argv))
+    # if len(sys.argv) != 2:
+    #     print('Usage: pwl vacuum "database_file"')
+    #     sys.exit(1)
 
-    # Get the command line arguments
-    args = sys.argv[1:]  # Exclude the script name
+    # # Get the command line arguments
+    # args = sys.argv[1:]  # Exclude the script name
 
-    db_file_path = args[0]
-    print(f"Database file: {db_file_path}")
-    vacuum_database(db_file_path)
+    # db_file_path = args[0]
+
+
+    vacuum_database()
 
 
 if __name__ == "__main__":
