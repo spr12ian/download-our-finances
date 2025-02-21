@@ -2,6 +2,7 @@
 *.csv
 *.sqlite
 *.txt
+account_tables.js
 config.ini
 scratch.sql
 models.py
