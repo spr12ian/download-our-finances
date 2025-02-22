@@ -33,6 +33,8 @@ db_filename="our_finances.sqlite"
 if [ -f "${db_filename}" ]; then
     stop_if_module_has_errors vacuum_sqlite_database
 
+    stop_if_module_has_errors create_reports
+
     sqlitebrowser "${db_filename}" &
 
     stop_if_module_has_errors first_normal_form
@@ -42,6 +44,4 @@ if [ -f "${db_filename}" ]; then
     stop_if_module_has_errors generate_sqlalchemy_models
 
     stop_if_module_has_errors execute_sqlalchemy_queries
-
-    stop_if_module_has_errors create_reports
 fi
