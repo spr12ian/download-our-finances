@@ -3,7 +3,7 @@ import math
 import re
 from cls_helper_date_time import DateTimeHelper
 from cls_helper_log import LogHelper
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_DOWN, ROUND_UP
 
 
 BOOLEAN_MAP = {
@@ -57,12 +57,12 @@ def crop(string: str, excess: str) -> str:
 
 def format_as_gbp(amount: Decimal, field_width: int = 0) -> str:
     """
-    Format a float as GBP.
+    Format a Decimal as GBP.
     """
     # Set the locale to GBP
     locale.setlocale(locale.LC_ALL, "en_GB.UTF-8")
 
-    # Format the float as currency
+    # Format the Decimal as currency
     formatted_amount = locale.currency(amount, grouping=True)
 
     # Right justify the formatted amount within the specified field width
@@ -71,13 +71,13 @@ def format_as_gbp(amount: Decimal, field_width: int = 0) -> str:
 
 def format_as_gbp_or_blank(amount: Decimal) -> str:
     """
-    Format a float as GBP or blank if zero.
+    Format a Decimal as GBP or blank if zero.
     """
 
     if abs(amount) < 0.01:
         return ""
     else:
-        # Format the float as currency
+        # Format the Decimal as currency
         return format_as_gbp(amount)
 
 
@@ -92,11 +92,41 @@ def round_down(number: float) -> int:
     return math.floor(number)
 
 
+def round_down_decimal(value: Decimal, places: int = 2) -> Decimal:
+    """
+    Round down a Decimal value to a specified number of decimal places.
+
+    Args:
+        value (Decimal): The Decimal value to round down.
+        places (int): The number of decimal places to round down to. Default is 2.
+
+    Returns:
+        Decimal: The rounded down Decimal value.
+    """
+    rounding_factor = Decimal("1." + "0" * places)
+    return value.quantize(rounding_factor, rounding=ROUND_DOWN)
+
+
 def round_up(number: float) -> int:
     return math.ceil(number)
 
 
-# Function to convert currency/percent strings to float
+def round_up_decimal(value: Decimal, places: int = 2) -> Decimal:
+    """
+    Round down a Decimal value to a specified number of decimal places.
+
+    Args:
+        value (Decimal): The Decimal value to round down.
+        places (int): The number of decimal places to round down to. Default is 2.
+
+    Returns:
+        Decimal: The rounded down Decimal value.
+    """
+    rounding_factor = Decimal("1." + "0" * places)
+    return value.quantize(rounding_factor, rounding=ROUND_UP)
+
+
+# Function to convert currency/percent strings to Decimal
 def string_to_financial(string: str) -> Decimal:
     if string.strip() == "":  # Check if the string is empty or whitespace
         return Decimal("0.00")
@@ -136,10 +166,10 @@ def string_to_float(string) -> float:
     return float(string)
 
 
-def sum_values(lst: list) -> float:
+def sum_values(lst: list[Decimal]) -> Decimal:
     l.debug("sum_values")
     l.debug(lst)
-    total = 0
+    total = Decimal(0)
     for value in lst:
         total += value
     return total

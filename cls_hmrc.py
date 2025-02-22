@@ -4,7 +4,6 @@ from cls_helper_sqlalchemy import valid_sqlalchemy_name
 from cls_hmrc_calculation import HMRC_Calculation
 from cls_hmrc_people import HMRC_People
 from tables import *
-import spreadsheet_fields
 import utility_functions as uf
 from cls_hmrc_output import HMRC_Output
 from functools import lru_cache
@@ -522,13 +521,13 @@ class HMRC:
         ]
         return "\n" + "\n".join(formatted_lines) + "\n"
 
-    def gbp(self, amount: float, field_width: int = 0) -> str:
+    def gbp(self, amount: Decimal, field_width: int = 0) -> str:
         return uf.format_as_gbp(amount, field_width)
 
-    def gbpa(self, amount, field_width: int = 10) -> str:
+    def gbpa(self, amount:Decimal, field_width: int = 10) -> str:
         return self.gbp(amount, field_width)
 
-    def gbpb(self, amount: float) -> str:
+    def gbpb(self, amount: Decimal) -> str:
         if abs(amount) < 0.01:
             return ""
         return self.gbpa(amount)
@@ -536,7 +535,7 @@ class HMRC:
     def get_additional_information(self):
         return "Maybe: Married couples allowance section"
 
-    def get_additional_rate_threshold(self) -> float:
+    def get_additional_rate_threshold(self) -> Decimal:
         return self.constants.get_additional_rate_threshold()
 
     def get_additional_tax_rate(self):
@@ -653,7 +652,7 @@ class HMRC:
     def get_basic_rate_threshold(self):
         return self.constants.get_basic_rate_threshold()
 
-    def get_basic_tax_rate(self) -> float:
+    def get_basic_tax_rate(self) -> Decimal:
         self.l.debug("get_basic_tax_rate")
         basic_tax_rate = self.constants.get_basic_tax_rate()
         self.l.debug(f"basic_tax_rate: {basic_tax_rate}")
@@ -779,7 +778,7 @@ class HMRC:
     def get_weekly_state_pension(self):
         return self.constants.get_weekly_state_pension()
 
-    def get_weekly_state_pension_forecast(self) -> float:
+    def get_weekly_state_pension_forecast(self) -> Decimal:
         weekly_state_pension_forecast = self.person.get_weekly_state_pension_forecast()
         self.l.debug(f"weekly_state_pension_forecast: {weekly_state_pension_forecast}")
         return weekly_state_pension_forecast
@@ -846,7 +845,7 @@ class HMRC:
         parts.append(f"class 4 nics: {class_4_nics_due_gbp}")
         return "\n" + " | ".join(parts)
 
-    def get_combined_taxable_profit(self) -> float:
+    def get_combined_taxable_profit(self) -> Decimal:
         trading_profit = self.get_trading_profit()
         property_profit = self.get_property_profit()
         combined_taxable_profit = trading_profit + property_profit
@@ -864,7 +863,7 @@ class HMRC:
     def get_construction_industry_deductions_gbp(self):
         return False
 
-    def get_cost_to_replace_residential_domestic_items(self) -> float:
+    def get_cost_to_replace_residential_domestic_items(self) -> Decimal:
         self.l.debug("get_cost_to_replace_residential_domestic_items")
         category_like = "UKP expense: cost of replacing domestic items"
         cost_to_replace_residential_domestic_items = (
@@ -873,7 +872,7 @@ class HMRC:
         self.l.debug(
             f"cost_to_replace_residential_domestic_items: {cost_to_replace_residential_domestic_items}"
         )
-        return uf.round_up(cost_to_replace_residential_domestic_items)
+        return self.round_up(cost_to_replace_residential_domestic_items)
 
     def get_cost_to_replace_residential_domestic_items_gbp(self) -> str:
         self.l.debug("get_cost_to_replace_residential_domestic_items_gbp")
@@ -1030,14 +1029,14 @@ class HMRC:
             tax_year, f"HMRC {person_code} INC Dividends from UK companies"
         )
 
-    def get_dividends_income(self) -> float:
+    def get_dividends_income(self) -> Decimal:
         person_code = self.person_code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} DIV income: "
         dividends_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
-        return uf.round_down(dividends_income)
+        return self.round_down(dividends_income)
 
     def get_dividends_income_gbp(self):
         return self.gbpb(self.get_dividends_income())
@@ -1100,7 +1099,7 @@ class HMRC:
     def get_first_name(self):
         return self.person.get_first_name()
 
-    def get_first_payment_on_account_for_next_year(self) -> float:
+    def get_first_payment_on_account_for_next_year(self) -> Decimal:
         values = [self.get_income_tax(), self.get_class_4_nics_due()]
         total = uf.sum_values(values)
         first_payment_on_account_for_next_year = total / 2
@@ -1210,7 +1209,7 @@ class HMRC:
         hmrc_calculation = HMRC_Calculation(self)
         return hmrc_calculation.get_output()
 
-    def get_hmrc_total_income(self) -> float:
+    def get_hmrc_total_income(self) -> Decimal:
         self.l.debug("get_hmrc_total_income")
         total_income_received = self.get_hmrc_total_income_received()
         self.l.debug(f"total_income_received: {total_income_received}")
@@ -1221,7 +1220,7 @@ class HMRC:
 
         return hmrc_total_income
 
-    def get_hmrc_total_income_received(self) -> float:
+    def get_hmrc_total_income_received(self) -> Decimal:
         values = [
             self.get_trading_profit(),
             self.get_property_profit(),
@@ -1300,7 +1299,7 @@ class HMRC:
         pay_voluntarily_nics = self.do_you_want_to_pay_class_2_nics_voluntarily()
         return trading_income <= trading_allowance and pay_voluntarily_nics
 
-    def get_income_tax(self) -> float:
+    def get_income_tax(self) -> Decimal:
         self.l.debug("get_income_tax")
         non_savings_income = self.get_non_savings_income()
         self.l.debug(f"non_savings_income: {non_savings_income}")
@@ -1340,12 +1339,12 @@ class HMRC:
     def get_last_name(self):
         return self.person.get_last_name()
 
-    def get_legal__management_and_other_professional_fees(self) -> float:
+    def get_legal__management_and_other_professional_fees(self) -> Decimal:
         category_like = "UKP expense: legal"
         legal__management_and_other_professional_fees = (
             self.get_total_transactions_by_category_like(category_like)
         )
-        return uf.round_up(legal__management_and_other_professional_fees)
+        return self.round_up(legal__management_and_other_professional_fees)
 
     def get_legal__management_and_other_professional_fees_gbp(self):
         return self.gbpb(self.get_legal__management_and_other_professional_fees())
@@ -1385,24 +1384,24 @@ class HMRC:
         parts.append(f"transferred to: {transferred_to}")
         return "\n" + " | ".join(parts)
 
-    def get_marriage_allowance_donor_amount(self) -> float:
+    def get_marriage_allowance_donor_amount(self) -> Decimal:
         if not self.is_married():
-            return 0
+            return Decimal(0)
 
         total_income = self.get_hmrc_total_income_received()
 
         personal_allowance = self.get_personal_allowance()
 
         if total_income > personal_allowance:
-            return 0
+            return Decimal(0)
 
         spouse_total_income = self.get_spouse_total_income_received()
         if personal_allowance > spouse_total_income:
-            return 0
+            return Decimal(0)
 
         higher_rate_threshold = self.get_higher_rate_threshold()
         if spouse_total_income > higher_rate_threshold:
-            return 0
+            return Decimal(0)
 
         max_marriage_allowance = self.constants.get_marriage_allowance()
 
@@ -1415,10 +1414,10 @@ class HMRC:
         return self.gbpb(self.get_marriage_allowance_donor_amount())
 
     @lru_cache(maxsize=None)
-    def get_marriage_allowance_recipient_amount(self) -> float:
+    def get_marriage_allowance_recipient_amount(self) -> Decimal:
         self.l.debug("get_marriage_allowance_recipient_amount")
         if not self.is_married():
-            return 0
+            return Decimal(0)
         spouse_hmrc = self.get_spouse_hmrc()
         self.l.debug("Disabling debug for spouse HMRC instance")
         spouse_hmrc.disable_debug()
@@ -1614,7 +1613,7 @@ class HMRC:
     def get_payments_to_overseas_pension_scheme(self):
         return 0
 
-    def get_payments_to_pension_schemes__relief_at_source(self) -> float:
+    def get_payments_to_pension_schemes__relief_at_source(self) -> Decimal:
         person_code = self.person_code
         payments_to_pension_schemes = (
             self.transactions.fetch_total_by_tax_year_category_like(
@@ -1737,14 +1736,14 @@ class HMRC:
         else:
             return 0
 
-    def get_property_expenses_actual(self) -> float:
+    def get_property_expenses_actual(self) -> Decimal:
         property_expenses = [
             self.get_rent__rates__insurance_and_ground_rents(),
             self.get_property_repairs_and_maintenance(),
             self.get_legal__management_and_other_professional_fees(),
         ]
         total_property_expenses = uf.sum_values(property_expenses)
-        return uf.round_up(total_property_expenses)
+        return self.round_up(total_property_expenses)
 
     def get_property_expenses_actual_gbp(self):
         return self.gbpb(self.get_property_expenses_actual())
@@ -1757,14 +1756,14 @@ class HMRC:
     def get_property_expenses_gbp(self):
         return self.gbpb(self.get_property_expenses())
 
-    def get_property_income(self) -> float:
+    def get_property_income(self) -> Decimal:
         person_code = self.person_code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} UKP income"
         property_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
-        return uf.round_down(property_income)
+        return Decimal(self.round_down(property_income))
 
     def get_property_income_breakdown(self):
         person_code = self.person_code
@@ -1797,12 +1796,12 @@ class HMRC:
         actual_property_expenses = self.get_property_expenses_actual()
         return max(actual_property_expenses, actual_property_allowance)
 
-    def get_property_repairs_and_maintenance(self) -> float:
+    def get_property_repairs_and_maintenance(self) -> Decimal:
         category_like = "UKP expense: repairs and maintenance"
         repairs_and_maintenance = self.get_total_transactions_by_category_like(
             category_like
         )
-        return uf.round_up(repairs_and_maintenance)
+        return self.round_up(repairs_and_maintenance)
 
     def get_property_repairs_and_maintenance_gbp(self):
         return self.gbpb(self.get_property_repairs_and_maintenance())
@@ -1851,10 +1850,10 @@ class HMRC:
     def get_relief_now_for_following_year_trade_losses(self):
         return self.gbpb(0)
 
-    def get_rent__rates__insurance_and_ground_rents(self) -> float:
+    def get_rent__rates__insurance_and_ground_rents(self) -> Decimal:
         category_like = "UKP expense: rent, rates"
         rent_rates_etc = self.get_total_transactions_by_category_like(category_like)
-        return uf.round_up(rent_rates_etc)
+        return self.round_up(rent_rates_etc)
 
     def get_rent__rates__insurance_and_ground_rents_gbp(self):
         return self.gbpb(self.get_rent__rates__insurance_and_ground_rents())
@@ -1921,14 +1920,14 @@ class HMRC:
         self.l.debug("get_savings_digest")
         return self.get_digest_by_type("savings")
 
-    def get_savings_income(self) -> float:
+    def get_savings_income(self) -> Decimal:
         person_code = self.person_code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} INT income"
         savings_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
-        return uf.round_down(savings_income)
+        return self.round_down(savings_income)
 
     def get_savings_income_breakdown(self):
         person_code = self.person_code
@@ -2012,7 +2011,7 @@ class HMRC:
         return spouse_hmrc
 
     @lru_cache(maxsize=None)
-    def get_spouse_total_income_received(self) -> float:
+    def get_spouse_total_income_received(self) -> Decimal:
         spouse_hmrc = self.get_spouse_hmrc()
         spouse_total_income_received = spouse_hmrc.get_hmrc_total_income_received()
         return spouse_total_income_received
@@ -2300,7 +2299,7 @@ class HMRC:
         total = self.get_total_to_add_to_sa_account_due_by_31st_january()
         return self.gbpb(total)
 
-    def get_total_transactions_by_category_like(self, category_like) -> float:
+    def get_total_transactions_by_category_like(self, category_like) -> Decimal:
         person_code = self.person_code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} {category_like}"
@@ -2357,7 +2356,7 @@ class HMRC:
         else:
             return 0
 
-    def get_trading_expenses_actual(self) -> float:
+    def get_trading_expenses_actual(self) -> Decimal:
         self.l.debug("get_trading_expenses_actual")
         if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
@@ -2370,7 +2369,7 @@ class HMRC:
             )
         )
         self.l.debug(f"trading_expenses_actual: {trading_expenses_actual}")
-        return uf.round_up(trading_expenses_actual)
+        return self.round_up(trading_expenses_actual)
 
     def get_trading_expenses_actual_gbp(self):
         return self.gbpb(self.get_trading_expenses_actual())
@@ -2383,7 +2382,7 @@ class HMRC:
     def get_trading_expenses_gbp(self):
         return self.gbpb(self.get_trading_expenses())
 
-    def get_trading_income(self) -> float:
+    def get_trading_income(self) -> Decimal:
         if self.get_how_many_self_employed_businesses_did_you_have() > 1:
             raise ValueError("More than one business. Review the code")
         person_code = self.person_code
@@ -2392,7 +2391,7 @@ class HMRC:
         trading_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
-        return uf.round_down(trading_income)
+        return Decimal(self.round_down(trading_income))
 
     def get_trading_income__turnover__gbp(self) -> str:
         return self.get_trading_income_gbp()
@@ -2545,7 +2544,7 @@ class HMRC:
         untaxed_uk_interest = self.get_year_category_total(
             tax_year, f"HMRC {person_code} INT income: interest UK untaxed"
         )
-        return uf.round_down(untaxed_uk_interest)
+        return self.round_down(untaxed_uk_interest)
 
     def get_untaxed_uk_interest_gbp(self):
         return self.gbpb(self.get_untaxed_uk_interest())
@@ -2617,6 +2616,12 @@ class HMRC:
 
     def get_zero_emissions_allowance(self):
         return self.gbpb(0)
+    
+    def round_down(self, amount: Decimal) -> Decimal:
+        return uf.round_down_decimal(amount)
+
+    def round_up(self, amount):
+        return uf.round_up_decimal(amount)
 
     def how_many_nic_weeks_in_year(self) -> int:
         return self.constants.how_many_nic_weeks_in_year()
