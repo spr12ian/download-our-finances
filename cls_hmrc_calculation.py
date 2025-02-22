@@ -1,6 +1,6 @@
 from cls_helper_log import LogHelper
-
 from datetime import datetime
+from decimal import Decimal
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ class HMRC_Calculation:
         self.hmrc = hmrc
         self.output_list = [""]
 
-    def add_hmrc_part(self, key: str, amount: Optional[float] = None) -> None:
+    def add_hmrc_part(self, key: str, amount: Optional[Decimal] = None) -> None:
         self.l.debug("add_hmrc_part")
         if amount is None:
             self.append(key)
@@ -26,7 +26,7 @@ class HMRC_Calculation:
             line = f"{key.ljust(max_key_width)} {amount_gbp.rjust(max_amount_width)}"
             self.append(line)
 
-    def add_part_basic_tax(self, unused_allowance) -> float:
+    def add_part_basic_tax(self, unused_allowance) -> Decimal:
         hmrc = self.hmrc
         self.l.debug(f"add_part_basic_tax: unused_allowance: {unused_allowance}")
         combined_taxable_profit = hmrc.get_combined_taxable_profit()
@@ -36,9 +36,8 @@ class HMRC_Calculation:
         if p_taxable_amount > 0:
             taxable_amount_gbp = hmrc.gbp(p_taxable_amount)
             basic_rate = hmrc.get_basic_tax_rate()
-            basic_rate_integer = int(basic_rate * 100)
-            label = f"Basic rate [{combined_taxable_profit} - {unused_allowance}] {taxable_amount_gbp} x{basic_rate_integer}%"
-            basic_tax = p_taxable_amount * basic_rate
+            label = f"Basic rate [{combined_taxable_profit} - {unused_allowance}] {taxable_amount_gbp} x{basic_rate}%"
+            basic_tax = p_taxable_amount * basic_rate / 100
             self.add_hmrc_part(label, basic_tax)
 
             unused_allowance = max(0, unused_allowance - combined_taxable_profit)
@@ -62,7 +61,7 @@ class HMRC_Calculation:
         if dividends_income > 0:
             self.add_hmrc_part("Dividends from UK companies", dividends_income)
 
-    def add_part_dividends_tax(self, unused_allowance) -> float:
+    def add_part_dividends_tax(self, unused_allowance) -> Decimal:
         hmrc = self.hmrc
         dividends_income = hmrc.get_dividends_income()
         d_taxable_amount = max(0, dividends_income - unused_allowance)
@@ -72,11 +71,10 @@ class HMRC_Calculation:
             dividends_allowance = hmrc.get_dividends_allowance()
             dividends_income = hmrc.get_dividends_income()
             taxable_amount = max(0, dividends_income - dividends_allowance)
-            basic_rate_integer = int(dividends_basic_rate * 100)
 
-            basic_tax = taxable_amount * dividends_basic_rate
+            basic_tax = taxable_amount * dividends_basic_rate / 100
             taxable_amount_gbp = hmrc.gbp(taxable_amount)
-            label = f"Dividends basic rate {taxable_amount_gbp} x{basic_rate_integer}%"
+            label = f"Dividends basic rate {taxable_amount_gbp} x{dividends_basic_rate}%"
             self.add_hmrc_part(label, basic_tax)
 
             unused_allowance = max(0, unused_allowance - dividends_income)
@@ -176,7 +174,7 @@ class HMRC_Calculation:
         if property_profit > 0:
             self.add_hmrc_part("Profit from UK land and property", property_profit)
 
-    def add_part_savings_basic_rate_tax(self, unused_allowance) -> float:
+    def add_part_savings_basic_rate_tax(self, unused_allowance) -> Decimal:
         hmrc = self.hmrc
         savings_income = hmrc.get_savings_income()
         s_taxable_amount = max(0, savings_income - unused_allowance)
@@ -186,11 +184,10 @@ class HMRC_Calculation:
             savings_nil_band = hmrc.get_savings_nil_band()
             savings_income = hmrc.get_savings_income()
             taxable_amount = max(0, savings_income - savings_nil_band)
-            basic_rate_integer = int(savings_basic_rate * 100)
 
-            basic_tax = taxable_amount * savings_basic_rate
+            basic_tax = taxable_amount * savings_basic_rate  / 100
             taxable_amount_gbp = hmrc.gbp(taxable_amount)
-            label = f"Basic rate {taxable_amount_gbp} x{basic_rate_integer}%"
+            label = f"Basic rate {taxable_amount_gbp} x{savings_basic_rate}%"
             self.add_hmrc_part(label, basic_tax)
 
             unused_allowance = max(0, unused_allowance - savings_income)
@@ -208,7 +205,7 @@ class HMRC_Calculation:
                 "Savings interest from banks or building societies, securities etc."
             )
 
-    def add_part_savings_nil_rate_tax(self, unused_allowance) -> float:
+    def add_part_savings_nil_rate_tax(self, unused_allowance) -> Decimal:
         hmrc = self.hmrc
         savings_income = hmrc.get_savings_income()
         s_taxable_amount = max(0, savings_income - unused_allowance)
@@ -220,7 +217,7 @@ class HMRC_Calculation:
             savings_nil_rate_amount = min(savings_income, savings_nil_band)
             taxable_amount = max(0, savings_income - savings_nil_band)
             basic_rate_integer = int(savings_basic_rate * 100)
-            nil_rate_tax = 0
+            nil_rate_tax = Decimal(0)
             savings_nil_rate_amount_gbp = hmrc.gbp(savings_nil_rate_amount)
             label = f"Basic rate band at nil rate {savings_nil_rate_amount_gbp} x0%"
             self.add_hmrc_part(label, nil_rate_tax)
@@ -243,7 +240,7 @@ class HMRC_Calculation:
         total_for_this_year = income_tax + class_2_nics
         self.add_hmrc_part("Total tax + NICs due for this year", total_for_this_year)
 
-    def add_part_total_income(self) -> float:
+    def add_part_total_income(self) -> Decimal:
         hmrc = self.hmrc
         self.l.debug("add_part_total_income")
         hmrc_total_income = hmrc.get_hmrc_total_income()
@@ -285,7 +282,7 @@ class HMRC_Calculation:
     def gbp(self, amount) -> str:
         return self.hmrc.gbp(amount)
 
-    def get_basic_rate_limit(self) -> float:
+    def get_basic_rate_limit(self) -> Decimal:
         hmrc = self.hmrc
         basic_rate_threshold = hmrc.get_basic_rate_threshold()
         personal_allowance = hmrc.get_personal_allowance()
@@ -323,11 +320,11 @@ class HMRC_Calculation:
 
         return "\n".join(self.output_list)
 
-    def get_revised_basic_rate_limit(self, pension_payments) -> float:
+    def get_revised_basic_rate_limit(self, pension_payments) -> Decimal:
         hmrc = self.hmrc
         basic_rate_limit = self.get_basic_rate_limit()
         revised_basic_rate_limit = basic_rate_limit + pension_payments
         return revised_basic_rate_limit
 
-    def get_trading_profit(self) -> float:
+    def get_trading_profit(self) -> Decimal:
         return self.hmrc.get_trading_profit()

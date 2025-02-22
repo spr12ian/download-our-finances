@@ -262,7 +262,7 @@ class HMRC:
             if amount <= savings_nil_band:
                 tax = 0
             else:
-                savings_basic_rate = self.get_savings_basic_rate()
+                savings_basic_rate = self.get_savings_basic_rate() / 100
                 tax = (amount - savings_nil_band) * savings_basic_rate
         self.l.debug(f"tax: {tax}")
         return (round(tax, 2), available_allowance)
@@ -280,9 +280,9 @@ class HMRC:
             basic_rate_threshold = self.get_revised_basic_rate_threshold()
             basic_rate_limit = self.get_basic_rate_limit()
             higher_rate_threshold = self.get_higher_rate_threshold()
-            additional_tax_rate = self.get_additional_tax_rate()
-            basic_tax_rate = self.get_basic_tax_rate()
-            higher_tax_rate = self.get_higher_tax_rate()
+            additional_tax_rate = self.get_additional_tax_rate() / 100
+            basic_tax_rate = self.get_basic_tax_rate() / 100
+            higher_tax_rate = self.get_higher_tax_rate() / 100
             if amount <= basic_rate_limit:
                 tax = amount * basic_tax_rate
             else:
@@ -524,7 +524,7 @@ class HMRC:
     def gbp(self, amount: Decimal, field_width: int = 0) -> str:
         return uf.format_as_gbp(amount, field_width)
 
-    def gbpa(self, amount:Decimal, field_width: int = 10) -> str:
+    def gbpa(self, amount: Decimal, field_width: int = 10) -> str:
         return self.gbp(amount, field_width)
 
     def gbpb(self, amount: Decimal) -> str:
@@ -783,13 +783,13 @@ class HMRC:
         self.l.debug(f"weekly_state_pension_forecast: {weekly_state_pension_forecast}")
         return weekly_state_pension_forecast
 
-    def get_class_4_lower_profits_limit(self)->Decimal:
+    def get_class_4_lower_profits_limit(self) -> Decimal:
         return self.constants.get_class_4_lower_profits_limit()
 
-    def get_class_4_lower_rate(self)->Decimal:
+    def get_class_4_lower_rate(self) -> Decimal:
         return self.constants.get_class_4_lower_rate()
 
-    def get_class_4_nics_due(self)->Decimal:
+    def get_class_4_nics_due(self) -> Decimal:
         class_4_nics_lower_rate = self.get_class_4_lower_rate()
         class_4_nics_upper_rate = self.get_class_4_upper_rate()
         lower_profits_limit = self.get_class_4_lower_profits_limit()
@@ -1036,7 +1036,7 @@ class HMRC:
         dividends_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
-        return self.round_down(dividends_income)
+        return self.round_down(dividends_income, 0)
 
     def get_dividends_income_gbp(self):
         return self.gbpb(self.get_dividends_income())
@@ -1344,7 +1344,7 @@ class HMRC:
         legal__management_and_other_professional_fees = (
             self.get_total_transactions_by_category_like(category_like)
         )
-        return self.round_up(legal__management_and_other_professional_fees)
+        return self.round_up(legal__management_and_other_professional_fees, 0)
 
     def get_legal__management_and_other_professional_fees_gbp(self):
         return self.gbpb(self.get_legal__management_and_other_professional_fees())
@@ -1743,7 +1743,7 @@ class HMRC:
             self.get_legal__management_and_other_professional_fees(),
         ]
         total_property_expenses = uf.sum_values(property_expenses)
-        return self.round_up(total_property_expenses)
+        return total_property_expenses
 
     def get_property_expenses_actual_gbp(self):
         return self.gbpb(self.get_property_expenses_actual())
@@ -1801,7 +1801,7 @@ class HMRC:
         repairs_and_maintenance = self.get_total_transactions_by_category_like(
             category_like
         )
-        return self.round_up(repairs_and_maintenance)
+        return self.round_up(repairs_and_maintenance, 0)
 
     def get_property_repairs_and_maintenance_gbp(self):
         return self.gbpb(self.get_property_repairs_and_maintenance())
@@ -1853,7 +1853,7 @@ class HMRC:
     def get_rent__rates__insurance_and_ground_rents(self) -> Decimal:
         category_like = "UKP expense: rent, rates"
         rent_rates_etc = self.get_total_transactions_by_category_like(category_like)
-        return self.round_up(rent_rates_etc)
+        return self.round_up(rent_rates_etc, 0)
 
     def get_rent__rates__insurance_and_ground_rents_gbp(self):
         return self.gbpb(self.get_rent__rates__insurance_and_ground_rents())
@@ -1927,7 +1927,7 @@ class HMRC:
         savings_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
-        return self.round_down(savings_income)
+        return self.round_down(savings_income, 0)
 
     def get_savings_income_breakdown(self):
         person_code = self.person_code
@@ -2616,12 +2616,12 @@ class HMRC:
 
     def get_zero_emissions_allowance(self):
         return self.gbpb(0)
-    
-    def round_down(self, amount: Decimal) -> Decimal:
-        return uf.round_down_decimal(amount)
 
-    def round_up(self, amount):
-        return uf.round_up_decimal(amount)
+    def round_down(self, amount: Decimal, places: int = 2) -> Decimal:
+        return uf.round_down_decimal(amount, places)
+
+    def round_up(self, amount: Decimal, places: int = 2) -> Decimal:
+        return uf.round_up_decimal(amount, places)
 
     def how_many_nic_weeks_in_year(self) -> int:
         return self.constants.how_many_nic_weeks_in_year()
