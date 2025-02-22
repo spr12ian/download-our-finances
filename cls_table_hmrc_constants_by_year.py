@@ -83,11 +83,11 @@ class HMRC_ConstantsByYear(SQLiteTable):
     
     @lru_cache(maxsize=None)
     def get_class_4_lower_profits_limit(self) -> Decimal:
-        return self.amount_constants.get_class_4_lower_profits_limit
+        return self.amount_constants.get_class_4_lower_profits_limit()
     
     @lru_cache(maxsize=None)
     def get_class_4_upper_profits_limit(self) -> Decimal:
-        return self.amount_constants.get_class_4_upper_profits_limit
+        return self.amount_constants.get_class_4_upper_profits_limit()
     
     @lru_cache(maxsize=None)
     def get_dividends_allowance(self) -> Decimal:

@@ -783,13 +783,13 @@ class HMRC:
         self.l.debug(f"weekly_state_pension_forecast: {weekly_state_pension_forecast}")
         return weekly_state_pension_forecast
 
-    def get_class_4_lower_profits_limit(self):
+    def get_class_4_lower_profits_limit(self)->Decimal:
         return self.constants.get_class_4_lower_profits_limit()
 
-    def get_class_4_lower_rate(self):
+    def get_class_4_lower_rate(self)->Decimal:
         return self.constants.get_class_4_lower_rate()
 
-    def get_class_4_nics_due(self):
+    def get_class_4_nics_due(self)->Decimal:
         class_4_nics_lower_rate = self.get_class_4_lower_rate()
         class_4_nics_upper_rate = self.get_class_4_upper_rate()
         lower_profits_limit = self.get_class_4_lower_profits_limit()
@@ -811,7 +811,7 @@ class HMRC:
             ) * class_4_nics_upper_rate
             class_4_nics_due = lower_band_nic + upper_band_nic
         self.l.debug(f"class_4_nics_due: {class_4_nics_due}")
-        return class_4_nics_due
+        return Decimal(class_4_nics_due)
 
     def get_class_4_nics_due_gbp(self):
         return self.gbpa(self.get_class_4_nics_due())

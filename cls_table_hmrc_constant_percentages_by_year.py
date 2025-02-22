@@ -33,7 +33,7 @@ class HMRC_ConstantPercentagesByYear(SQLiteTable):
         self.l.set_level_debug()
         self.l.debug(__file__)
         self.l.debug(f"tax_year: {tax_year}")
-        super().__init__("hmrc_constants_by_year")
+        super().__init__("hmrc_constant_percentages_by_year")
         self.tax_year = tax_year
         self.tax_year_col = valid_sqlalchemy_name(tax_year)
 
