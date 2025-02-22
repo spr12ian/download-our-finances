@@ -1,5 +1,7 @@
 from cls_helper_log import LogHelper
 from cls_sqlite_table import SQLiteTable
+from decimal import Decimal
+import utility_functions as uf
 
 
 class Transactions(SQLiteTable):
@@ -10,20 +12,18 @@ class Transactions(SQLiteTable):
 
         super().__init__("transactions")
 
-    def fetch_total_where(self, where_clause):
+    def fetch_total_where(self, where_clause) -> Decimal:
         query = self.query_builder().total("nett").where(f"{where_clause}").build()
         self.l.debug(f"query: {query}")
-        total = self.sql.fetch_one_value_float(query)
+        total = self.sql.fetch_one_value_decimal(query)
         self.l.debug(f"total: {total}")
-        total = round(total, 2)
-        self.l.debug(f"rounded total: {total}")
-        return total
+        return uf.round_even(Decimal(total))
 
-    def fetch_total_by_tax_year_category(self, tax_year, category):
+    def fetch_total_by_tax_year_category(self, tax_year, category) -> Decimal:
         where_clause = f'"tax_year" = "{tax_year}" AND "category" = "{category}"'
         return self.fetch_total_where(where_clause)
 
-    def fetch_total_by_tax_year_category_like(self, tax_year, category_like):
+    def fetch_total_by_tax_year_category_like(self, tax_year, category_like) -> Decimal:
         where_clause = (
             f'"tax_year" = "{tax_year}" AND "category" LIKE "{category_like}%"'
         )

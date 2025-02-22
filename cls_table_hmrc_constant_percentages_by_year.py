@@ -29,7 +29,7 @@ class HMRC_ConstantPercentagesByYear(SQLiteTable):
         return Decimal(result)
 
     def __init__(self, tax_year):
-        self.l = LogHelper("HMRC_ConstantsByYear")
+        self.l = LogHelper("HMRC_ConstantPercentagesByYear")
         self.l.set_level_debug()
         self.l.debug(__file__)
         self.l.debug(f"tax_year: {tax_year}")

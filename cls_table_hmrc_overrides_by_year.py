@@ -59,13 +59,9 @@ class HMRC_OverridesByYear(SQLiteTable):
         except ValueError as e:
             self.l.error(f"ValueError: {e}")
             raise
-        else:
-            self.l.debug("ELSE")
 
-            use_trading_allowance = value.lower() == "yes"
+        use_trading_allowance = value.lower() == "yes"
 
-            self.l.debug(f"use_trading_allowance: {use_trading_allowance}")
-        finally:
-            self.l.debug("FINALLY")
+        self.l.debug(f"use_trading_allowance: {use_trading_allowance}")
 
         return use_trading_allowance

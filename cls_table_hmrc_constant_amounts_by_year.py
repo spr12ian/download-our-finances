@@ -29,11 +29,11 @@ class HMRC_ConstantAmountsByYear(SQLiteTable):
         return Decimal(result)
 
     def __init__(self, tax_year):
-        self.l = LogHelper("HMRC_ConstantsByYear")
+        self.l = LogHelper("HMRC_ConstantAmountsByYear")
         self.l.set_level_debug()
         self.l.debug(__file__)
         self.l.debug(f"tax_year: {tax_year}")
-        super().__init__("hmrc_constants_by_year")
+        super().__init__("hmrc_constant_amounts_by_year")
         self.tax_year = tax_year
         self.tax_year_col = valid_sqlalchemy_name(tax_year)
 
@@ -54,17 +54,6 @@ class HMRC_ConstantAmountsByYear(SQLiteTable):
         self.l.debug(f"basic_rate_threshold: {basic_rate_threshold}")
 
         return basic_rate_threshold
-
-    @lru_cache(maxsize=None)
-    def get_class_2_annual_amount(self) -> Decimal:
-        class_2_nics_weekly_rate = self.get_class_2_weekly_rate()
-        how_many_nic_weeks_in_year = self.how_many_nic_weeks_in_year()
-
-        class_2_annual_amount = how_many_nic_weeks_in_year * class_2_nics_weekly_rate
-
-        self.l.debug(f"class_2_annual_amount: {class_2_annual_amount}")
-
-        return class_2_annual_amount
 
     @lru_cache(maxsize=None)
     def get_class_2_weekly_rate(self) -> Decimal:

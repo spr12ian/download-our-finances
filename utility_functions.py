@@ -3,7 +3,7 @@ import math
 import re
 from cls_helper_date_time import DateTimeHelper
 from cls_helper_log import LogHelper
-from decimal import Decimal, InvalidOperation, ROUND_DOWN, ROUND_UP
+from decimal import Decimal, InvalidOperation, ROUND_DOWN, ROUND_UP, ROUND_HALF_EVEN
 
 
 BOOLEAN_MAP = {
@@ -105,6 +105,21 @@ def round_down_decimal(value: Decimal, places: int = 2) -> Decimal:
     """
     rounding_factor = Decimal("1." + "0" * places)
     return value.quantize(rounding_factor, rounding=ROUND_DOWN)
+
+
+def round_even(value: Decimal, places: int = 2) -> Decimal:
+    """
+    Round down a Decimal value to a specified number of decimal places.
+
+    Args:
+        value (Decimal): The Decimal value to round down.
+        places (int): The number of decimal places to round down to. Default is 2.
+
+    Returns:
+        Decimal: The rounded down Decimal value.
+    """
+    rounding_factor = Decimal("1." + "0" * places)
+    return value.quantize(rounding_factor, rounding=ROUND_HALF_EVEN)
 
 
 def round_up(number: float) -> int:

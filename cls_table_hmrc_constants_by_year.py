@@ -43,6 +43,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
     
     @lru_cache(maxsize=None)
     def get_additional_rate_threshold(self) -> Decimal:
+        self.l.debug("get_additional_rate_threshold")
         return self.amount_constants.get_additional_rate_threshold()
     
     @lru_cache(maxsize=None)
@@ -55,11 +56,18 @@ class HMRC_ConstantsByYear(SQLiteTable):
     
     @lru_cache(maxsize=None)
     def get_basic_tax_rate(self) -> Decimal:
-        return self.percentage_constants.get_basic_tax_rate()
+        return self.percentage_constants.get_basic_tax_rate() 
 
     @lru_cache(maxsize=None)
     def get_class_2_annual_amount(self) -> Decimal:
-        return self.amount_constants.get_class_2_annual_amount()
+        class_2_nics_weekly_rate = self.get_class_2_weekly_rate()
+        how_many_nic_weeks_in_year = self.how_many_nic_weeks_in_year()
+
+        class_2_annual_amount = how_many_nic_weeks_in_year * class_2_nics_weekly_rate
+
+        self.l.debug(f"class_2_annual_amount: {class_2_annual_amount}")
+
+        return class_2_annual_amount
     
     @lru_cache(maxsize=None)
     def get_class_2_weekly_rate(self) -> Decimal:

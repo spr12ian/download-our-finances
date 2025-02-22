@@ -2391,7 +2391,7 @@ class HMRC:
         trading_income = self.transactions.fetch_total_by_tax_year_category_like(
             tax_year, category_like
         )
-        return Decimal(self.round_down(trading_income))
+        return self.round_down(trading_income)
 
     def get_trading_income__turnover__gbp(self) -> str:
         return self.get_trading_income_gbp()
@@ -2754,7 +2754,7 @@ class HMRC:
         self.l.debug("use_trading_allowance")
         try:
             value = self.use_trading_allowance_override()
-            self.l.debug(f"1 value: {value}")
+            self.l.debug(f"trading allowance override value: {value}")
         except ValueError as v:
             self.l.debug("use_trading_allowance: caught ValueError")
             self.l.exception(v)
