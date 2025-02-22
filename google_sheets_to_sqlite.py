@@ -125,7 +125,9 @@ class SpreadsheetToSqliteDb:
                     raise ValueError(
                         f"Primary key column '{key_column}' not found in worksheet '{worksheet.title}'"
                     )
-                dtype = {key_column: "TEXT PRIMARY KEY"}
+                sqlite_type = self.get_sqlite_type(table_name, key_column)
+                self.l.debug(f"sqlite_type: {sqlite_type}")
+                dtype = {key_column: f"{sqlite_type} PRIMARY KEY"}
             else:
                 # Add 'id' column and populate with values
                 df.insert(0, "id", range(1, len(df) + 1))

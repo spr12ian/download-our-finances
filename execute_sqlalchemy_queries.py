@@ -1,14 +1,14 @@
 from cls_helper_sqlalchemy import SQLAlchemyHelper
 from cls_helper_date_time import DateTimeHelper
-from models import BankAccounts, Transactions
+from models import AccountBalances, BankAccounts, Transactions
 from sqlalchemy import func, not_, text, cast, DECIMAL
 import utility_functions as uf
 from sqlalchemy.dialects import sqlite
+from sqlalchemy.orm import relationship
 from decimal import Decimal, InvalidOperation
 
 sql = SQLAlchemyHelper()
 session = sql.get_session()
-
 
 query = (
     session.query(
@@ -34,7 +34,7 @@ results = query.all()
 if len(results):
     # Print the results
     for result in results:
-        print(f'type(result.money_in): {type(result.money_in)}')
+        print(f"type(result.money_in): {type(result.money_in)}")
         print(
             f"Month: {result.month}"
             + f", In: {uf.format_as_gbp(result.money_in, 11)}"
@@ -47,7 +47,9 @@ query = (
         Transactions.date.label("transaction_date"),
         cast(Transactions.credit, DECIMAL).label("plus"),
         cast(Transactions.debit, DECIMAL).label("minus"),
-        (cast(Transactions.credit, DECIMAL) - cast(Transactions.debit, DECIMAL)).label("net"),
+        (cast(Transactions.credit, DECIMAL) - cast(Transactions.debit, DECIMAL)).label(
+            "net"
+        ),
         Transactions.description.label("description"),
     )
     .join(BankAccounts, BankAccounts.key == Transactions.key)
@@ -75,3 +77,57 @@ if len(results):
         net = uf.format_as_gbp(result.net, 11)
         description = result.description
         print(f"{date}{plus}{minus}{net} {description}")
+
+query = (
+    session.query(
+        BankAccounts.key.label("key"),
+        BankAccounts.our_money.label("our_money"),
+        cast(AccountBalances.credit, DECIMAL).label("plus"),
+        cast(AccountBalances.debit, DECIMAL).label("minus"),
+        (
+            cast(AccountBalances.credit, DECIMAL) - cast(AccountBalances.debit, DECIMAL)
+        ).label("net"),
+    )
+    .join(BankAccounts, BankAccounts.key == AccountBalances.key)
+    .filter(
+        AccountBalances.credit != AccountBalances.debit,
+    )
+    .order_by("key")
+)
+
+print(query.statement.compile(compile_kwargs={"literal_binds": True}))
+
+# Perform the query
+results = query.all()
+if len(results):
+    dth = DateTimeHelper()
+    print("Key    Our Money? Credit      Debit        Net")
+    # Print the results
+    for result in results:
+        key = result.key
+        our_money = result.our_money
+        plus = uf.format_as_gbp(result.plus, 14)
+        minus = uf.format_as_gbp(result.minus, 14)
+        net = uf.format_as_gbp(result.net, 14)
+        print(f"{key} {our_money}      {plus}{minus}{net}")
+
+
+account_balances = relationship("AccountBalances", back_populates="bank_accounts")
+bank_account = relationship("BankAccounts", back_populates="account_balances")
+
+# Query bank accounts and their account balances
+bank_accounts = session.query(BankAccounts).all()
+for account in bank_accounts:
+    print(f"Account: {account.full_account_name}")
+    for balance in account.account_balances:
+        print(
+            f"  Balance: Credit: {balance.credit}, Debit: {balance.debit}, Net: {balance.balance}"
+        )
+
+# Query account balances and their associated bank account
+account_balances = session.query(AccountBalances).all()
+for balance in account_balances:
+    print(
+        f"Balance: Credit: {balance.credit}, Debit: {balance.debit}, Net: {balance.balance}"
+    )
+    print(f"  Account: {balance.bank_account.full_account_name}")

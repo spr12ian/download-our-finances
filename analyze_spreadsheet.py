@@ -64,7 +64,6 @@ class SpreadsheetAnalyzer:
 
         # List of list items which are table_name, column_name
         self.fields = []
-
         
         self.account_tables = []
 
@@ -92,8 +91,6 @@ class SpreadsheetAnalyzer:
 
         pdh = self.pdh
         try:
-            # self.fields.append(self.get_column_types(table_name, "id"))
-
             first_row = worksheet.row_values(1)
             self.l.debug(f"first_row: {first_row}")
 

@@ -3,6 +3,7 @@ from typing import List, Tuple
 # table_name, column_name, is_primary_key
 database_keys: List[Tuple[str, str, bool]] = [
     ("account_balances", "key", True),
+    ("bank_accounts", "key", True),
 ]
 
 
