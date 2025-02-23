@@ -1,7 +1,6 @@
 from cls_helper_file import FileHelper
 from cls_helper_google import GoogleHelper
 from cls_helper_log import debug_function_call
-from utility_functions import get_output_path
 
 
 @debug_function_call
@@ -16,10 +15,8 @@ def main():
 
     spreadsheet = goo.get_spreadsheet(scopes)
 
-    output_path = get_output_path(__file__)
-
-    f = FileHelper(output_path)
-    f.clear()
+    f = FileHelper()
+    f.set_output_from_file(__file__)
 
     f.print(
         f'Successfully connected to "{spreadsheet.title}" Google Sheets spreadsheet'

@@ -1,9 +1,9 @@
+from cls_helper_file import FileHelper
 from cls_helper_google import GoogleHelper
 from cls_helper_log import LogHelper
 from cls_helper_log import debug_function_call
 from cls_helper_pandas import PandasHelper
 from cls_helper_sqlalchemy import valid_sqlalchemy_name
-from database_keys import database_keys
 from pathlib import Path
 import time
 import utility_functions as uf
@@ -236,8 +236,6 @@ fields = """
 
 @debug_function_call
 def main():
-    l.print(f"Analyzing Google Sheets spreadsheet\n")
-
     analyzer = SpreadsheetAnalyzer()
 
     # Analyze spreadsheet
@@ -246,6 +244,9 @@ def main():
     analyzer.write_account_tables()
     analyzer.write_output()
 
+    f = FileHelper()
+    f.set_output_from_file(__file__)
+    f.print(f"Analyzed Google Sheets spreadsheet")
 
 if __name__ == "__main__":
     main()
