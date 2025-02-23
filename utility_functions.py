@@ -1,8 +1,10 @@
 import locale
 import math
 import re
+from cls_helper_config import ConfigHelper
 from cls_helper_date_time import DateTimeHelper
 from cls_helper_log import LogHelper
+from cls_helper_os import OsHelper
 from decimal import Decimal, InvalidOperation, ROUND_DOWN, ROUND_UP, ROUND_HALF_EVEN
 
 
@@ -79,6 +81,23 @@ def format_as_gbp_or_blank(amount: Decimal) -> str:
     else:
         # Format the Decimal as currency
         return format_as_gbp(amount)
+
+
+def get_output_path(file_path: str, output_directory: str = "") -> str:
+    """
+    Get the output path for a file based on the output directory.
+    """
+    l.debug(f"file_path: {file_path}")
+    osh=OsHelper()
+    if output_directory == "":
+        config = ConfigHelper()
+        output_directory = config["Output"]["directory"]
+        l.debug(f"output_directory: {output_directory}")
+    stem=osh.get_stem(file_path)
+    l.debug(f"stem: {stem}")
+    output_path =  "/".join([output_directory, stem + ".txt"])
+    l.debug(f"output_path: {output_path}")
+    return output_path
 
 
 def remove_non_numeric(string: str) -> str:

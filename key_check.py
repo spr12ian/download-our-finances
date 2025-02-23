@@ -1,11 +1,6 @@
 from cls_helper_google import GoogleHelper
-from cls_helper_log import LogHelper
 from cls_helper_log import debug_function_call
-
-
-l = LogHelper(__file__)
-# l.set_level_debug()
-l.debug(__file__)
+from utility_functions import get_output_path
 
 
 @debug_function_call
@@ -20,9 +15,13 @@ def main():
 
     spreadsheet = goo.get_spreadsheet(scopes)
 
-    l.print(
-        f'Successfully connected to "{spreadsheet.title}" Google Sheets spreadsheet'
-    )
+    output_path = get_output_path(__file__)
+
+    with open(output_path, "w") as output_file:
+        print(
+            f'Successfully connected to "{spreadsheet.title}" Google Sheets spreadsheet',
+            file=output_file,
+        )
 
 
 if __name__ == "__main__":
