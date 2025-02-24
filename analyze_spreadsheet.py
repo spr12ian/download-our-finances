@@ -5,6 +5,7 @@ from cls_helper_log import debug_function_call
 from cls_helper_pandas import PandasHelper
 from cls_helper_sqlalchemy import valid_sqlalchemy_name
 from pathlib import Path
+from typing import List
 import time
 import utility_functions as uf
 
@@ -45,7 +46,7 @@ TYPE_MAPPING = {
 
 
 class SpreadsheetAnalyzer:
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize the analyzer
         """
@@ -64,10 +65,10 @@ class SpreadsheetAnalyzer:
 
         # List of list items which are table_name, column_name
         self.fields = []
-        
+
         self.account_tables = []
 
-    def analyze_spreadsheet(self):
+    def analyze_spreadsheet(self) -> None:
         """
         Analyze all sheets in the Google Spreadsheet
         """
@@ -81,7 +82,7 @@ class SpreadsheetAnalyzer:
         self.l.debug(self.fields)
 
     @debug_function_call
-    def analyze_worksheet(self, worksheet):
+    def analyze_worksheet(self, worksheet) -> None:
         self.l.info(f"Analyzing {worksheet.title}")
         if worksheet.title.startswith("_"):
             self.account_tables.append(worksheet.title)
@@ -105,7 +106,7 @@ class SpreadsheetAnalyzer:
             self.l.error(f"Error analyzing worksheet {worksheet.title}: {e}")
             raise
 
-    def get_column_types(self, table_name, spreadsheet_column_name):
+    def get_column_types(self, table_name:str, spreadsheet_column_name:str) -> List[str]:
         self.l.debug("get_column_types")
         self.l.debug(f"spreadsheet_column_name: {spreadsheet_column_name}")
 
@@ -167,25 +168,25 @@ class SpreadsheetAnalyzer:
             sqlalchemy_type,
         ]
 
-    def write_account_tables(self):
+    def write_account_tables(self) -> None:
         file_path = Path("account_tables.js")
         with file_path.open("w") as output:
             account_tables_output = str(self.account_tables)
             output.write(account_tables_output)
 
-    def write_output(self):
+    def write_output(self) -> None:
         file_path = Path("spreadsheet_fields.py")
         with file_path.open("w") as output:
             prefix = self.get_prefix()
             fields_output = self.get_fields_output()
             output.write(prefix + fields_output)
 
-    def get_fields_output(self):
+    def get_fields_output(self) -> str:
         for field in self.fields:
             self.l.debug(f"field: {field}")
         return str(self.fields)
 
-    def get_prefix(self):
+    def get_prefix(self) -> str:
         prefix = """# spreadsheet_fields.py
 def get_field_by_spreadsheet_column_name(table_name, spreadsheet_column_name):
     for field in fields:
@@ -235,7 +236,7 @@ fields = """
 
 
 @debug_function_call
-def main():
+def main() -> None:
     analyzer = SpreadsheetAnalyzer()
 
     # Analyze spreadsheet
@@ -247,6 +248,7 @@ def main():
     f = FileHelper()
     f.set_output_from_file(__file__)
     f.print(f"Analyzed Google Sheets spreadsheet")
+
 
 if __name__ == "__main__":
     main()
