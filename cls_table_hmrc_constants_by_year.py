@@ -9,7 +9,7 @@ from functools import lru_cache
 
 class HMRC_ConstantsByYear(SQLiteTable):
 
-    def __get_value_by_hmrc_constant(self, hmrc_constant: str) -> int:
+    def _get_value_by_hmrc_constant(self, hmrc_constant: str) -> int:
         tax_year = self.tax_year
         tax_year_col = self.tax_year_col
         query = (
@@ -157,7 +157,7 @@ class HMRC_ConstantsByYear(SQLiteTable):
 
     @lru_cache(maxsize=None)
     def how_many_nic_weeks_in_year(self) -> int:
-        how_many_nic_weeks_in_year = self.__get_value_by_hmrc_constant(
+        how_many_nic_weeks_in_year = self._get_value_by_hmrc_constant(
             "How many NIC weeks in year"
         )
 

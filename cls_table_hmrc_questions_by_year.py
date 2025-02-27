@@ -20,7 +20,7 @@ class HMRC_QuestionsByYear(SQLiteTable):
         "Were ",
     ]
 
-    def __get_table_name(self, tax_year):
+    def _get_table_name(self, tax_year):
         sanitised_tax_year = valid_sqlalchemy_name(tax_year)
 
         table_name = f"hmrc_questions{sanitised_tax_year}"
@@ -34,14 +34,14 @@ class HMRC_QuestionsByYear(SQLiteTable):
         self.l.debug(__class__)
         self.l.debug(__name__)
 
-        table_name = self.__get_table_name(tax_year)
+        table_name = self._get_table_name(tax_year)
 
         super().__init__(table_name)
 
         self.l.debug(f"table_name: {table_name}")
         self.l.debug(f"self.yes_no_questions: {self.yes_no_questions}")
 
-    def __get_questions(self, columns, order_column):
+    def _get_questions(self, columns, order_column):
         self.l.debug(f"columns: {columns}")
         self.l.debug(f"order_column: {order_column}")
         [validate_sqlalchemy_name(col) for col in columns]
@@ -141,13 +141,13 @@ class HMRC_QuestionsByYear(SQLiteTable):
             "online_box",
         ]
         order_column = "online_order"
-        return self.__get_questions(columns, order_column)
+        return self._get_questions(columns, order_column)
 
     def get_printed_form_questions(self):
         self.l.debug("get_printed_form_questions")
         columns = ["question", "printed_section", "printed_header", "printed_box"]
         order_column = "printed_order"
-        return self.__get_questions(columns, order_column)
+        return self._get_questions(columns, order_column)
 
     def is_it_a_yes_no_question(self, question):
         return any(question.startswith(q) for q in self.yes_no_questions)

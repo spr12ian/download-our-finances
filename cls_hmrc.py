@@ -11,7 +11,7 @@ from decimal import Decimal
 
 
 class HMRC:
-    def __get_breakdown(self, category_like):
+    def _get_breakdown(self, category_like):
         tax_year = self.tax_year
         query = (
             self.transactions.query_builder()
@@ -1751,7 +1751,7 @@ class HMRC:
     def get_property_expenses_breakdown(self):
         person_code = self.person_code
         category_like = f"HMRC {person_code} UKP expense"
-        return self.__get_breakdown(category_like)
+        return self._get_breakdown(category_like)
 
     def get_property_expenses_gbp(self):
         return self.gbpb(self.get_property_expenses())
@@ -1768,7 +1768,7 @@ class HMRC:
     def get_property_income_breakdown(self):
         person_code = self.person_code
         category_like = f"HMRC {person_code} UKP income"
-        return self.__get_breakdown(category_like)
+        return self._get_breakdown(category_like)
 
     def get_property_income_gbp(self) -> str:
         return self.gbpb(self.get_property_income())
@@ -1932,7 +1932,7 @@ class HMRC:
     def get_savings_income_breakdown(self):
         person_code = self.person_code
         category_like = f"HMRC {person_code} INT income"
-        return self.__get_breakdown(category_like)
+        return self._get_breakdown(category_like)
 
     def get_savings_income_gbp(self) -> str:
         return self.gbpb(self.get_savings_income())
@@ -2377,7 +2377,7 @@ class HMRC:
     def get_trading_expenses_breakdown(self):
         person_code = self.person_code
         category_like = f"HMRC {person_code} SES expense"
-        return self.__get_breakdown(category_like)
+        return self._get_breakdown(category_like)
 
     def get_trading_expenses_gbp(self):
         return self.gbpb(self.get_trading_expenses())
@@ -2399,7 +2399,7 @@ class HMRC:
     def get_trading_income_breakdown(self):
         person_code = self.person_code
         category_like = f"HMRC {person_code} SES income"
-        return self.__get_breakdown(category_like)
+        return self._get_breakdown(category_like)
 
     def get_trading_income_gbp(self) -> str:
         return self.gbpb(self.get_trading_income())

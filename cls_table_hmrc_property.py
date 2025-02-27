@@ -4,7 +4,7 @@ from cls_sqlite_table import SQLiteTable
 
 class HMRC_Property(SQLiteTable):
 
-    def __get_value_by_postcode_column(self, column_name):
+    def _get_value_by_postcode_column(self, column_name):
 
         postcode = self.postcode
         if postcode:
@@ -37,13 +37,13 @@ class HMRC_Property(SQLiteTable):
         return self.postcode
 
     def get_property_owner_code(self) -> str:
-        return self.__get_value_by_postcode_column("property_owner_code")
+        return self._get_value_by_postcode_column("property_owner_code")
 
     def get_property_ownership_share(self) -> float:
-        return self.__get_value_by_postcode_column("property_ownership_share")
+        return self._get_value_by_postcode_column("property_ownership_share")
 
     def get_property_joint_owner_code(self) -> str:
-        property_joint_owner_code = self.__get_value_by_postcode_column(
+        property_joint_owner_code = self._get_value_by_postcode_column(
             "property_joint_owner_code"
         )
         self.l.debug(f'property_joint_owner_code: "{property_joint_owner_code}"')

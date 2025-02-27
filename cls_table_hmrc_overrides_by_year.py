@@ -7,8 +7,8 @@ from functools import lru_cache
 
 class HMRC_OverridesByYear(SQLiteTable):
 
-    def __get_value_by_override(self, override) -> str:
-        self.l.debug("__get_value_by_override")
+    def _get_value_by_override(self, override) -> str:
+        self.l.debug("_get_value_by_override")
         person_code = self.person_code
         tax_year = self.tax_year
         tax_year_col = self.tax_year_col
@@ -43,7 +43,7 @@ class HMRC_OverridesByYear(SQLiteTable):
 
     @lru_cache(maxsize=None)
     def deduct_trading_expenses(self) -> bool:
-        deduct_trading_expenses = self.__get_value_by_override(
+        deduct_trading_expenses = self._get_value_by_override(
             "Deduct trading expenses"
         )
 
@@ -55,7 +55,7 @@ class HMRC_OverridesByYear(SQLiteTable):
     def use_trading_allowance(self) -> bool:
         self.l.debug("use_trading_allowance")
         try:
-            value = self.__get_value_by_override("Use trading allowance")
+            value = self._get_value_by_override("Use trading allowance")
         except ValueError as e:
             self.l.error(f"ValueError: {e}")
             raise

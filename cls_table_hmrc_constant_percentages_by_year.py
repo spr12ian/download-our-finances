@@ -7,7 +7,7 @@ from functools import lru_cache
 
 class HMRC_ConstantPercentagesByYear(SQLiteTable):
 
-    def __get_value_by_hmrc_constant(self, hmrc_constant: str) -> Decimal:
+    def _get_value_by_hmrc_constant(self, hmrc_constant: str) -> Decimal:
         tax_year = self.tax_year
         tax_year_col = self.tax_year_col
         query = (
@@ -39,7 +39,7 @@ class HMRC_ConstantPercentagesByYear(SQLiteTable):
 
     @lru_cache(maxsize=None)
     def get_additional_tax_rate(self) -> Decimal:
-        additional_tax_rate = self.__get_value_by_hmrc_constant("Additional tax rate")
+        additional_tax_rate = self._get_value_by_hmrc_constant("Additional tax rate")
 
         self.l.debug(f"additional_tax_rate: {additional_tax_rate}")
 
@@ -47,7 +47,7 @@ class HMRC_ConstantPercentagesByYear(SQLiteTable):
 
     @lru_cache(maxsize=None)
     def get_basic_tax_rate(self) -> Decimal:
-        basic_tax_rate = self.__get_value_by_hmrc_constant("Basic tax rate")
+        basic_tax_rate = self._get_value_by_hmrc_constant("Basic tax rate")
 
         self.l.debug(f"basic_tax_rate: {basic_tax_rate}")
 
@@ -55,7 +55,7 @@ class HMRC_ConstantPercentagesByYear(SQLiteTable):
 
     @lru_cache(maxsize=None)
     def get_class_4_lower_rate(self) -> Decimal:
-        class_4_nics_lower_rate = self.__get_value_by_hmrc_constant(
+        class_4_nics_lower_rate = self._get_value_by_hmrc_constant(
             "NIC Class 4 lower rate"
         )
 
@@ -65,7 +65,7 @@ class HMRC_ConstantPercentagesByYear(SQLiteTable):
 
     @lru_cache(maxsize=None)
     def get_class_4_upper_rate(self) -> Decimal:
-        class_4_nics_upper_rate = self.__get_value_by_hmrc_constant(
+        class_4_nics_upper_rate = self._get_value_by_hmrc_constant(
             "NIC Class 4 upper rate"
         )
 
@@ -75,7 +75,7 @@ class HMRC_ConstantPercentagesByYear(SQLiteTable):
 
     @lru_cache(maxsize=None)
     def get_dividends_basic_rate(self) -> Decimal:
-        dividends_basic_rate = self.__get_value_by_hmrc_constant("Dividends basic rate")
+        dividends_basic_rate = self._get_value_by_hmrc_constant("Dividends basic rate")
 
         self.l.debug(f"dividends_basic_rate: {dividends_basic_rate}")
 
@@ -83,7 +83,7 @@ class HMRC_ConstantPercentagesByYear(SQLiteTable):
 
     @lru_cache(maxsize=None)
     def get_higher_tax_rate(self) -> Decimal:
-        higher_tax_rate = self.__get_value_by_hmrc_constant("Higher tax rate")
+        higher_tax_rate = self._get_value_by_hmrc_constant("Higher tax rate")
 
         self.l.debug(f"higher_tax_rate: {higher_tax_rate}")
 
@@ -91,7 +91,7 @@ class HMRC_ConstantPercentagesByYear(SQLiteTable):
 
     @lru_cache(maxsize=None)
     def get_savings_basic_rate(self) -> Decimal:
-        savings_basic_rate = self.__get_value_by_hmrc_constant("Savings basic rate")
+        savings_basic_rate = self._get_value_by_hmrc_constant("Savings basic rate")
 
         self.l.debug(f"savings_basic_rate: {savings_basic_rate}")
 

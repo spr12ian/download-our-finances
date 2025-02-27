@@ -7,7 +7,7 @@ class HMRC_Businesses(SQLiteTable):
         self.business_name = business_name
 
     def get_business_description(self):
-        business_description = self.__get_value_by_business_name("business_description")
+        business_description = self._get_value_by_business_name("business_description")
 
         return business_description
 
@@ -15,11 +15,11 @@ class HMRC_Businesses(SQLiteTable):
         return self.business_name
 
     def get_business_postcode(self):
-        business_description = self.__get_value_by_business_name("business_postcode")
+        business_description = self._get_value_by_business_name("business_postcode")
 
         return business_description
 
-    def __get_value_by_business_name(self, column_name):
+    def _get_value_by_business_name(self, column_name):
         business_name = self.business_name
         query = (
             self.query_builder()
