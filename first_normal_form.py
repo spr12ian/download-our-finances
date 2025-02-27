@@ -175,7 +175,7 @@ def print_analysis_results(violations: Dict[str, List[Dict[str, Any]]]) -> None:
             print(f"  Types found: {', '.join(v['types_found'])}")
 
 
-def main():
+def main() -> None:
     db_path = "our_finances.sqlite"
     violations = analyze_1nf(db_path)
     print_analysis_results(violations)

@@ -7,6 +7,17 @@ from functools import lru_cache
 
 class HMRC_OverridesByYear(SQLiteTable):
 
+    def __init__(self, person_code, tax_year) -> None:
+        self.l = LogHelper("HMRC_OverridesByYear")
+        self.l.set_level_debug()
+        self.l.debug(__file__)
+        self.l.debug(f"person_code: {person_code}")
+        self.l.debug(f"tax_year: {tax_year}")
+        super().__init__("hmrc_overrides_by_year")
+        self.person_code = person_code
+        self.tax_year = tax_year
+        self.tax_year_col = valid_sqlalchemy_name(tax_year)
+
     def _get_value_by_override(self, override) -> str:
         self.l.debug("_get_value_by_override")
         person_code = self.person_code
@@ -29,17 +40,6 @@ class HMRC_OverridesByYear(SQLiteTable):
             )
 
         return result
-
-    def __init__(self, person_code, tax_year) -> None:
-        self.l = LogHelper("HMRC_OverridesByYear")
-        self.l.set_level_debug()
-        self.l.debug(__file__)
-        self.l.debug(f"person_code: {person_code}")
-        self.l.debug(f"tax_year: {tax_year}")
-        super().__init__("hmrc_overrides_by_year")
-        self.person_code = person_code
-        self.tax_year = tax_year
-        self.tax_year_col = valid_sqlalchemy_name(tax_year)
 
     @lru_cache(maxsize=None)
     def deduct_trading_expenses(self) -> bool:

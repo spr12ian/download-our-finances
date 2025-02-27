@@ -11,6 +11,27 @@ from decimal import Decimal
 
 
 class HMRC:
+
+    def __init__(self, person_code, tax_year):
+        self.l = LogHelper("HMRC")
+        self.l.set_level_debug()
+        self.l.debug(__file__)
+        self.l.debug(f"person_code: {person_code}")
+        self.l.debug(f"tax_year: {tax_year}")
+
+        self.person_code = person_code
+        self.tax_year = tax_year
+        self.tax_year_col = valid_sqlalchemy_name(tax_year)
+
+        self.categories = Categories()
+        self.constants = HMRC_ConstantsByYear(tax_year)
+        self.overrides = HMRC_OverridesByYear(person_code, tax_year)
+        self.person = HMRC_People(person_code)
+        if self.is_married():
+            spouse_code = self.person.get_spouse_code()
+            self.spouse = HMRC_People(spouse_code)
+        self.sql = SQL_Helper().select_sql_helper("SQLite")
+        self.transactions = Transactions()
     def _get_breakdown(self, category_like):
         tax_year = self.tax_year
         query = (
@@ -35,27 +56,6 @@ class HMRC:
                 f"{row[0]} | {row[1]} | {row[2][:max_description_width]} | {row[3]} | {nett_decimal:>10.2f} | {row[5][:max_category_width]}"
             )
         return self.format_breakdown(breakdown)
-
-    def __init__(self, person_code, tax_year):
-        self.l = LogHelper("HMRC")
-        self.l.set_level_debug()
-        self.l.debug(__file__)
-        self.l.debug(f"person_code: {person_code}")
-        self.l.debug(f"tax_year: {tax_year}")
-
-        self.person_code = person_code
-        self.tax_year = tax_year
-        self.tax_year_col = valid_sqlalchemy_name(tax_year)
-
-        self.categories = Categories()
-        self.constants = HMRC_ConstantsByYear(tax_year)
-        self.overrides = HMRC_OverridesByYear(person_code, tax_year)
-        self.person = HMRC_People(person_code)
-        if self.is_married():
-            spouse_code = self.person.get_spouse_code()
-            self.spouse = HMRC_People(spouse_code)
-        self.sql = SQL_Helper().select_sql_helper("SQLite")
-        self.transactions = Transactions()
 
     def are_any_of_these_figures_provisional(self):
         return False
@@ -774,14 +774,6 @@ class HMRC:
 
     def get_class_2_weekly_rate(self):
         return self.constants.get_class_2_weekly_rate()
-
-    def get_weekly_state_pension(self):
-        return self.constants.get_weekly_state_pension()
-
-    def get_weekly_state_pension_forecast(self) -> Decimal:
-        weekly_state_pension_forecast = self.person.get_weekly_state_pension_forecast()
-        self.l.debug(f"weekly_state_pension_forecast: {weekly_state_pension_forecast}")
-        return weekly_state_pension_forecast
 
     def get_class_4_lower_profits_limit(self) -> Decimal:
         return self.constants.get_class_4_lower_profits_limit()
@@ -2567,6 +2559,14 @@ class HMRC:
     def get_vat_registration_threshold(self):
         return self.constants.get_vat_registration_threshold()
 
+    def get_weekly_state_pension(self):
+        return self.constants.get_weekly_state_pension()
+
+    def get_weekly_state_pension_forecast(self) -> Decimal:
+        weekly_state_pension_forecast = self.person.get_weekly_state_pension_forecast()
+        self.l.debug(f"weekly_state_pension_forecast: {weekly_state_pension_forecast}")
+        return weekly_state_pension_forecast
+
     def get_year_category_total(self, tax_year, category):
         return self.transactions.fetch_total_by_tax_year_category(tax_year, category)
 
@@ -2616,12 +2616,6 @@ class HMRC:
 
     def get_zero_emissions_allowance(self):
         return self.gbpb(0)
-
-    def round_down(self, amount: Decimal, places: int = 2) -> Decimal:
-        return uf.round_down_decimal(amount, places)
-
-    def round_up(self, amount: Decimal, places: int = 2) -> Decimal:
-        return uf.round_up_decimal(amount, places)
 
     def how_many_nic_weeks_in_year(self) -> int:
         return self.constants.how_many_nic_weeks_in_year()
@@ -2727,6 +2721,12 @@ class HMRC:
 
     def residence__remittance_basis_etc(self):
         return False
+
+    def round_down(self, amount: Decimal, places: int = 2) -> Decimal:
+        return uf.round_down_decimal(amount, places)
+
+    def round_up(self, amount: Decimal, places: int = 2) -> Decimal:
+        return uf.round_up_decimal(amount, places)
 
     def should_you_pay_voluntary_class_2_nics__profits___cusp(self) -> bool:
         turnover = self.get_trading_income()

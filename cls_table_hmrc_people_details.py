@@ -3,6 +3,10 @@ from cls_sqlite_table import SQLiteTable
 
 
 class HMRC_PeopleDetails(SQLiteTable):
+    
+    def __init__(self, code=None):
+        super().__init__("hmrc_people_details")
+        self.code = code
 
     def _get_value_by_code_column(self, column_name):
         if self.code:
@@ -17,10 +21,6 @@ class HMRC_PeopleDetails(SQLiteTable):
             result = None
 
         return result
-    
-    def __init__(self, code=None):
-        super().__init__("hmrc_people_details")
-        self.code = code
 
     def are_nics_needed_to_acheive_max_state_pension(self) -> bool:
         return (

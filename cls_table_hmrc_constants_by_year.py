@@ -9,6 +9,17 @@ from functools import lru_cache
 
 class HMRC_ConstantsByYear(SQLiteTable):
 
+    def __init__(self, tax_year):
+        self.l = LogHelper("HMRC_ConstantsByYear")
+        self.l.set_level_debug()
+        self.l.debug(__file__)
+        self.l.debug(f"tax_year: {tax_year}")
+        super().__init__("hmrc_constants_by_year")
+        self.tax_year = tax_year
+        self.tax_year_col = valid_sqlalchemy_name(tax_year)
+        self.amount_constants=HMRC_ConstantAmountsByYear(tax_year)
+        self.percentage_constants=HMRC_ConstantPercentagesByYear(tax_year)
+
     def _get_value_by_hmrc_constant(self, hmrc_constant: str) -> int:
         tax_year = self.tax_year
         tax_year_col = self.tax_year_col
@@ -29,17 +40,6 @@ class HMRC_ConstantsByYear(SQLiteTable):
             )
 
         return int(result)
-
-    def __init__(self, tax_year):
-        self.l = LogHelper("HMRC_ConstantsByYear")
-        self.l.set_level_debug()
-        self.l.debug(__file__)
-        self.l.debug(f"tax_year: {tax_year}")
-        super().__init__("hmrc_constants_by_year")
-        self.tax_year = tax_year
-        self.tax_year_col = valid_sqlalchemy_name(tax_year)
-        self.amount_constants=HMRC_ConstantAmountsByYear(tax_year)
-        self.percentage_constants=HMRC_ConstantPercentagesByYear(tax_year)
     
     @lru_cache(maxsize=None)
     def get_additional_rate_threshold(self) -> Decimal:
@@ -74,20 +74,20 @@ class HMRC_ConstantsByYear(SQLiteTable):
         return self.amount_constants.get_class_2_weekly_rate()
     
     @lru_cache(maxsize=None)
-    def get_class_4_lower_rate(self) -> Decimal:
-        return self.percentage_constants.get_class_4_lower_rate()
-    
-    @lru_cache(maxsize=None)
-    def get_class_4_upper_rate(self) -> Decimal:
-        return self.percentage_constants.get_class_4_upper_rate()
-    
-    @lru_cache(maxsize=None)
     def get_class_4_lower_profits_limit(self) -> Decimal:
         return self.amount_constants.get_class_4_lower_profits_limit()
     
     @lru_cache(maxsize=None)
+    def get_class_4_lower_rate(self) -> Decimal:
+        return self.percentage_constants.get_class_4_lower_rate()
+    
+    @lru_cache(maxsize=None)
     def get_class_4_upper_profits_limit(self) -> Decimal:
         return self.amount_constants.get_class_4_upper_profits_limit()
+    
+    @lru_cache(maxsize=None)
+    def get_class_4_upper_rate(self) -> Decimal:
+        return self.percentage_constants.get_class_4_upper_rate()
     
     @lru_cache(maxsize=None)
     def get_dividends_allowance(self) -> Decimal:

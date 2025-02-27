@@ -8,17 +8,17 @@ l.set_level_debug()
 l.debug(__file__)
 
 
-def check_questions(tax_year):
+def check_questions(tax_year) -> None:
     questions = HMRC_QuestionsByYear(tax_year)
     questions.check_questions()
 
 
-def print_reports(hmrc_people, tax_year):
-    for person in hmrc_people:        
+def print_reports(hmrc_people, tax_year) -> None:
+    for person in hmrc_people:
         l.debug(f"Getting HMRC instance for person: {person}, tax year: {tax_year}")
         hmrc = HMRC(person, tax_year)
         hmrc.print_reports()
-        #exit()
+        # exit()
 
 
 def main():
