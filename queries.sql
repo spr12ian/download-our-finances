@@ -25,4 +25,10 @@ WHERE description = "XFER"
 AND tax_year = "2024 to 2025"
 GROUP BY key
 ORDER BY how_many DESC
+;-- Query 4: Summary (interest)
+SELECT fill_account_name, balance, interest_rate, annual_interest_aer, date_fixed_until
+FROM bank_accounts
+WHERE annual_interest_aer > 1 
+AND our_money = "TRUE"
+ORDER BY interest_rate DESC, D
 ;
