@@ -106,7 +106,9 @@ class SpreadsheetAnalyzer:
             self.l.error(f"Error analyzing worksheet {worksheet.title}: {e}")
             raise
 
-    def get_column_types(self, table_name:str, spreadsheet_column_name:str) -> List[str]:
+    def get_column_types(
+        self, table_name: str, spreadsheet_column_name: str
+    ) -> List[str]:
         self.l.debug("get_column_types")
         self.l.debug(f"spreadsheet_column_name: {spreadsheet_column_name}")
 
@@ -168,8 +170,8 @@ class SpreadsheetAnalyzer:
             sqlalchemy_type,
         ]
 
-    def write_account_tables(self) -> None:
-        file_path = Path("account_tables.js")
+    def write_account_worksheets(self) -> None:
+        file_path = Path("account_worksheets.js")
         with file_path.open("w") as output:
             account_tables_output = str(self.account_tables)
             output.write(account_tables_output)
@@ -242,7 +244,7 @@ def main() -> None:
     # Analyze spreadsheet
     analyzer.analyze_spreadsheet()
 
-    analyzer.write_account_tables()
+    analyzer.write_account_worksheets()
     analyzer.write_output()
 
     f = FileHelper()
