@@ -2,8 +2,8 @@
 *.csv
 *.sqlite
 *.txt
-account_worksheets.js
-all_worksheets.js
+get_account_sheet_names.js
+get_all_sheet_names.js
 config.ini
 scratch.sql
 models.py

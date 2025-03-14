@@ -3,8 +3,8 @@ from cls_helper_google import GoogleHelper
 from cls_helper_log import LogHelper
 from cls_helper_log import debug_function_call
 from cls_helper_pandas import PandasHelper
+from cls_helper_path import PathHelper
 from cls_helper_sqlalchemy import valid_sqlalchemy_name
-from pathlib import Path
 from typing import List
 import time
 import utility_functions as uf
@@ -64,9 +64,11 @@ class SpreadsheetAnalyzer:
         self.pdh = PandasHelper()
 
         # List of list items which are table_name, column_name
-        self.fields = []
+        self.fields: List[List[str]] = []
 
-        self.account_tables = []
+        self.account_sheet_names: List[str] = []
+
+        self.all_sheet_names: List[str] = []
 
     def analyze_spreadsheet(self) -> None:
         """
@@ -84,8 +86,9 @@ class SpreadsheetAnalyzer:
     @debug_function_call
     def analyze_worksheet(self, worksheet) -> None:
         self.l.info(f"Analyzing {worksheet.title}")
+        self.all_sheet_names.append(worksheet.title)
         if worksheet.title.startswith("_"):
-            self.account_tables.append(worksheet.title)
+            self.account_sheet_names.append(worksheet.title)
 
         table_name = valid_sqlalchemy_name(worksheet.title)
         self.l.info(f"table_name: {table_name}")
@@ -97,10 +100,8 @@ class SpreadsheetAnalyzer:
 
             # Split columns and rows
             df = pdh.header_to_dataframe(first_row)
-            [
+            for col in df.columns:
                 self.fields.append(self.get_column_types(table_name, col))
-                for col in df.columns
-            ]
 
         except Exception as e:
             self.l.error(f"Error analyzing worksheet {worksheet.title}: {e}")
@@ -170,18 +171,32 @@ class SpreadsheetAnalyzer:
             sqlalchemy_type,
         ]
 
-    def write_account_worksheets(self) -> None:
-        file_path = Path("account_worksheets.js")
-        with file_path.open("w") as output:
-            account_tables_output = str(self.account_tables)
-            output.write(account_tables_output)
+    def write_get_account_sheet_names_js(self) -> None:
+        lines = ["function getAccountSheetNames() {"]
+        lines.append("  return" + str(self.account_sheet_names))
+        lines.append("}")
+        output_str = "\n".join(lines)
+        file_name = "get_account_sheet_names.js"
+        self.write_output_str(output_str, file_name)
 
-    def write_output(self) -> None:
-        file_path = Path("spreadsheet_fields.py")
-        with file_path.open("w") as output:
-            prefix = self.get_prefix()
-            fields_output = self.get_fields_output()
-            output.write(prefix + fields_output)
+    def write_get_all_sheet_names_js(self) -> None:
+        lines = ["function getAllSheetNames() {"]
+        lines.append("  return" + str(self.all_sheet_names))
+        lines.append("}")
+        output_str = "\n".join(lines)
+        file_name = "get_all_sheet_names.js"
+        self.write_output_str(output_str, file_name)
+
+    def write_spreadsheet_fields_py(self) -> None:
+        prefix = self.get_prefix()
+        fields_output = self.get_fields_output()
+        output_str = prefix + fields_output
+        file_name = "spreadsheet_fields.py"
+        self.write_output_str(output_str, file_name)
+
+    def write_output_str(self, output_str: str, file_str: str) -> None:
+        path = PathHelper(file_str)
+        path.write_output_str(output_str)
 
     def get_fields_output(self) -> str:
         for field in self.fields:
@@ -244,8 +259,9 @@ def main() -> None:
     # Analyze spreadsheet
     analyzer.analyze_spreadsheet()
 
-    analyzer.write_account_worksheets()
-    analyzer.write_output()
+    analyzer.write_get_account_sheet_names_js()
+    analyzer.write_get_all_sheet_names_js()
+    analyzer.write_spreadsheet_fields_py()
 
     f = FileHelper()
     f.set_output_from_file(__file__)
