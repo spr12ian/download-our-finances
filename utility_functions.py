@@ -202,7 +202,7 @@ def to_camel_case(text: str):
 
 def to_valid_method_name(s: str) -> str:
     """
-    Convert a string to be a valid variable name:
+    Convert a string to be a valid Python variable name:
     - Replace all characters that are not letters, numbers, or underscores with underscores.
     - Prefix with an underscore if the resulting string starts with a number.
     - Ensure the result is all lowercase.

@@ -112,22 +112,22 @@ if len(results):
         print(f"{key} {our_money}      {plus}{minus}{net}")
 
 
-account_balances = relationship("AccountBalances", back_populates="bank_accounts")
-bank_account = relationship("BankAccounts", back_populates="account_balances")
+# account_balances = relationship("AccountBalances", back_populates="bank_accounts")
+# bank_account = relationship("BankAccounts", back_populates="account_balances")
 
-# Query bank accounts and their account balances
-bank_accounts = session.query(BankAccounts).all()
-for account in bank_accounts:
-    print(f"Account: {account.full_account_name}")
-    for balance in account.account_balances:
-        print(
-            f"  Balance: Credit: {balance.credit}, Debit: {balance.debit}, Net: {balance.balance}"
-        )
+# # Query bank accounts and their account balances
+# bank_accounts = session.query(BankAccounts).all()
+# for account in bank_accounts:
+#     print(f"Account: {account.full_account_name}")
+#     for balance in account.account_balances:
+#         print(
+#             f"  Balance: Credit: {balance.credit}, Debit: {balance.debit}, Net: {balance.balance}"
+#         )
 
-# Query account balances and their associated bank account
-account_balances = session.query(AccountBalances).all()
-for balance in account_balances:
-    print(
-        f"Balance: Credit: {balance.credit}, Debit: {balance.debit}, Net: {balance.balance}"
-    )
-    print(f"  Account: {balance.bank_account.full_account_name}")
+# # Query account balances and their associated bank account
+# account_balances = session.query(AccountBalances).all()
+# for balance in account_balances:
+#     print(
+#         f"Balance: Credit: {balance.credit}, Debit: {balance.debit}, Net: {balance.balance}"
+#     )
+#     print(f"  Account: {balance.bank_account.full_account_name}")
