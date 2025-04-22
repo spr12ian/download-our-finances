@@ -12,7 +12,7 @@ from decimal import Decimal
 
 class HMRC:
 
-    def __init__(self, person_code, tax_year):
+    def __init__(self, person_code: str, tax_year: str):
         self.l = LogHelper("HMRC")
         self.l.set_level_debug()
         self.l.debug(__file__)
@@ -32,6 +32,7 @@ class HMRC:
             self.spouse = HMRC_People(spouse_code)
         self.sql = SQL_Helper().select_sql_helper("SQLite")
         self.transactions = Transactions()
+
     def _get_breakdown(self, category_like):
         tax_year = self.tax_year
         query = (
@@ -401,7 +402,7 @@ class HMRC:
         return False
 
     def did_you_get_pensions__annuities__or_state_benefits(self):
-        total = self.get_pensions() + self.get_state_benefits()
+        total = self.get_private_pensions_income() + self.get_taxable_benefits_income()
         return total > 0
 
     def did_you_get_student_loans_company_notification(self):
@@ -1636,7 +1637,7 @@ class HMRC:
     def get_pension_scheme_tax_reference_number(self):
         return self.gbpb(0)
 
-    def get_pensions(self):
+    def get_private_pensions_income(self):
         person_code = self.person_code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} PEN income: "
@@ -1644,7 +1645,7 @@ class HMRC:
             tax_year, category_like
         )
 
-    def get_pensions__other_than_state_pension_(self):
+    def get_private_pensions_income__other_than_state_pension_(self):
         return 0
 
     def get_person_name(self):
@@ -2011,7 +2012,7 @@ class HMRC:
     def get_starting_rate_limit_for_savings(self):
         return self.constants.get_starting_rate_limit_for_savings()
 
-    def get_state_benefits(self):
+    def get_taxable_benefits_income(self):
         person_code = self.person_code
         tax_year = self.tax_year
         category_like = f"HMRC {person_code} BEN income: "
@@ -2216,7 +2217,7 @@ class HMRC:
         return self.gbpb(0)
 
     def get_total_of_any_other_taxable_state_pensions_and_benefits(self):
-        return 0
+        return self.gbpb(self.get_taxable_benefits_income())
 
     def get_total_of_one_off_payments_gbp(self):
         return self.get_relief_at_source_pension_payments_to_ppr_gbp()
