@@ -306,7 +306,7 @@ class HMRC:
         self.l.debug(f"Calling method: {method_name}")
         if not self.does_method_exist(method_name):
             self.l.error(f"\tdef {method_name}(self): return self.gbpb(0)")
-            return "Check log file"
+            return f"Method not found: {method_name} - check log file"
         method = getattr(self, method_name)
         return method()
 
@@ -1332,15 +1332,15 @@ class HMRC:
     def get_last_name(self):
         return self.person.get_last_name()
 
-    def get_legal__management_and_other_professional_fees(self) -> Decimal:
+    def get_legal_or_management_and_other_professional_fees(self) -> Decimal:
         category_like = "UKP expense: legal"
-        legal__management_and_other_professional_fees = (
+        legal_or_management_and_other_professional_fees = (
             self.get_total_transactions_by_category_like(category_like)
         )
-        return self.round_up(legal__management_and_other_professional_fees, 0)
+        return self.round_up(legal_or_management_and_other_professional_fees, 0)
 
-    def get_legal__management_and_other_professional_fees_gbp(self):
-        return self.gbpb(self.get_legal__management_and_other_professional_fees())
+    def get_legal_or_management_and_other_professional_fees_gbp(self):
+        return self.gbpb(self.get_legal_or_management_and_other_professional_fees())
 
     def get_lifetime_allowance_tax_paid_by_your_pension_scheme(self):
         return self.gbpb(0)
@@ -1350,6 +1350,27 @@ class HMRC:
 
     def get_local_authority_or_other_register(self):
         return self.gbpb(0)
+
+    def get_loss_brought_forward_against_this_year_s_profits_gbp(self):
+        return self.gbpb(0)    
+
+    def get_loss_brought_forward_set_off_against_profits_gbp(self):
+        return self.gbpb(0)    
+
+    def get_loss_carried_back_prior_years_set_off_income_cg_gbp(self):
+        return self.gbpb(0)    
+
+    def get_loss_set_off_against_other_income_this_tax_year_gbp(self):
+        return self.gbpb(0)    
+
+    def get_loss_to_take_forward_post_set_offs_unused_losses_gbp(self):
+        return self.gbpb(0)    
+
+    def get_loss_to_carry_forward__inc_unused_losses_gbp(self):
+        return self.gbpb(0)    
+
+    def get_losses_brought_forward_and_set_off_gbp(self):
+        return self.gbpb(0)    
 
     def get_lump_sum_pension___available_lifetime_allowance(self):
         return self.gbpb(0)
@@ -1733,7 +1754,7 @@ class HMRC:
         property_expenses = [
             self.get_rent__rates__insurance_and_ground_rents(),
             self.get_property_repairs_and_maintenance(),
-            self.get_legal__management_and_other_professional_fees(),
+            self.get_legal_or_management_and_other_professional_fees(),
         ]
         total_property_expenses = uf.sum_values(property_expenses)
         return total_property_expenses
@@ -1746,7 +1767,7 @@ class HMRC:
         category_like = f"HMRC {person_code} UKP expense"
         return self._get_breakdown(category_like)
 
-    def get_property_expenses_gbp(self):
+    def get_total_property_expenses_gbp(self):
         return self.gbpb(self.get_property_expenses())
 
     def get_property_income(self) -> Decimal:
@@ -2215,8 +2236,8 @@ class HMRC:
 
     def get_total_of_any__one_off__payments_in_box_5(self):
         return self.gbpb(0)
-
-    def get_total_of_any_other_taxable_state_pensions_and_benefits(self):
+    
+    def get_total_of_any_other_taxable_state_pensions_and_benefits_gbp(self):
         return self.gbpb(self.get_taxable_benefits_income())
 
     def get_total_of_one_off_payments_gbp(self):
@@ -2566,7 +2587,7 @@ class HMRC:
     def get_weekly_state_pension_forecast(self) -> Decimal:
         weekly_state_pension_forecast = self.person.get_weekly_state_pension_forecast()
         self.l.debug(f"weekly_state_pension_forecast: {weekly_state_pension_forecast}")
-        return weekly_state_pension_forecast
+        return Decimal(weekly_state_pension_forecast)
 
     def get_year_category_total(self, tax_year, category):
         return self.transactions.fetch_total_by_tax_year_category(tax_year, category)

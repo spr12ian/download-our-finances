@@ -1,9 +1,10 @@
 from cls_helper_date_time import DateTimeHelper
 from cls_sqlite_table import SQLiteTable
+from decimal import Decimal
 
 
 class HMRC_PeopleDetails(SQLiteTable):
-    
+
     def __init__(self, code=None):
         super().__init__("hmrc_people_details")
         self.code = code
@@ -24,8 +25,7 @@ class HMRC_PeopleDetails(SQLiteTable):
 
     def are_nics_needed_to_acheive_max_state_pension(self) -> bool:
         return (
-            self._get_value_by_code_column("nics_needed_for_max_state_pension")
-            == "Yes"
+            self._get_value_by_code_column("nics_needed_for_max_state_pension") == "Yes"
         )
 
     def fetch_by_code(self, code):
@@ -65,9 +65,9 @@ class HMRC_PeopleDetails(SQLiteTable):
         if not utr_check_digit:
             utr_check_digit = ""
         return utr_check_digit
-    
-    def get_weekly_state_pension_forecast(self)->float:
-        return float(self._get_value_by_code_column("weekly_state_pension_forecast"))
+
+    def get_weekly_state_pension_forecast(self) -> Decimal:
+        return Decimal(self._get_value_by_code_column("weekly_state_pension_forecast"))
 
     def is_married(self) -> bool:
         return self.get_marital_status() == "Married"

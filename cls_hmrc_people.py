@@ -1,5 +1,6 @@
 from cls_helper_log import LogHelper
 from tables import *
+from decimal import Decimal
 
 
 class HMRC_People(People):
@@ -52,12 +53,12 @@ class HMRC_People(People):
     def get_utr_check_digit(self) -> str:
         return self.hmrc_person_details.get_utr_check_digit()
 
-    def get_weekly_state_pension_forecast(self) -> float:
+    def get_weekly_state_pension_forecast(self) -> Decimal:
         weekly_state_pension_forecast = (
             self.hmrc_person_details.get_weekly_state_pension_forecast()
         )
         self.l.debug(f"weekly_state_pension_forecast: {weekly_state_pension_forecast}")
-        return weekly_state_pension_forecast
+        return Decimal(weekly_state_pension_forecast)
 
     def is_married(self) -> bool:
         return self.hmrc_person_details.is_married()
