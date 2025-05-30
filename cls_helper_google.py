@@ -13,9 +13,9 @@ class GoogleHelper:
         config = ConfigHelper()
 
         # Google Cloud Service credentials
-        self.credentials_file_name = config["Google.Cloud"]["credentials_file_name"]
+        self.credentials_file_name = config.get("Google.Cloud.credentials_file_name")
 
-        self.spreadsheet_key = config["Google.Sheets"]["spreadsheet_key"]
+        self.spreadsheet_key = config.get("Google.Sheets.spreadsheet_key")
 
     def get_authorized_client(self, scopes):
         # from_service_account_file requires scopes to be passed as a keyword arguement

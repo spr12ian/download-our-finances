@@ -34,7 +34,7 @@ class FileHelper:
         osh = OsHelper()
         if output_directory == "":
             config = ConfigHelper()
-            output_directory = config["Output"]["directory"]
+            output_directory = config.get("Output.directory")
             self.l.debug(f"output_directory: {output_directory}")
         stem = osh.get_stem(file_path)
         self.l.debug(f"stem: {stem}")

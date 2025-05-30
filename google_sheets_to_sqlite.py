@@ -29,9 +29,7 @@ class SpreadsheetToSqliteDb:
         self.l.set_level_debug()
         config = ConfigHelper()
 
-        self.convert_underscore_tables = config["Google.Sheets"].getboolean(
-            "convert_underscore_tables"
-        )
+        self.convert_underscore_tables = config.get("Google.Sheets.convert_underscore_tables")
 
         self.pdh = PandasHelper()
 

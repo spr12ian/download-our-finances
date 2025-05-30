@@ -20,7 +20,7 @@ class SQLAlchemyHelper:
 
         config = ConfigHelper()
 
-        db_filename = config["SQLite"]["database_name"]
+        db_filename = config.get("SQLite.database_name")
         file_path = Path(f"{db_filename}")
         if file_path.exists():
             self.l.debug(f"File '{file_path}' exists.")
