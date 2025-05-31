@@ -8,7 +8,7 @@ Google:
     spreadsheet_key: 1Sj13auBheoZalYbs1KUe1ESf0Gq-3gD2DfjdFmVEPTc
     # Use spreadsheet_name to check validity of spreadsheet_key
     spreadsheet_name: Our Finances
-    convert_underscore_tables: false
+    convert_underscore_tables: true
 
 Output:
   directory: output

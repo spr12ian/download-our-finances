@@ -2,6 +2,7 @@
 *.csv
 *.sqlite
 *.txt
+*.yml
 get_account_sheet_names.js
 get_all_sheet_names.js
 config.ini
