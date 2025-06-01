@@ -1,14 +1,18 @@
-Google:
-  Sheets:
-    # Our Finances
-    spreadsheet_key: 1Sj13auBheoZalYbs1KUe1ESf0Gq-3gD2DfjdFmVEPTc
-    # Use spreadsheet_name to check validity of spreadsheet_key
-    spreadsheet_name: Our Finances
-    convert_underscore_tables: true
+# null values indicate real values are expected to be set in the environment
 
-Output:
-  directory: output
+CONVERT_ACCOUNT_TABLES: true
 
-SQLite:
-  database_name: our_finances.sqlite
+# Path to the service account key file for Google APIs.
+GOOGLE_SERVICE_ACCOUNT_KEY_FILE: null
+
+OUR_FINANCES_KEY: null
+
+OUTPUT_DIRECTORY: output
+
+SQLALCHEMY_ECHO: false
+
+
+#  database_url: sqlite:///our_finances.sqlite
+  
+# SQLite:  database_name: our_finances.sqlite
 

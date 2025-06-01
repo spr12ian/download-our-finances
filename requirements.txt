@@ -2,5 +2,7 @@
 google-auth
 gspread
 mypy
+pandas
 pyyaml
+sqlalchemy
 types-PyYAML

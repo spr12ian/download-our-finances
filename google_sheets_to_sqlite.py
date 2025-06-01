@@ -1,6 +1,6 @@
-from cls_config import ConfigHelper
+from cls_config import Config
 from cls_helper_google import GoogleHelper
-from cls_helper_pandas import PandasHelper
+from cls_helper_pandas import DataFrame, PandasHelper
 from cls_helper_sql import SQL_Helper
 from cls_helper_sqlalchemy import valid_sqlalchemy_name
 from database_keys import get_primary_key_columns, has_primary_key
@@ -8,12 +8,7 @@ import spreadsheet_fields
 import time
 import utility_functions as uf
 
-from cls_helper_log import LogHelper
 from cls_helper_log import debug_function_call
-
-l = LogHelper(__file__)
-l.set_level_debug()
-l.debug(__file__)
 
 
 class SpreadsheetToSqliteDb:
@@ -25,11 +20,10 @@ class SpreadsheetToSqliteDb:
             credentials_path (str): Path to your Google Cloud service account JSON
             spreadsheet_name (str): Name of the Google Spreadsheet
         """
-        self.l = LogHelper("SpreadsheetToSqliteDb")
-        self.l.set_level_debug()
-        config = ConfigHelper()
 
-        self.convert_underscore_tables = config.get("Google.Sheets.convert_underscore_tables")
+        config = Config()
+
+        self.convert_account_tables = config.get("CONVERT_ACCOUNT_TABLES")
 
         self.pdh = PandasHelper()
 
@@ -43,7 +37,7 @@ class SpreadsheetToSqliteDb:
 
         self.sql = SQL_Helper().select_sql_helper("SQLite")
 
-    def convert_column_name(self, spreadsheet_column_name):
+    def convert_column_name(self, spreadsheet_column_name: str) -> str:
         sqlite_column_name = valid_sqlalchemy_name(spreadsheet_column_name)
 
         if spreadsheet_column_name.endswith(" (£)"):
@@ -55,12 +49,9 @@ class SpreadsheetToSqliteDb:
 
         return sqlite_column_name
 
-    def convert_df_col(self, df, table_name, column_name):
-        self.l.debug("convert_df_col")
+    def convert_df_col(self, df: DataFrame, table_name: str, column_name: str):
         sqlite_type = self.get_sqlite_type(table_name, column_name)
-        self.l.debug(f"sqlite_type: {sqlite_type}")
         to_db = self.get_to_db(table_name, column_name)
-        self.l.debug(f"to_db: {to_db}")
         match to_db:
             case "to_boolean_integer":
                 df[column_name] = df[column_name].apply(uf.boolean_string_to_int)
@@ -92,10 +83,7 @@ class SpreadsheetToSqliteDb:
 
     @debug_function_call
     def convert_worksheet(self, worksheet):
-        self.l.info(f"Converting {worksheet.title}")
-
         table_name = valid_sqlalchemy_name(worksheet.title)
-        self.l.info(f"table_name: {table_name}")
 
         pdh = self.pdh
 
@@ -108,23 +96,17 @@ class SpreadsheetToSqliteDb:
 
             df.columns = [self.convert_column_name(col) for col in df.columns]
 
-            self.l.debug("Before convert_df_col")
             for col in df.columns:
                 df = self.convert_df_col(df, table_name, col)
 
-            self.l.debug("After convert_df_col")
-
             if has_primary_key(table_name):
                 primary_key_columns = get_primary_key_columns(table_name)
-                self.l.debug(f"primary_key_columns: {primary_key_columns}")
                 key_column = primary_key_columns[0]
-                self.l.debug(f"key_column: {key_column}")
                 if key_column not in df.columns:
                     raise ValueError(
                         f"Primary key column '{key_column}' not found in worksheet '{worksheet.title}'"
                     )
                 sqlite_type = self.get_sqlite_type(table_name, key_column)
-                self.l.debug(f"sqlite_type: {sqlite_type}")
                 dtype = {key_column: f"{sqlite_type} PRIMARY KEY"}
             else:
                 # Add 'id' column and populate with values
@@ -135,8 +117,7 @@ class SpreadsheetToSqliteDb:
             self.l.error(f"Error converting worksheet {worksheet.title}: {e}")
             raise
 
-        self.l.debug(f"Writing {table_name}")
-        self.l.debug(f"df: {df}")
+
         # Write DataFrame to SQLite table (sheet name becomes table name)
         df.to_sql(
             table_name,

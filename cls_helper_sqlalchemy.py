@@ -1,41 +1,23 @@
-from cls_config import ConfigHelper
+from cls_config import Config
 from cls_helper_log import LogHelper
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
 from pathlib import Path
 import utility_functions as uf
-import re
-
-l = LogHelper(__file__)
-#l.set_level_debug()
-l.debug(__file__)
 
 
 class SQLAlchemyHelper:
     def __init__(self):
-        self.l = LogHelper("SQLAlchemyHelper")
-        # self.l.set_level_debug()
-        self.l.debug(__class__)
+        database_url, is_echo_enabled = self.read_config()
 
-        config = ConfigHelper()
-
-        db_filename = config.get("SQLite.database_name")
-        file_path = Path(f"{db_filename}")
-        if file_path.exists():
-            self.l.debug(f"File '{file_path}' exists.")
-        else:
-            self.l.warning(f"File '{file_path}' does not exist.")
-
-        url = f"sqlite:///{db_filename}"
-
-        if self.l.is_debug_enabled():
-            is_echo_enabled = True
-        else:
-            is_echo_enabled = False
-
-        self.engine = create_engine(url, echo=is_echo_enabled)
+        self.engine = create_engine(database_url, echo=is_echo_enabled)
         self.Session = sessionmaker(bind=self.engine)
+
+    def read_config(self):
+        config = Config()
+
+        return config.SQLAlchemy.database_url, config.SQLAlchemy.echo
 
     def fetch_one_value(self, query):
         query = text(query)
@@ -51,7 +33,7 @@ class SQLAlchemyHelper:
             session.close()
 
         return value
-    
+
     def get_db_filename(self):
         return self.engine.url.database
 
@@ -95,10 +77,8 @@ class SQLAlchemyHelper:
 
 
 def valid_sqlalchemy_name(name):
-    l.debug(f"valid_sqlalchemy_name")
-    l.debug(f"name: {name}")
     valid_method_name = uf.to_valid_method_name(name)
-    l.debug(f"valid_method_name: {valid_method_name}")
+    
     return valid_method_name
 
 
