@@ -1,4 +1,4 @@
-from cls_helper_log import LogHelper
+from our_finances.classes.log_helper import LogHelper
 from cls_method_sorter import MethodSorter
 
 l = LogHelper(__file__)

@@ -7,7 +7,7 @@ PYTHON := python3
 REQUIREMENTS := requirements.txt
 TOP_LEVEL_PACKAGES := google-auth gspread mypy pandas pyyaml sqlalchemy types-PyYAML
 
-.PHONY: activate all clean freeze info setup test
+.PHONY: activate all clean freeze info key_check setup test
 
 all: setup test
 
@@ -42,6 +42,9 @@ info:
 	else \
 		cat "$(GOOGLE_SERVICE_ACCOUNT_KEY)" | jq .; \
 	fi
+
+key_check:
+	@$(VENV_DIR)/bin/python -m our_finances key_check
 
 setup:
 	@echo "🔧 Creating virtual environment in $(VENV_DIR) if it doesn't exist..."

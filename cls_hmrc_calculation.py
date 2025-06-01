@@ -1,4 +1,4 @@
-from cls_helper_log import LogHelper
+from our_finances.classes.log_helper import LogHelper
 from datetime import datetime
 from decimal import Decimal
 from typing import Optional, TYPE_CHECKING

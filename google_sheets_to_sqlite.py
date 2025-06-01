@@ -1,5 +1,5 @@
-from cls_config import Config
-from cls_helper_google import GoogleHelper
+from our_finances.classes.config import Config
+from our_finances.classes.google_helper import GoogleHelper
 from cls_helper_pandas import DataFrame, PandasHelper
 from cls_helper_sql import SQL_Helper
 from cls_helper_sqlalchemy import valid_sqlalchemy_name
@@ -8,7 +8,7 @@ import spreadsheet_fields
 import time
 import utility_functions as uf
 
-from cls_helper_log import debug_function_call
+from our_finances.classes.log_helper import debug_function_call
 
 
 class SpreadsheetToSqliteDb:

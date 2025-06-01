@@ -1,10 +1,14 @@
-from cls_helper_file import FileHelper
-from cls_helper_google import GoogleHelper
-from cls_helper_log import debug_function_call
+from our_finances.classes.file_helper import FileHelper
+from our_finances.classes.google_helper import GoogleHelper
+from our_finances.classes.log_helper import debug_function_call
 
 
 @debug_function_call
-def main():
+def main(args=None):
+    if len(args) > 0:
+        print("This command does not accept any arguments.")
+        return
+
     goo = GoogleHelper()
 
     # Define the required scopes
@@ -21,7 +25,3 @@ def main():
     f.print(
         f'Successfully connected to "{spreadsheet.title}" Google Sheets spreadsheet'
     )
-
-
-if __name__ == "__main__":
-    main()

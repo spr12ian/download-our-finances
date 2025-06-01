@@ -1,5 +1,5 @@
 import database_to_spreadsheet
-import key_check
+import our_finances.commands.key_check as key_check
 import pytest
 import google_sheets_to_sqlite
 

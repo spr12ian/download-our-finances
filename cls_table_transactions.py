@@ -1,4 +1,4 @@
-from cls_helper_log import LogHelper
+from our_finances.classes.log_helper import LogHelper
 from cls_sqlite_table import SQLiteTable
 from decimal import Decimal
 import utility_functions as uf

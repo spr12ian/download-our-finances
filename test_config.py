@@ -1,4 +1,4 @@
-from cls_config import Config
+from our_finances.classes.config import Config
 
 config = Config()
 

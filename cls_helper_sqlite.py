@@ -1,4 +1,4 @@
-from cls_config import ConfigHelper
+from our_finances.classes.config import ConfigHelper
 from decimal import Decimal
 import sqlite3
 

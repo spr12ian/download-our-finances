@@ -1,7 +1,7 @@
 import sqlite3
 from typing import List, Dict, Tuple, Any
 import re
-from cls_helper_log import LogHelper
+from our_finances.classes.log_helper import LogHelper
 
 l = LogHelper(__file__)
 l.set_level_debug()

@@ -1,8 +1,8 @@
-from cls_helper_google import GoogleHelper
+from our_finances.classes.google_helper import GoogleHelper
 from cls_helper_pandas import PandasHelper
 from cls_helper_sql import SQL_Helper
 from cls_helper_sqlalchemy import valid_sqlalchemy_name
-from cls_helper_log import LogHelper
+from our_finances.classes.log_helper import LogHelper
 from decimal import Decimal, InvalidOperation
 import re
 

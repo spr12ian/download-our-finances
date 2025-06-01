@@ -1,14 +1,14 @@
-from cls_config import Config
 from google.oauth2.service_account import Credentials  # type: ignore
 import gspread
-from cls_helper_os import OsHelper
+from our_finances.classes.config import Config
+from our_finances.classes.os_helper import OsHelper
 
 
 class GoogleHelper:
     def __init__(self):
         self.read_config()
 
-    def get_authorized_client(self, scopes):
+    def get_authorized_client(self, scopes:list[str]):
         # from_service_account_file requires scopes to be passed as a keyword arguement
 
         # creds = Credentials.from_service_account_file(credentials_path, scopes=scopes)
@@ -18,7 +18,7 @@ class GoogleHelper:
 
         return client
 
-    def get_credentials(self, scopes):
+    def get_credentials(self, scopes:list[str]):
         service_account_file = self.get_credentials_path()
         credentials = Credentials.from_service_account_file(
             service_account_file, scopes=scopes
@@ -45,21 +45,21 @@ class GoogleHelper:
         config = Config()
 
         # Google Cloud Service credentials
-        service_account_key_file = config.get("Google.service_account_key_file")
+        service_account_key_file = config.get("GOOGLE_SERVICE_ACCOUNT_KEY_FILE")
         if not service_account_key_file:
             raise ValueError(
-                "Google.service_account_key_file is not set in the configuration."
+                "GOOGLE_SERVICE_ACCOUNT_KEY_FILE is not set in the configuration."
             )
         if not service_account_key_file.endswith(".json"):
-            raise ValueError("Google.Credentials must be a JSON file.")
+            raise ValueError("GOOGLE_SERVICE_ACCOUNT_KEY_FILE must be a JSON file.")
         if not OsHelper().file_exists(service_account_key_file):
             raise FileNotFoundError(
                 f"Credentials file '{service_account_key_file}' does not exist."
             )
-        spreadsheet_key = config.get("Google.Sheets.spreadsheet_key")
+        spreadsheet_key = config.get("OUR_FINANCES_KEY")
         if not spreadsheet_key:
             raise ValueError(
-                "Google.Sheets.spreadsheet_key is not set in the configuration."
+                "OUR_FINANCES_KEY is not set in the configuration."
             )
 
         self.service_account_key_file = service_account_key_file

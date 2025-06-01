@@ -1,4 +1,4 @@
-from cls_helper_log import LogHelper
+from our_finances.classes.log_helper import LogHelper
 from cls_helper_sql import SQL_Helper
 from cls_helper_sqlalchemy import valid_sqlalchemy_name
 from cls_hmrc_calculation import HMRC_Calculation
