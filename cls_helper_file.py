@@ -1,4 +1,4 @@
-from cls_helper_config import ConfigHelper
+from cls_config import Config
 from cls_helper_log import LogHelper
 from cls_helper_os import OsHelper
 
@@ -24,7 +24,6 @@ class FileHelper:
         self.file_path = self.get_output_path(file_path)
         self.l.debug(f"Output path set to: {self.file_path}")
         self.clear()
-        return self.file_path
 
     def get_output_path(self, file_path: str, output_directory: str = "") -> str:
         """
@@ -33,7 +32,7 @@ class FileHelper:
         self.l.debug(f"file_path: {file_path}")
         osh = OsHelper()
         if output_directory == "":
-            config = ConfigHelper()
+            config = Config()
             output_directory = config.get("Output.directory")
             self.l.debug(f"output_directory: {output_directory}")
         stem = osh.get_stem(file_path)

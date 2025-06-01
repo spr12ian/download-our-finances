@@ -1,4 +1,4 @@
-from cls_helper_config import ConfigHelper
+from cls_config import ConfigHelper
 from decimal import Decimal
 import sqlite3
 

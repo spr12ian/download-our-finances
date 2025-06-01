@@ -1,4 +1,4 @@
-from cls_helper_config import ConfigHelper
+from cls_config import ConfigHelper
 from cls_helper_google import GoogleHelper
 from cls_helper_pandas import PandasHelper
 from cls_helper_sql import SQL_Helper

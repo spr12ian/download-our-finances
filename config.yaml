@@ -1,8 +1,4 @@
 Google:
-  Cloud:
-    # Google Cloud Service credentials
-    credentials_file_name: isw-personal-scripts-314a6167bf08.json
-
   Sheets:
     # Our Finances
     spreadsheet_key: 1Sj13auBheoZalYbs1KUe1ESf0Gq-3gD2DfjdFmVEPTc

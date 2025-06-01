@@ -1,8 +1,10 @@
-from cls_helper_config import ConfigHelper
 import os
 
 
 class OsHelper:
+    def file_exists(self, path):
+        return os.path.isfile(path)
+    
     def get_basename(self, path):
         return os.path.basename(path)
     

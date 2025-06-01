@@ -1,4 +1,4 @@
-from cls_helper_config import ConfigHelper
+from cls_config import ConfigHelper
 from cls_helper_log import LogHelper
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
