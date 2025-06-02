@@ -1,4 +1,4 @@
-from cls_helper_sqlalchemy import validate_sqlalchemy_name
+from sqlalchemy_helper import validate_sqlalchemy_name
 
 class QueryBuilder:
     def __init__(self, table_name):

@@ -12,7 +12,7 @@ def main():
         ["cls_helper_date_time", "DateTimeHelper"],
         ["cls_helper_google", "GoogleHelper"],
         ["cls_helper_log", "LogHelper"],
-        ["cls_helper_sqlalchemy", "SQLAlchemyHelper"],
+        ["sqlalchemy_helper", "SQLAlchemyHelper"],
         ["cls_hmrc", "HMRC"],
         ["cls_hmrc_calculation", "HMRC_Calculation"],
         ["cls_method_sorter", "ClassFinder"],

@@ -1,4 +1,4 @@
-from cls_helper_sqlalchemy import SQLAlchemyHelper
+from sqlalchemy_helper import SQLAlchemyHelper
 from cls_helper_date_time import DateTimeHelper
 from models import AccountBalances, BankAccounts, Transactions
 from sqlalchemy import func, not_, text, cast, DECIMAL

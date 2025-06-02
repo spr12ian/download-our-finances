@@ -1,5 +1,5 @@
 from our_finances.classes.log_helper import LogHelper
-from cls_helper_sqlalchemy import valid_sqlalchemy_name
+from sqlalchemy_helper import valid_sqlalchemy_name
 from cls_sqlite_table import SQLiteTable
 from utility_functions import string_to_float
 from functools import lru_cache

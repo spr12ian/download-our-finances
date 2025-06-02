@@ -1,5 +1,5 @@
 from our_finances.classes.log_helper import LogHelper
-from cls_helper_sqlalchemy import valid_sqlalchemy_name
+from sqlalchemy_helper import valid_sqlalchemy_name
 from cls_sqlite_table import SQLiteTable
 from cls_table_hmrc_constant_amounts_by_year import HMRC_ConstantAmountsByYear
 from cls_table_hmrc_constant_percentages_by_year import HMRC_ConstantPercentagesByYear

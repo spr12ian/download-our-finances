@@ -1,4 +1,4 @@
-from cls_helper_sqlalchemy import SQLAlchemyHelper
+from sqlalchemy_helper import SQLAlchemyHelper
 from sqlalchemy import text
 
 with open("queries.sql", "r") as file:

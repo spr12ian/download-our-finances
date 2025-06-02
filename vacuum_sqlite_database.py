@@ -1,6 +1,6 @@
 from pathlib import Path
 from sqlalchemy import create_engine, text
-from cls_helper_sqlalchemy import SQLAlchemyHelper
+from sqlalchemy_helper import SQLAlchemyHelper
 from our_finances.classes.log_helper import LogHelper
 from our_finances.classes.log_helper import debug_function_call
 import os

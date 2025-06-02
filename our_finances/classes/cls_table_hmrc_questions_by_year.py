@@ -1,6 +1,6 @@
 from our_finances.classes.log_helper import LogHelper
-from cls_helper_sqlalchemy import valid_sqlalchemy_name
-from cls_helper_sqlalchemy import validate_sqlalchemy_name
+from sqlalchemy_helper import valid_sqlalchemy_name
+from sqlalchemy_helper import validate_sqlalchemy_name
 from cls_sqlite_table import SQLiteTable
 import utility_functions as uf
 

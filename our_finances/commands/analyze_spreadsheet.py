@@ -1,17 +1,14 @@
 from our_finances.classes.file_helper import FileHelper
 from our_finances.classes.google_helper import GoogleHelper
-from our_finances.classes.log_helper import LogHelper
 from our_finances.classes.log_helper import debug_function_call
-from cls_helper_pandas import PandasHelper
-from cls_helper_path import PathHelper
-from cls_helper_sqlalchemy import valid_sqlalchemy_name
+from our_finances.classes.pandas_helper import PandasHelper
+from our_finances.classes.path_helper import PathHelper
+from our_finances.classes.sqlalchemy_helper import valid_sqlalchemy_name
 from typing import List
 import time
 import utility_functions as uf
 
-l = LogHelper(__file__)
-l.set_level_debug()
-l.debug(__file__)
+
 
 TYPE_MAPPING = {
     " (£)": {
@@ -50,8 +47,7 @@ class SpreadsheetAnalyzer:
         """
         Initialize the analyzer
         """
-        self.l = LogHelper("SpreadsheetAnalyzer")
-        self.l.set_level_debug()
+
 
         # Define the required scopes
         scopes = [
@@ -85,18 +81,18 @@ class SpreadsheetAnalyzer:
 
     @debug_function_call
     def analyze_worksheet(self, worksheet) -> None:
-        self.l.info(f"Analyzing {worksheet.title}")
+
         self.all_sheet_names.append(worksheet.title)
         if worksheet.title.startswith("_"):
             self.account_sheet_names.append(worksheet.title)
 
         table_name = valid_sqlalchemy_name(worksheet.title)
-        self.l.info(f"table_name: {table_name}")
+
 
         pdh = self.pdh
         try:
             first_row = worksheet.row_values(1)
-            self.l.debug(f"first_row: {first_row}")
+
 
             # Split columns and rows
             df = pdh.header_to_dataframe(first_row)
@@ -104,14 +100,12 @@ class SpreadsheetAnalyzer:
                 self.fields.append(self.get_column_types(table_name, col))
 
         except Exception as e:
-            self.l.error(f"Error analyzing worksheet {worksheet.title}: {e}")
             raise
 
     def get_column_types(
         self, table_name: str, spreadsheet_column_name: str
     ) -> List[str]:
-        self.l.debug("get_column_types")
-        self.l.debug(f"spreadsheet_column_name: {spreadsheet_column_name}")
+
 
         # sqlite_type is used to write the spreadsheet column value to the database
         # The sqlite_type may cause the spreadsheet string to be transformed
@@ -127,8 +121,7 @@ class SpreadsheetAnalyzer:
                 elif type_map_key != "?":  # For the other special cases
                     sqlite_column_name = uf.crop(sqlite_column_name, "____")
 
-                self.l.debug(f'type_info["to_db"]:{type_info["to_db"]}')
-                self.l.debug(f'type_info["sqlite_type"]:{type_info["sqlite_type"]}')
+
                 return [
                     table_name,
                     spreadsheet_column_name,
@@ -268,5 +261,4 @@ def main() -> None:
     f.append(f"Analyzed Google Sheets spreadsheet")
 
 
-if __name__ == "__main__":
-    main()
+

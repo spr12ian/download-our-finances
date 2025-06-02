@@ -1,9 +1,10 @@
-from our_finances.classes.config import Config
-from our_finances.classes.log_helper import LogHelper
+from pathlib import Path
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
-from pathlib import Path
+from our_finances.classes.config import Config
+
+
 import utility_functions as uf
 
 

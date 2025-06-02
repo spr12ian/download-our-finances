@@ -1,5 +1,5 @@
-from cls_helper_sqlalchemy import SQLAlchemyHelper
-from cls_helper_sqlalchemy import validate_sqlalchemy_name
+from sqlalchemy_helper import SQLAlchemyHelper
+from sqlalchemy_helper import validate_sqlalchemy_name
 from cls_query_builder import QueryBuilder
 
 
