@@ -265,7 +265,7 @@ def main() -> None:
 
     f = FileHelper()
     f.set_output_from_file(__file__)
-    f.print(f"Analyzed Google Sheets spreadsheet")
+    f.append(f"Analyzed Google Sheets spreadsheet")
 
 
 if __name__ == "__main__":

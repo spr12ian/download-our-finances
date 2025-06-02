@@ -1,4 +1,4 @@
-from cls_helper_date_time import DateTimeHelper
+from our_finances.classes.date_time_helper import DateTimeHelper
 from functools import wraps
 import logging
 import os

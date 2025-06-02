@@ -1,3 +1,4 @@
+from typing import Any
 import pandas as pd
 
 
@@ -5,7 +6,7 @@ class PandasHelper:
     def pd(self):
         return pd
 
-    def header_to_dataframe(self, values):
+    def header_to_dataframe(self, values: Any) -> pd.DataFrame:
         # Create a DataFrame
         columns = values
         return pd.DataFrame(columns=columns)

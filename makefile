@@ -65,11 +65,9 @@ endif
 
 test:
 	@echo "Running tests..."
-	@. $(VENV_DIR)/bin/activate && \
-	pwl key_check
-	pwl analyze_spreadsheet
-	pwl google_sheets_to_sqlite
-	pwl vacuum_sqlite_database
-#	@. $(VENV_DIR)/bin/activate && \
-	pytest --maxfail=1 --disable-warnings -q
+	@$(VENV_DIR)/bin/python -m our_finances key_check
+	@$(VENV_DIR)/bin/python -m our_finances analyze_spreadsheet
+	@$(VENV_DIR)/bin/python -m our_finances google_sheets_to_sqlite
+	@$(VENV_DIR)/bin/python -m our_finances vacuum_sqlite_database
+#	@$(VENV_DIR)/bin/python -m pytest --maxfail=1 --disable-warnings -q
 	@echo "✅ Tests completed."

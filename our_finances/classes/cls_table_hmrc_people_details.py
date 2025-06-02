@@ -1,4 +1,4 @@
-from cls_helper_date_time import DateTimeHelper
+from our_finances.classes.date_time_helper import DateTimeHelper
 from cls_sqlite_table import SQLiteTable
 from decimal import Decimal
 

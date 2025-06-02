@@ -1,4 +1,4 @@
-from google.oauth2.service_account import Credentials  # type: ignore
+from google.oauth2.service_account import Credentials
 import gspread
 from our_finances.classes.config import Config
 from our_finances.classes.os_helper import OsHelper
@@ -8,7 +8,7 @@ class GoogleHelper:
     def __init__(self):
         self.read_config()
 
-    def get_authorized_client(self, scopes:list[str]):
+    def get_authorized_client(self, scopes: list[str]):
         # from_service_account_file requires scopes to be passed as a keyword arguement
 
         # creds = Credentials.from_service_account_file(credentials_path, scopes=scopes)
@@ -18,27 +18,25 @@ class GoogleHelper:
 
         return client
 
-    def get_credentials(self, scopes:list[str]):
+    def get_credentials(self, scopes: list[str]):
         service_account_file = self.get_credentials_path()
-        credentials = Credentials.from_service_account_file(
+        credentials = Credentials.from_service_account_file(  # type: ignore
             service_account_file, scopes=scopes
         )
         return credentials
 
     def get_credentials_path(self):
-        home_directory = OsHelper().get_home_directory()
-
         credentials_path = f"{self.service_account_key_file}"
 
         return credentials_path
 
-    def get_spreadsheet(self, scopes):
+    def get_spreadsheet(self, scopes: list[str]) -> gspread.Spreadsheet:
         client = self.get_authorized_client(scopes)
         spreadsheet = client.open_by_key(self.spreadsheet_key)
 
         return spreadsheet
 
-    def get_spreadsheet_url(self, spreadsheet_id):
+    def get_spreadsheet_url(self, spreadsheet_id:str):
         return f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}"
 
     def read_config(self):
@@ -58,9 +56,7 @@ class GoogleHelper:
             )
         spreadsheet_key = config.get("OUR_FINANCES_KEY")
         if not spreadsheet_key:
-            raise ValueError(
-                "OUR_FINANCES_KEY is not set in the configuration."
-            )
+            raise ValueError("OUR_FINANCES_KEY is not set in the configuration.")
 
         self.service_account_key_file = service_account_key_file
         self.spreadsheet_key = spreadsheet_key
