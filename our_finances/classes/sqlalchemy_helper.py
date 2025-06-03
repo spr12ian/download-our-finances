@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from our_finances.classes.config import Config
 
 
-import utility_functions as uf
+from our_finances.utils.string_helpers import to_valid_method_name
 
 
 class SQLAlchemyHelper:
@@ -81,7 +81,7 @@ class SQLAlchemyHelper:
 
 
 def valid_sqlalchemy_name(name):
-    valid_method_name = uf.to_valid_method_name(name)
+    valid_method_name = to_valid_method_name(name)
     
     return valid_method_name
 

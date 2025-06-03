@@ -2,7 +2,7 @@
 from sqlalchemy_helper import valid_sqlalchemy_name
 from sqlalchemy_helper import validate_sqlalchemy_name
 from our_finances.classes.sqlite_table import SQLiteTable
-import utility_functions as uf
+import our_finances.utils.financial_helpers as uf
 
 
 class HMRC_QuestionsByYear(SQLiteTable):

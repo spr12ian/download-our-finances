@@ -6,7 +6,7 @@ from typing import Any
 
 
 @debug_function_call
-def main(args: Any = None):
+def main(args: Any = None) -> None:
     if len(args) > 0:
         print("This command does not accept any arguments.")
         return

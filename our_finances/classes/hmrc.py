@@ -8,7 +8,7 @@ from our_finances.classes.sqlalchemy_helper import valid_sqlalchemy_name
 from our_finances.classes.hmrc_calculation import HMRC_Calculation
 from our_finances.classes.hmrc_people import HMRC_People
 from tables import *
-import utility_functions as uf
+import our_finances.utils.financial_helpers as uf
 from our_finances.classes.hmrc_output import HMRC_Output
 
 

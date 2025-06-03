@@ -1,14 +1,13 @@
+from typing import Any, List
+import time
+
 from our_finances.classes.file_helper import FileHelper
 from our_finances.classes.google_helper import GoogleHelper
-from our_finances.classes.log_helper import debug_function_call
 from our_finances.classes.pandas_helper import PandasHelper
 from our_finances.classes.path_helper import PathHelper
 from our_finances.classes.sqlalchemy_helper import valid_sqlalchemy_name
-from typing import List
-import time
-import utility_functions as uf
 
-
+from our_finances.utils.string_helpers import crop
 
 TYPE_MAPPING = {
     " (£)": {
@@ -48,7 +47,6 @@ class SpreadsheetAnalyzer:
         Initialize the analyzer
         """
 
-
         # Define the required scopes
         scopes = [
             "https://www.googleapis.com/auth/spreadsheets.readonly",
@@ -77,9 +75,6 @@ class SpreadsheetAnalyzer:
 
             time.sleep(1.1)  # Prevent Google API rate limiting
 
-        self.l.debug(self.fields)
-
-    @debug_function_call
     def analyze_worksheet(self, worksheet) -> None:
 
         self.all_sheet_names.append(worksheet.title)
@@ -88,11 +83,9 @@ class SpreadsheetAnalyzer:
 
         table_name = valid_sqlalchemy_name(worksheet.title)
 
-
         pdh = self.pdh
         try:
             first_row = worksheet.row_values(1)
-
 
             # Split columns and rows
             df = pdh.header_to_dataframe(first_row)
@@ -106,7 +99,6 @@ class SpreadsheetAnalyzer:
         self, table_name: str, spreadsheet_column_name: str
     ) -> List[str]:
 
-
         # sqlite_type is used to write the spreadsheet column value to the database
         # The sqlite_type may cause the spreadsheet string to be transformed
 
@@ -119,8 +111,7 @@ class SpreadsheetAnalyzer:
                 if type_map_key == "?":  # Only for boolean columns
                     sqlite_column_name = sqlite_column_name.strip("_")
                 elif type_map_key != "?":  # For the other special cases
-                    sqlite_column_name = uf.crop(sqlite_column_name, "____")
-
+                    sqlite_column_name = crop(sqlite_column_name, "____")
 
                 return [
                     table_name,
@@ -134,8 +125,6 @@ class SpreadsheetAnalyzer:
                 ]
 
             if spreadsheet_column_name.startswith(type_map_key):
-                self.l.debug(f'type_info["to_db"]:{type_info["to_db"]}')
-                self.l.debug(f'type_info["sqlite_type"]:{type_info["sqlite_type"]}')
                 return [
                     table_name,
                     spreadsheet_column_name,
@@ -192,8 +181,6 @@ class SpreadsheetAnalyzer:
         path.write_output_str(output_str)
 
     def get_fields_output(self) -> str:
-        for field in self.fields:
-            self.l.debug(f"field: {field}")
         return str(self.fields)
 
     def get_prefix(self) -> str:
@@ -245,8 +232,11 @@ fields = """
         return prefix
 
 
-@debug_function_call
-def main() -> None:
+def main(args: Any = None) -> None:
+    if len(args) > 0:
+        print("This command does not accept any arguments.")
+        return
+
     analyzer = SpreadsheetAnalyzer()
 
     # Analyze spreadsheet
@@ -259,6 +249,3 @@ def main() -> None:
     f = FileHelper()
     f.set_output_from_file(__file__)
     f.append(f"Analyzed Google Sheets spreadsheet")
-
-
-

@@ -6,7 +6,7 @@ from sqlalchemy_helper import valid_sqlalchemy_name
 from database_keys import get_primary_key_columns, has_primary_key
 import spreadsheet_fields
 import time
-import utility_functions as uf
+import our_finances.utils.financial_helpers as uf
 
 from our_finances.classes.log_helper import debug_function_call
 

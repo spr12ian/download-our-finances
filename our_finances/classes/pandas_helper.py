@@ -6,7 +6,7 @@ class PandasHelper:
     def pd(self):
         return pd
 
-    def header_to_dataframe(self, values: Any) -> pd.DataFrame:
+    def header_to_dataframe(self, values: Any):
         # Create a DataFrame
         columns = values
         return pd.DataFrame(columns=columns)
