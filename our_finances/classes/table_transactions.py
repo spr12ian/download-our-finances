@@ -1,12 +1,11 @@
-from our_finances.classes.log_helper import LogHelper
-from cls_sqlite_table import SQLiteTable
+
+from our_finances.classes.sqlite_table import SQLiteTable
 from decimal import Decimal
 import utility_functions as uf
 
 
 class Transactions(SQLiteTable):
     def __init__(self):
-        self.l = LogHelper("Transactions")
         # self.l.set_level_debug()
         self.l.debug(__file__)
 

@@ -1,7 +1,10 @@
+# standard imports
 from pathlib import Path
+# pip imports
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
+# local imports
 from our_finances.classes.config import Config
 
 
@@ -83,7 +86,7 @@ def valid_sqlalchemy_name(name):
     return valid_method_name
 
 
-def validate_sqlalchemy_name(name):
+def validate_sqlalchemy_name(name:str)-> None:
     if name != valid_sqlalchemy_name(name):
         raise ValueError(f"Invalid SQLAlchemy name: {name}")
 

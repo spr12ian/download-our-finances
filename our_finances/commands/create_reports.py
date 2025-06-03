@@ -1,5 +1,5 @@
-from cls_hmrc import HMRC
-from cls_table_hmrc_questions_by_year import HMRC_QuestionsByYear
+from hmrc import HMRC
+from table_hmrc_questions_by_year import HMRC_QuestionsByYear
 from datetime import datetime
 
 

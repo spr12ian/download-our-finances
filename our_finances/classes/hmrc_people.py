@@ -1,14 +1,11 @@
-from our_finances.classes.log_helper import LogHelper
-from tables import *
+# standard imports
 from decimal import Decimal
-
+# local imports
+from our_finances.classes.people import People
+from tables import *
 
 class HMRC_People(People):
     def __init__(self, code):
-        self.l = LogHelper("HMRC_People")
-        self.l.set_level_debug()
-        self.l.debug(__file__)
-        self.l.debug(f"code: {code}")
         super().__init__(code)
 
         self.hmrc_person_details = HMRC_PeopleDetails(code)

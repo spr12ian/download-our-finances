@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 # Use this snippet:
-# from cls_helper_log import LogHelper
+# fromhelper_log import LogHelper
 # l = LogHelper(__name__)
 # l.clear_debug_log()
 

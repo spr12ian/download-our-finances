@@ -1,21 +1,24 @@
-from our_finances.classes.config import ConfigHelper
+#standard library imports
 from decimal import Decimal
+from typing import Any, Optional
+#pip install imports
 import sqlite3
+#local imports
+from our_finances.classes.config import Config
+
 
 
 class SQLiteHelper:
     def __init__(self):
-        config = ConfigHelper()
+        config = Config()
 
         self.db_path = config.get("SQLite.database_name")
-
-        self.db_connection = None
 
     def close_connection(self):
         if self.db_connection:
             self.db_connection.close()
 
-    def drop_column(self, table_name, column_to_drop):
+    def drop_column(self, table_name: str, column_to_drop: str):
         temp_table_name = f"temp_{table_name}"
         self.open_connection()
 
@@ -46,7 +49,7 @@ class SQLiteHelper:
 
         self.close_connection()
 
-    def executeAndCommit(self, sql_statement):
+    def executeAndCommit(self, sql_statement: str):
         self.open_connection()
 
         cursor = self.db_connection.cursor()
@@ -55,7 +58,7 @@ class SQLiteHelper:
 
         self.close_connection()
 
-    def fetch_all(self, query):
+    def fetch_all(self, query: str):
         self.open_connection()
 
         cursor = self.db_connection.cursor()
@@ -66,7 +69,7 @@ class SQLiteHelper:
 
         return fetch_all
 
-    def fetch_one_row(self, query):
+    def fetch_one_row(self, query: str):
         self.open_connection()
         cursor = self.db_connection.cursor()
         cursor.execute(query)
@@ -75,7 +78,7 @@ class SQLiteHelper:
 
         return row
 
-    def fetch_one_value(self, query):
+    def fetch_one_value(self, query: str) -> Any:
         row = self.fetch_one_row(query)
         if row:
             value = row[0]  # Accessing the first element of the tuple
@@ -84,7 +87,7 @@ class SQLiteHelper:
 
         return value
 
-    def fetch_one_value_decimal(self, query) -> Decimal:
+    def fetch_one_value_decimal(self, query: str) -> Decimal:
         row = self.fetch_one_row(query)
         if row:
             value = row[0]  # Accessing the first element of the tuple
@@ -93,7 +96,7 @@ class SQLiteHelper:
 
         return Decimal(value)
 
-    def fetch_one_value_float(self, query) -> float:
+    def fetch_one_value_float(self, query:str) -> float:
         row = self.fetch_one_row(query)
         if row:
             value = row[0]  # Accessing the first element of the tuple
@@ -102,7 +105,7 @@ class SQLiteHelper:
 
         return float(value)
 
-    def get_column_info(self, table_name, column_name):
+    def get_column_info(self, table_name:str, column_name:str):
         table_info = self.get_table_info(table_name)
         column_info = None
         for column in table_info:
@@ -111,7 +114,7 @@ class SQLiteHelper:
 
         return column_info
 
-    def get_how_many(self, table_name, where=None):
+    def get_how_many(self, table_name:str, where:Optional[str]=None)-> int:
         self.open_connection()
         query = f"""
 SELECT COUNT(*)
@@ -128,7 +131,7 @@ FROM {table_name}
 
         return how_many
 
-    def get_table_info(self, table_name):
+    def get_table_info(self, table_name: str)-> list[Any]:
         query = f"PRAGMA table_info('{table_name}')"
         self.open_connection()
 
@@ -144,8 +147,7 @@ FROM {table_name}
         # Connect to SQLite database
         self.db_connection = sqlite3.connect(self.db_path)
 
-    def rename_column(self, table_name, old_column_name, new_column_name):
-        temp_table_name = f"temp_{table_name}"
+    def rename_column(self, table_name:str, old_column_name:str, new_column_name:str):        
 
         self.open_connection()
 
@@ -182,7 +184,7 @@ FROM {table_name}
 
         self.close_connection()
 
-    def text_to_real(self, table_name, column_name):
+    def text_to_real(self, table_name:str, column_name:str):
         table_info = self.get_table_info(table_name)
 
         column_type = None

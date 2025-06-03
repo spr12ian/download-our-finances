@@ -1,13 +1,15 @@
-from our_finances.classes.log_helper import LogHelper
-from cls_helper_sql import SQL_Helper
-from sqlalchemy_helper import valid_sqlalchemy_name
-from cls_hmrc_calculation import HMRC_Calculation
-from cls_hmrc_people import HMRC_People
-from tables import *
-import utility_functions as uf
-from cls_hmrc_output import HMRC_Output
+# standard imports
 from functools import lru_cache
 from decimal import Decimal
+# local imports
+from our_finances.classes.log_helper import LogHelper
+from our_finances.classes.sql_helper import SQL_Helper
+from our_finances.classes.sqlalchemy_helper import valid_sqlalchemy_name
+from our_finances.classes.hmrc_calculation import HMRC_Calculation
+from our_finances.classes.hmrc_people import HMRC_People
+from tables import *
+import utility_functions as uf
+from our_finances.classes.hmrc_output import HMRC_Output
 
 
 class HMRC:
@@ -2586,7 +2588,6 @@ class HMRC:
 
     def get_weekly_state_pension_forecast(self) -> Decimal:
         weekly_state_pension_forecast = self.person.get_weekly_state_pension_forecast()
-        self.l.debug(f"weekly_state_pension_forecast: {weekly_state_pension_forecast}")
         return Decimal(weekly_state_pension_forecast)
 
     def get_year_category_total(self, tax_year, category):
@@ -2765,11 +2766,8 @@ class HMRC:
         return self.do_you_wish_to_voluntarily_pay_class_2_nics()
 
     def use_property_allowance(self):
-        self.l.debug("use_property_allowance")
         property_allowance = self.get_property_allowance()
-        self.l.debug(property_allowance)
         property_expenses = self.get_property_expenses()
-        self.l.debug(property_expenses)
         return property_allowance > property_expenses
 
     def use_trading_allowance(self) -> bool:

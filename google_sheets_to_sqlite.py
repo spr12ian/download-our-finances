@@ -1,7 +1,7 @@
 from our_finances.classes.config import Config
 from our_finances.classes.google_helper import GoogleHelper
 from pandas_helper import DataFrame, PandasHelper
-from cls_helper_sql import SQL_Helper
+fromhelper_sql import SQL_Helper
 from sqlalchemy_helper import valid_sqlalchemy_name
 from database_keys import get_primary_key_columns, has_primary_key
 import spreadsheet_fields

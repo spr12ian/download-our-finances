@@ -1,6 +1,6 @@
 from our_finances.classes.google_helper import GoogleHelper
 from pandas_helper import PandasHelper
-from cls_helper_sql import SQL_Helper
+fromhelper_sql import SQL_Helper
 from sqlalchemy_helper import valid_sqlalchemy_name
 from our_finances.classes.log_helper import LogHelper
 from decimal import Decimal, InvalidOperation

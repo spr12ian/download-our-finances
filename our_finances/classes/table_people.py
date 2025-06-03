@@ -1,5 +1,5 @@
 from our_finances.classes.date_time_helper import DateTimeHelper
-from cls_sqlite_table import SQLiteTable
+from our_finances.classes.sqlite_table import SQLiteTable
 
 
 class People(SQLiteTable):

@@ -1,4 +1,4 @@
-from cls_table_hmrc_people_details import HMRC_PeopleDetails
+from table_hmrc_people_details import HMRC_PeopleDetails
 
 
 def test_people():

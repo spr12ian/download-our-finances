@@ -1,9 +1,10 @@
-import libcst as cst
 from pathlib import Path
+import libcst as cst
+
 
 class MethodSorter:
-    def __init__(self, file_path, class_name):
-        self.file_path = Path(file_path)
+    def __init__(self, file_path:Path, class_name:str):
+        self.file_path = file_path
         self.class_name = class_name
 
         # Validate file path

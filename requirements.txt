@@ -1,6 +1,7 @@
 # Top-level dev dependencies
 google-auth
 gspread
+libcst
 mypy
 pandas
 pyyaml

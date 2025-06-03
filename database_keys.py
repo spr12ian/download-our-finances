@@ -18,7 +18,7 @@ def get_primary_key_columns(table_name: str) -> List[str]:
     Returns:
         columns: The primary key column(s).
     """
-    columns = []
+    columns:list[str] = []
     for table, column, is_primary_key in database_keys:
         if table == table_name and is_primary_key:
             columns.append(column)
@@ -36,7 +36,7 @@ def has_primary_key(table_name: str) -> bool:
     Returns:
         bool: True if such a tuple exists, False otherwise.
     """
-    for table, column, is_primary_key in database_keys:
+    for table, _, is_primary_key in database_keys:
         if table == table_name and is_primary_key:
             return True
     return False

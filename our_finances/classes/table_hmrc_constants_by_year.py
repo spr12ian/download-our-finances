@@ -1,8 +1,8 @@
-from our_finances.classes.log_helper import LogHelper
+
 from sqlalchemy_helper import valid_sqlalchemy_name
-from cls_sqlite_table import SQLiteTable
-from cls_table_hmrc_constant_amounts_by_year import HMRC_ConstantAmountsByYear
-from cls_table_hmrc_constant_percentages_by_year import HMRC_ConstantPercentagesByYear
+from our_finances.classes.sqlite_table import SQLiteTable
+from table_hmrc_constant_amounts_by_year import HMRC_ConstantAmountsByYear
+from table_hmrc_constant_percentages_by_year import HMRC_ConstantPercentagesByYear
 from decimal import Decimal
 from functools import lru_cache
 
@@ -10,10 +10,7 @@ from functools import lru_cache
 class HMRC_ConstantsByYear(SQLiteTable):
 
     def __init__(self, tax_year):
-        self.l = LogHelper("HMRC_ConstantsByYear")
-        self.l.set_level_debug()
-        self.l.debug(__file__)
-        self.l.debug(f"tax_year: {tax_year}")
+
         super().__init__("hmrc_constants_by_year")
         self.tax_year = tax_year
         self.tax_year_col = valid_sqlalchemy_name(tax_year)

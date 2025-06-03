@@ -5,7 +5,7 @@ GOOGLE_SERVICE_ACCOUNT_KEY ?= service-account.json
 VENV_DIR := .venv
 PYTHON := python3
 REQUIREMENTS := requirements.txt
-TOP_LEVEL_PACKAGES := google-auth gspread mypy pandas pyyaml sqlalchemy types-PyYAML
+TOP_LEVEL_PACKAGES := google-auth gspread libcst mypy pandas pyyaml sqlalchemy types-PyYAML
 
 .PHONY: activate all analyze_spreadsheet clean freeze info key_check setup test
 

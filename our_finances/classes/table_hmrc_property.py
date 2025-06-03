@@ -1,5 +1,5 @@
-from our_finances.classes.log_helper import LogHelper
-from cls_sqlite_table import SQLiteTable
+
+from our_finances.classes.sqlite_table import SQLiteTable
 
 
 class HMRC_Property(SQLiteTable):

@@ -1,4 +1,3 @@
-from our_finances.classes.log_helper import LogHelper
 from tables import *
 import utility_functions as uf
 
@@ -10,13 +9,6 @@ class HMRC_Output:
     REPORT_TYPES = [HMRC_CALCULATION, HMRC_ONLINE_ANSWERS, HMRC_TAX_RETURN]
 
     def __init__(self, output_details: dict):
-        self.l = LogHelper("HMRC_Output")
-        self.l.set_level_debug()
-        self.l.debug(__file__)
-
-        for key, value in output_details.items():
-            self.l.debug(f"{key} = {value}")
-
         self.answers = output_details["answers"]
         self.person_name = output_details["person_name"]
         self.report_type = output_details["report_type"]

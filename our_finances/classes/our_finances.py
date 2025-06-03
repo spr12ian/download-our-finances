@@ -1,5 +1,5 @@
 from tables import *
-from cls_helper_sqlite import SQLiteHelper
+from our_finances.classes.sqlite_helper import SQLiteHelper
 
 
 class OurFinances:

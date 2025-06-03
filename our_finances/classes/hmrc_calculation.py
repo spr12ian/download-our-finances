@@ -1,17 +1,14 @@
-from our_finances.classes.log_helper import LogHelper
+# standard imports
 from datetime import datetime
 from decimal import Decimal
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from cls_hmrc import HMRC
+    from our_finances.classes.hmrc import HMRC
 
 
 class HMRC_Calculation:
     def __init__(self, hmrc: "HMRC") -> None:
-        self.l = LogHelper("HMRC_Calculation")
-        self.l.set_level_debug()
-        self.l.debug(__file__)
         self.hmrc = hmrc
         self.output_list = [""]
 

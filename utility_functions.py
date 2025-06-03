@@ -1,7 +1,7 @@
 import locale
 import math
 import re
-from cls_helper_date_time import DateTimeHelper
+fromhelper_date_time import DateTimeHelper
 from our_finances.classes.log_helper import LogHelper
 from decimal import Decimal, InvalidOperation, ROUND_DOWN, ROUND_UP, ROUND_HALF_EVEN
 
