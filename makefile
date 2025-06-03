@@ -7,13 +7,16 @@ PYTHON := python3
 REQUIREMENTS := requirements.txt
 TOP_LEVEL_PACKAGES := google-auth gspread mypy pandas pyyaml sqlalchemy types-PyYAML
 
-.PHONY: activate all clean freeze info key_check setup test
+.PHONY: activate all analyze_spreadsheet clean freeze info key_check setup test
 
 all: setup test
 
 activate:
 	@echo "Run this to activate the virtual environment:"
 	@echo "source $(VENV_DIR)/bin/activate"
+
+analyze_spreadsheet:
+	@$(VENV_DIR)/bin/python -m our_finances analyze_spreadsheet
 
 clean:
 	@echo "🧹 Removing virtual environment..."
