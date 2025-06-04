@@ -1,14 +1,14 @@
+import time
+from pandas import DataFrame # type ignore
+from typing import Any
 from our_finances.classes.config import Config
 from our_finances.classes.google_helper import GoogleHelper
-from pandas_helper import DataFrame, PandasHelper
-fromhelper_sql import SQL_Helper
-from sqlalchemy_helper import valid_sqlalchemy_name
+from our_finances.classes.pandas_helper import PandasHelper
+from our_finances.classes.sql_helper import SQL_Helper
+from our_finances.classes.sqlalchemy_helper import valid_sqlalchemy_name
+from our_finances.utils.string_helpers import crop
 from database_keys import get_primary_key_columns, has_primary_key
 import spreadsheet_fields
-import time
-import our_finances.utils.financial_helpers as uf
-
-from our_finances.classes.log_helper import debug_function_call
 
 
 class SpreadsheetToSqliteDb:
@@ -41,15 +41,17 @@ class SpreadsheetToSqliteDb:
         sqlite_column_name = valid_sqlalchemy_name(spreadsheet_column_name)
 
         if spreadsheet_column_name.endswith(" (£)"):
-            sqlite_column_name = uf.crop(sqlite_column_name, "____")
+            sqlite_column_name = crop(sqlite_column_name, "____")
         elif spreadsheet_column_name.endswith(" (%)"):
-            sqlite_column_name = uf.crop(sqlite_column_name, "____")
+            sqlite_column_name = crop(sqlite_column_name, "____")
         elif spreadsheet_column_name.endswith("?"):
             sqlite_column_name = sqlite_column_name.strip("_")
 
         return sqlite_column_name
 
-    def convert_df_col(self, df: DataFrame, table_name: str, column_name: str):
+    def convert_df_col(
+        self, df: DataFrame, table_name: str, column_name: str
+    ) -> DataFrame:
         sqlite_type = self.get_sqlite_type(table_name, column_name)
         to_db = self.get_to_db(table_name, column_name)
         match to_db:
@@ -81,7 +83,6 @@ class SpreadsheetToSqliteDb:
 
         self.sql.close_connection()
 
-    @debug_function_call
     def convert_worksheet(self, worksheet):
         table_name = valid_sqlalchemy_name(worksheet.title)
 
@@ -117,7 +118,6 @@ class SpreadsheetToSqliteDb:
             self.l.error(f"Error converting worksheet {worksheet.title}: {e}")
             raise
 
-
         # Write DataFrame to SQLite table (sheet name becomes table name)
         df.to_sql(
             table_name,
@@ -135,16 +135,19 @@ class SpreadsheetToSqliteDb:
         return spreadsheet_fields.get_to_db(table_name, column_name)
 
 
-@debug_function_call
-def main():
-    l.print(f"Converting Google Sheets spreadsheet to SQLite database\n")
+def main(args: Any = None) -> None:
+    if len(args) > 0:
+        print("This command does not accept any arguments.")
+        return
+    
+    print(f"Converting Google Sheets spreadsheet to SQLite database\n")
 
     converter = SpreadsheetToSqliteDb()
 
     # Convert spreadsheet to SQLite
     converter.convert_to_sqlite()
 
-    l.print(f"Converted Google Sheets spreadsheet to SQLite database")
+    print(f"Converted Google Sheets spreadsheet to SQLite database")
 
 
 if __name__ == "__main__":

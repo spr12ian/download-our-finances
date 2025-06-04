@@ -1,9 +1,11 @@
 # standard imports
 from pathlib import Path
+
 # pip imports
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
+
 # local imports
 from our_finances.classes.config import Config
 
@@ -80,13 +82,13 @@ class SQLAlchemyHelper:
             self.rename_column(table_name, f"{column_name}_real", column_name)
 
 
-def valid_sqlalchemy_name(name):
+def valid_sqlalchemy_name(name: str) -> str:
     valid_method_name = to_valid_method_name(name)
-    
+
     return valid_method_name
 
 
-def validate_sqlalchemy_name(name:str)-> None:
+def validate_sqlalchemy_name(name: str) -> None:
     if name != valid_sqlalchemy_name(name):
         raise ValueError(f"Invalid SQLAlchemy name: {name}")
 

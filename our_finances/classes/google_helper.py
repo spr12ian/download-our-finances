@@ -54,9 +54,9 @@ class GoogleHelper:
             raise FileNotFoundError(
                 f"Credentials file '{service_account_key_file}' does not exist."
             )
-        spreadsheet_key = config.get("OUR_FINANCES_KEY")
+        spreadsheet_key = config.get("GOOGLE_DRIVE_OUR_FINANCES_KEY")
         if not spreadsheet_key:
-            raise ValueError("OUR_FINANCES_KEY is not set in the configuration.")
+            raise ValueError("GOOGLE_DRIVE_OUR_FINANCES_KEY is not set in the configuration.")
 
         self.service_account_key_file = service_account_key_file
         self.spreadsheet_key = spreadsheet_key

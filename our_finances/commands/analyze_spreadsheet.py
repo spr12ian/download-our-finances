@@ -1,5 +1,12 @@
-from typing import Any, List
+# import standard files
+from pathlib import Path
 import time
+from typing import Any, List
+
+# import pip files
+from gspread.worksheet import Worksheet
+
+# import local files
 
 from our_finances.classes.file_helper import FileHelper
 from our_finances.classes.google_helper import GoogleHelper
@@ -75,7 +82,7 @@ class SpreadsheetAnalyzer:
 
             time.sleep(1.1)  # Prevent Google API rate limiting
 
-    def analyze_worksheet(self, worksheet) -> None:
+    def analyze_worksheet(self, worksheet: Worksheet) -> None:
 
         self.all_sheet_names.append(worksheet.title)
         if worksheet.title.startswith("_"):
@@ -161,6 +168,13 @@ class SpreadsheetAnalyzer:
         file_name = "get_account_sheet_names.js"
         self.write_output_str(output_str, file_name)
 
+    def write_account_sheet_names_py(self) -> None:
+        lines = ["ACCOUNT_SHEET_NAMES="]
+        lines.append(str(self.account_sheet_names))
+        output_str = "\n".join(lines)
+        file_name = "account_sheet_names.py"
+        self.write_output_str(output_str, file_name)
+
     def write_get_all_sheet_names_js(self) -> None:
         lines = ["function getAllSheetNames() {"]
         lines.append("  return" + str(self.all_sheet_names))
@@ -242,10 +256,11 @@ def main(args: Any = None) -> None:
     # Analyze spreadsheet
     analyzer.analyze_spreadsheet()
 
+    analyzer.write_account_sheet_names_py()
     analyzer.write_get_account_sheet_names_js()
     analyzer.write_get_all_sheet_names_js()
     analyzer.write_spreadsheet_fields_py()
 
     f = FileHelper()
-    f.set_output_from_file(__file__)
+    f.set_output_from_file(Path(__file__))
     f.append(f"Analyzed Google Sheets spreadsheet")

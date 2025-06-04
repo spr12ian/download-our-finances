@@ -1,6 +1,6 @@
 from our_finances.classes.google_helper import GoogleHelper
 from pandas_helper import PandasHelper
-fromhelper_sql import SQL_Helper
+from sql_helper import SQL_Helper
 from sqlalchemy_helper import valid_sqlalchemy_name
 from our_finances.classes.log_helper import LogHelper
 from decimal import Decimal, InvalidOperation
@@ -10,10 +10,11 @@ l = LogHelper(__file__)
 l.set_level_debug()
 l.debug(__file__)
 
+
 # Function to convert currency/percent strings to float
-def string_to_financial(string:str) -> Decimal:
+def string_to_financial(string: str) -> Decimal:
     if string.strip() == "":  # Check if the string is empty or whitespace
-        return Decimal('0.00')
+        return Decimal("0.00")
 
     # Remove any currency symbols and thousand separators
     string = re.sub(r"[^\d.,%]", "", string)
@@ -23,15 +24,14 @@ def string_to_financial(string:str) -> Decimal:
     if "%" in string:
         string = string.replace("%", "")
         try:
-            return Decimal(string) / Decimal('100')
+            return Decimal(string) / Decimal("100")
         except InvalidOperation:
-            return Decimal('0.00')
+            return Decimal("0.00")
 
     try:
         return Decimal(string)
     except InvalidOperation:
-        return Decimal('0.00')
-
+        return Decimal("0.00")
 
 
 def convert(df):
@@ -39,14 +39,17 @@ def convert(df):
     for financial_column in get_financial_columns():
         if financial_column in df.columns:
             try:
-                df[financial_column] = df[financial_column].apply(string_to_financial)                    
-                l.debug(f'df[financial_column].dtype: {df[financial_column].dtype}')                    
-                l.debug(f'df[financial_column].head: {df[financial_column].head}')                    
-                l.debug(f'df[financial_column].describe: {df[financial_column].describe}')
+                df[financial_column] = df[financial_column].apply(string_to_financial)
+                l.debug(f"df[financial_column].dtype: {df[financial_column].dtype}")
+                l.debug(f"df[financial_column].head: {df[financial_column].head}")
+                l.debug(
+                    f"df[financial_column].describe: {df[financial_column].describe}"
+                )
             except:
                 print(financial_column)
                 raise
     return df
+
 
 def get_financial_columns():
     return [

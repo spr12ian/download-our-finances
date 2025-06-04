@@ -1,7 +1,7 @@
 import database_to_spreadsheet
 import our_finances.commands.key_check as key_check
 import pytest
-import google_sheets_to_sqlite
+import our_finances.commands.google_sheets_to_sqlite as google_sheets_to_sqlite
 
 
 def f():

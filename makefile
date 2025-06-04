@@ -7,7 +7,7 @@ PYTHON := python3
 REQUIREMENTS := requirements.txt
 TOP_LEVEL_PACKAGES := google-auth gspread libcst mypy pandas pyyaml sqlalchemy types-PyYAML
 
-.PHONY: activate all analyze_spreadsheet clean freeze info key_check setup test
+.PHONY: activate all analyze_spreadsheet clean freeze google_sheets_to_sqlite info key_check setup test
 
 all: setup test
 
@@ -36,6 +36,9 @@ freeze:
 	@echo "# Top-level dev dependencies" > $(REQUIREMENTS)
 	@for pkg in $(TOP_LEVEL_PACKAGES); do echo $$pkg >> $(REQUIREMENTS); done
 	@echo "✅ Updated."
+
+google_sheets_to_sqlite:
+	@$(VENV_DIR)/bin/python -m our_finances google_sheets_to_sqlite
 
 # Show current configuration
 info:

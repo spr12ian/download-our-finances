@@ -4,6 +4,7 @@ from sqlalchemy_helper import SQLAlchemyHelper
 from our_finances.classes.log_helper import LogHelper
 from our_finances.classes.log_helper import debug_function_call
 import os
+
 # import sys
 
 l = LogHelper(__file__)
@@ -45,7 +46,7 @@ def vacuum_database():
         # Close the session
         session.close()
 
-    l.print("Database has been vacuumed")
+    print("Database has been vacuumed")
 
 
 def main():
@@ -59,7 +60,6 @@ def main():
     # args = sys.argv[1:]  # Exclude the script name
 
     # db_file_path = args[0]
-
 
     vacuum_database()
 
