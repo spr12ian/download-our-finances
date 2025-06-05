@@ -11,9 +11,7 @@ from gspread.worksheet import Worksheet
 from our_finances.classes.file_helper import FileHelper
 from our_finances.classes.google_helper import GoogleHelper
 from our_finances.classes.pandas_helper import PandasHelper
-from our_finances.classes.path_helper import PathHelper
 from our_finances.classes.sqlalchemy_helper import valid_sqlalchemy_name
-
 from our_finances.utils.string_helpers import crop
 
 TYPE_MAPPING = {
@@ -91,16 +89,12 @@ class SpreadsheetAnalyzer:
         table_name = valid_sqlalchemy_name(worksheet.title)
 
         pdh = self.pdh
-        try:
-            first_row = worksheet.row_values(1)
+        first_row = worksheet.row_values(1)
 
-            # Split columns and rows
-            df = pdh.header_to_dataframe(first_row)
-            for col in df.columns:
-                self.fields.append(self.get_column_types(table_name, col))
-
-        except Exception as e:
-            raise
+        # Split columns and rows
+        df = pdh.header_to_dataframe(first_row)
+        for col in df.columns:
+            self.fields.append(self.get_column_types(table_name, col))
 
     def get_column_types(
         self, table_name: str, spreadsheet_column_name: str
@@ -165,34 +159,26 @@ class SpreadsheetAnalyzer:
         lines.append("  return" + str(self.account_sheet_names))
         lines.append("}")
         output_str = "\n".join(lines)
-        file_name = "get_account_sheet_names.js"
-        self.write_output_str(output_str, file_name)
+        Path("get_account_sheet_names.js").write_text(output_str)
 
     def write_account_sheet_names_py(self) -> None:
         lines = ["ACCOUNT_SHEET_NAMES="]
         lines.append(str(self.account_sheet_names))
         output_str = "\n".join(lines)
-        file_name = "account_sheet_names.py"
-        self.write_output_str(output_str, file_name)
+        Path("account_sheet_names.py").write_text(output_str)
 
     def write_get_all_sheet_names_js(self) -> None:
         lines = ["function getAllSheetNames() {"]
         lines.append("  return" + str(self.all_sheet_names))
         lines.append("}")
         output_str = "\n".join(lines)
-        file_name = "get_all_sheet_names.js"
-        self.write_output_str(output_str, file_name)
+        Path("get_all_sheet_names.js").write_text(output_str)
 
     def write_spreadsheet_fields_py(self) -> None:
         prefix = self.get_prefix()
         fields_output = self.get_fields_output()
         output_str = prefix + fields_output
-        file_name = "spreadsheet_fields.py"
-        self.write_output_str(output_str, file_name)
-
-    def write_output_str(self, output_str: str, file_str: str) -> None:
-        path = PathHelper(file_str)
-        path.write_output_str(output_str)
+        Path("spreadsheet_fields.py").write_text(output_str)
 
     def get_fields_output(self) -> str:
         return str(self.fields)
