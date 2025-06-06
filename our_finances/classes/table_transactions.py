@@ -1,7 +1,7 @@
 
 from our_finances.classes.sqlite_table import SQLiteTable
 from decimal import Decimal
-import our_finances.utils.financial_helpers as uf
+import our_finances.util.financial_helpers as uf
 
 
 class Transactions(SQLiteTable):

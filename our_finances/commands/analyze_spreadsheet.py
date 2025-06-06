@@ -14,7 +14,7 @@ from our_finances.classes.pandas_helper import PandasHelper
 from our_finances.classes.path_helper import PathHelper
 from our_finances.classes.sqlalchemy_helper import valid_sqlalchemy_name
 
-from our_finances.utils.string_helpers import crop
+from our_finances.util.string_helpers import crop
 
 TYPE_MAPPING = {
     " (£)": {
@@ -169,8 +169,7 @@ class SpreadsheetAnalyzer:
         self.write_output_str(output_str, file_name)
 
     def write_account_sheet_names_py(self) -> None:
-        lines = ["ACCOUNT_SHEET_NAMES="]
-        lines.append(str(self.account_sheet_names))
+        lines = ["ACCOUNT_SHEET_NAMES=" + str(self.account_sheet_names)]
         output_str = "\n".join(lines)
         file_name = "account_sheet_names.py"
         self.write_output_str(output_str, file_name)
@@ -199,43 +198,43 @@ class SpreadsheetAnalyzer:
 
     def get_prefix(self) -> str:
         prefix = """# spreadsheet_fields.py
-def get_field_by_spreadsheet_column_name(table_name, spreadsheet_column_name):
+def get_field_by_spreadsheet_column_name(table_name:str, spreadsheet_column_name:str):
     for field in fields:
         if field[1] == spreadsheet_column_name and field[0] == table_name:
             return field
     return None
 
-def get_field_by_sqlite_column_name(table_name, sqlite_column_name):
+def get_field_by_sqlite_column_name(table_name:str, sqlite_column_name:str):
     for field in fields:
         if field[2] == sqlite_column_name and field[0] == table_name:
             return field
     return None
 
-def get_from_db(table_name, column_name):
+def get_from_db(table_name:str, column_name:str):
     field = get_field_by_sqlite_column_name(
         table_name, column_name
     )
     return field[5] # from_db
 
-def get_python_type(table_name, column_name):
+def get_python_type(table_name:str, column_name:str):
     field = get_field_by_sqlite_column_name(
         table_name, column_name
     )
     return field[6] # python_type
 
-def get_sqlalchemy_type(table_name, column_name):
+def get_sqlalchemy_type(table_name:str, column_name:str):
     field = get_field_by_sqlite_column_name(
         table_name, column_name
     )
     return field[7] # sqlalchemy_type
 
-def get_sqlite_type(table_name, column_name):
+def get_sqlite_type(table_name:str, column_name:str):
     field = get_field_by_sqlite_column_name(
         table_name, column_name
     )
     return field[4] # sqlite_type
 
-def get_to_db(table_name, column_name):
+def get_to_db(table_name:str, column_name:str):
     field = get_field_by_sqlite_column_name(
         table_name, column_name
     )

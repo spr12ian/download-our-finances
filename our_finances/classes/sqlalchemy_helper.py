@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from our_finances.classes.config import Config
 
 
-from our_finances.utils.string_helpers import to_valid_method_name
+from our_finances.util.string_helpers import to_valid_method_name
 
 
 class SQLAlchemyHelper:

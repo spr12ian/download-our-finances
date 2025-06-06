@@ -1,12 +1,14 @@
 import time
-from pandas import DataFrame # type ignore
+from pandas import DataFrame
 from typing import Any
+
+from gspread import Worksheet
 from our_finances.classes.config import Config
 from our_finances.classes.google_helper import GoogleHelper
 from our_finances.classes.pandas_helper import PandasHelper
 from our_finances.classes.sql_helper import SQL_Helper
 from our_finances.classes.sqlalchemy_helper import valid_sqlalchemy_name
-from our_finances.utils.string_helpers import crop
+from our_finances.util.string_helpers import crop
 from database_keys import get_primary_key_columns, has_primary_key
 import spreadsheet_fields
 
@@ -83,7 +85,7 @@ class SpreadsheetToSqliteDb:
 
         self.sql.close_connection()
 
-    def convert_worksheet(self, worksheet):
+    def convert_worksheet(self, worksheet:Worksheet):
         table_name = valid_sqlalchemy_name(worksheet.title)
 
         pdh = self.pdh

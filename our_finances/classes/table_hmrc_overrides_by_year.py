@@ -1,7 +1,7 @@
 
 from sqlalchemy_helper import valid_sqlalchemy_name
 from our_finances.classes.sqlite_table import SQLiteTable
-from our_finances.utils.financial_helpers import string_to_float
+from our_finances.util.financial_helpers import string_to_float
 from functools import lru_cache
 
 

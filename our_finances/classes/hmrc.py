@@ -2,13 +2,12 @@
 from functools import lru_cache
 from decimal import Decimal
 # local imports
-from our_finances.classes.log_helper import LogHelper
 from our_finances.classes.sql_helper import SQL_Helper
 from our_finances.classes.sqlalchemy_helper import valid_sqlalchemy_name
 from our_finances.classes.hmrc_calculation import HMRC_Calculation
 from our_finances.classes.hmrc_people import HMRC_People
+from our_finances.util import boolean_helpers, financial_helpers
 from tables import *
-import our_finances.utils.financial_helpers as uf
 from our_finances.classes.hmrc_output import HMRC_Output
 
 
@@ -351,8 +350,7 @@ class HMRC:
             self.are_you_claiming_back_cis_tax_already_paid(),
             self.are_you_claiming_relief_for_a_loss(),
         ]
-        self.l.debug(conditions)
-        return uf.all_conditions_are_false(conditions)
+        return boolean_helpers.all_conditions_are_false(conditions)
 
     def did_none_of_these_apply__class_4_nics_(self):
         conditions = [
@@ -362,7 +360,7 @@ class HMRC:
             self.are_you_a_trustee__executor_or_administrator(),
             self.are_you_a_diver(),
         ]
-        return uf.all_conditions_are_false(conditions)
+        return boolean_helpers.all_conditions_are_false(conditions)
 
     def did_property_rental_income_cease(self):
         return False
@@ -525,7 +523,7 @@ class HMRC:
         return "\n" + "\n".join(formatted_lines) + "\n"
 
     def gbp(self, amount: Decimal, field_width: int = 0) -> str:
-        return uf.format_as_gbp(amount, field_width)
+        return financial_helpers.format_as_gbp(amount, field_width)
 
     def gbpa(self, amount: Decimal, field_width: int = 10) -> str:
         return self.gbp(amount, field_width)
@@ -1096,7 +1094,7 @@ class HMRC:
 
     def get_first_payment_on_account_for_next_year(self) -> Decimal:
         values = [self.get_income_tax(), self.get_class_4_nics_due()]
-        total = uf.sum_values(values)
+        total = financial_helpers.sum_values(values)
         first_payment_on_account_for_next_year = total / 2
         return first_payment_on_account_for_next_year
 
@@ -1222,7 +1220,7 @@ class HMRC:
             self.get_savings_income(),
             self.get_dividends_income(),
         ]
-        return uf.sum_values(values)
+        return financial_helpers.sum_values(values)
 
     def get_how_many_businesses(self):
         hmrc_businesses = self.get_hmrc_businesses()
@@ -1525,7 +1523,7 @@ class HMRC:
     def get_non_savings_income(self):
         self.l.debug("get_non_savings_income")
         values = [self.get_trading_profit(), self.get_property_profit()]
-        non_savings_income = uf.sum_values(values)
+        non_savings_income = financial_helpers.sum_values(values)
         self.l.debug(f"non_savings_income: {non_savings_income}")
         return non_savings_income
 
@@ -1758,7 +1756,7 @@ class HMRC:
             self.get_property_repairs_and_maintenance(),
             self.get_legal_or_management_and_other_professional_fees(),
         ]
-        total_property_expenses = uf.sum_values(property_expenses)
+        total_property_expenses = financial_helpers.sum_values(property_expenses)
         return total_property_expenses
 
     def get_property_expenses_actual_gbp(self):
@@ -2160,7 +2158,7 @@ class HMRC:
             self.get_savings_income(),
             self.get_dividends_income(),
         ]
-        taxable_income = uf.sum_values(values)
+        taxable_income = financial_helpers.sum_values(values)
         self.l.debug(f"taxable_income: {taxable_income}")
         return taxable_income
 
@@ -2276,7 +2274,7 @@ class HMRC:
             self.get_taxable_savings(),
             self.get_taxable_dividends(),
         ]
-        total_taxable_income = uf.sum_values(values)
+        total_taxable_income = financial_helpers.sum_values(values)
         self.l.debug(f"total_taxable_income: {total_taxable_income}")
         return total_taxable_income
 
@@ -2308,7 +2306,7 @@ class HMRC:
             self.get_total_tax_due(),
             self.get_first_payment_on_account_for_next_year(),
         ]
-        total_amounts = uf.sum_values(values)
+        total_amounts = financial_helpers.sum_values(values)
         return total_amounts
 
     def get_total_to_add_to_sa_account_due_by_31st_january_gbp(self):
@@ -2746,10 +2744,10 @@ class HMRC:
         return False
 
     def round_down(self, amount: Decimal, places: int = 2) -> Decimal:
-        return uf.round_down_decimal(amount, places)
+        return financial_helpers.round_down_decimal(amount, places)
 
     def round_up(self, amount: Decimal, places: int = 2) -> Decimal:
-        return uf.round_up_decimal(amount, places)
+        return financial_helpers.round_up_decimal(amount, places)
 
     def should_you_pay_voluntary_class_2_nics__profits___cusp(self) -> bool:
         turnover = self.get_trading_income()

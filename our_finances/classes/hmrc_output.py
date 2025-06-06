@@ -1,5 +1,5 @@
 from tables import *
-import our_finances.utils.financial_helpers as uf
+import our_finances.util.financial_helpers as uf
 
 
 class HMRC_Output:

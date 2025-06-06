@@ -2,7 +2,7 @@ from sqlalchemy_helper import SQLAlchemyHelper
 from helper_date_time import DateTimeHelper
 from models import AccountBalances, BankAccounts, Transactions
 from sqlalchemy import func, not_, text, cast, DECIMAL
-import our_finances.utils.financial_helpers as uf
+import our_finances.util.financial_helpers as uf
 from sqlalchemy.dialects import sqlite
 from sqlalchemy.orm import relationship
 from decimal import Decimal, InvalidOperation

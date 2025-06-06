@@ -9,7 +9,7 @@ from sqlalchemy import (
     Float,
 )
 from sqlalchemy.ext.automap import automap_base
-from our_finances.utils.financial_helpers import to_camel_case
+from our_finances.util.financial_helpers import to_camel_case
 from spreadsheet_fields import get_sqlalchemy_type
 
 
